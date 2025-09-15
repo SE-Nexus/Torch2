@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="docker-compose.dcproj">
+    <Build />
+  </Project>
+  <Project Path="IgniteSE1/IgniteSE1.csproj" Id="18569b32-136d-4a7e-a3f3-63d84f90ad11" />
+</Solution>

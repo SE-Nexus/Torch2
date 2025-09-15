@@ -1,0 +1,6 @@
+services:
+  ignitese1:
+    image: ${DOCKER_REGISTRY-}ignitese1
+    build:
+      context: IgniteSE1
+      dockerfile: Dockerfile
