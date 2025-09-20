@@ -3,8 +3,9 @@
     "Docker Compose": {
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
+      "composeLaunchServiceName": "ignitese1",
       "serviceActions": {
-        "ignitese1": "StartDebugging"
+        "ignitese1": "StartWithoutDebugging"
       }
     }
   }
