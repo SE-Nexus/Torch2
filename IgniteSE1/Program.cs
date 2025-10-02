@@ -1,4 +1,5 @@
-﻿using IgniteSE1.Services;
+﻿using IgniteSE1.Models;
+using IgniteSE1.Services;
 using IgniteSE1.Utilities;
 using IgniteSE1.Utilities.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +37,7 @@ namespace IgniteSE1
             services.AddSingletonWithBase<ConfigService>(ConfigService);
             services.AddSingletonWithBase<ConsoleManager>(IgniteConsole);
             services.AddSingletonWithBase<SteamService>();
+            services.AddSingletonWithBase<ServerStateService>();
             services.AddSingleton<ServiceManager>();
             services.AddHttpClient();
 
@@ -50,8 +52,16 @@ namespace IgniteSE1
             
 
             ServiceManager serviceManager = provider.GetService<ServiceManager>();
-            await serviceManager.StartAllServices();
+            bool success = await serviceManager.StartAllServices();
 
+
+            await Task.Delay(10000);
+
+            ServerStateService s = provider.GetService<ServerStateService>();
+            s.ChangeServerStatus(ServerStatusEnum.Running);
+
+            await Task.Delay(2000);
+            s.RequestServerStateChange(ServerStateCommand.Kill);
 
             Console.ReadKey();
             //AnsiConsole.Markup("[underline red]Hello[/] World!");

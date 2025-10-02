@@ -33,6 +33,10 @@ namespace IgniteSE1.Configs
         public string IgniteCMDName { get; set; } = "Ignite SE1";
 
 
+        [YamlMember(Description = "Auto Starts the Server")]
+        public bool AutoStartServer { get; set; } = true;
+
+
         [YamlMember(Description = "Directories Configuration")]
         public DirectoriesConfig Directories { get; set; } = new DirectoriesConfig();
 

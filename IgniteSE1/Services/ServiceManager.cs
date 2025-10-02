@@ -13,6 +13,7 @@ namespace IgniteSE1.Services
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
         private SteamService _steamService; 
+        private ServerStateService _serverState;
 
         public IEnumerable<ServiceBase> _Services { get; private set; }
 
@@ -20,10 +21,11 @@ namespace IgniteSE1.Services
 
 
 
-        public ServiceManager(IEnumerable<ServiceBase> services, SteamService steamService) 
+        public ServiceManager(IEnumerable<ServiceBase> services, SteamService steamService, ServerStateService serverstate) 
         {
             _Services = services;
             _steamService = steamService; // Ensure SteamService is injected. We will need to init this first
+            _serverState = serverstate;
         }
 
         public async Task<bool> StartAllServices()
@@ -78,6 +80,12 @@ namespace IgniteSE1.Services
                         }
                     }
                 });
+
+
+            if (allSucceeded)
+                _serverState.ChangeServerStatus(Models.ServerStatusEnum.Idle);
+            else
+                _serverState.ChangeServerStatus(Models.ServerStatusEnum.Error);
 
             return allSucceeded;
 
