@@ -10,14 +10,14 @@ using System.Threading.Tasks;
 
 namespace IgniteSE1.Services
 {
-    public class IgniteConfigService : ServiceBase
+    public class ConfigService : ServiceBase
     {
         private const string _cfgName = "cfg.yml";
 
         public IgniteSE1Config Config { get; private set; }
 
 
-        public IgniteConfigService() { }
+        public ConfigService() { }
 
 
         public void LoadConfig()

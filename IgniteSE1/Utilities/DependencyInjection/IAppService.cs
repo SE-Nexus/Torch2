@@ -22,11 +22,11 @@ namespace IgniteSE1.Utilities
     {
 
         /// <summary>
-        /// Initializes the component and prepares it for use.
+        /// Initializes the system and prepares it for operation.
         /// </summary>
-        /// <remarks>Call this method before performing any operations that depend on the component being
-        /// ready. Subsequent calls may have no effect if the component is already initialized.</remarks>
-        void Init();
+        /// <returns>A task that represents the asynchronous operation. The task result is <see langword="true"/> if the
+        /// initialization succeeds; otherwise, <see langword="false"/>.</returns>
+        Task<bool> Init();
 
         /// <summary>
         /// Stops the current operation or service.

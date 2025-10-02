@@ -19,7 +19,7 @@ namespace IgniteSE1
         static async Task Main(string[] args)
         {
             //Setup directories and logging
-            IgniteConfigService ConfigService = new IgniteConfigService();
+            ConfigService ConfigService = new ConfigService();
             ConsoleManager IgniteConsole = new ConsoleManager(ConfigService);
             
 
@@ -33,28 +33,27 @@ namespace IgniteSE1
 
             // Setup Dependency Injection
             IServiceCollection services = new ServiceCollection();
-            services.AddSingletonWithBase<IgniteConfigService>(ConfigService);
+            services.AddSingletonWithBase<ConfigService>(ConfigService);
             services.AddSingletonWithBase<ConsoleManager>(IgniteConsole);
+            services.AddSingletonWithBase<SteamService>();
             services.AddSingleton<ServiceManager>();
+            services.AddHttpClient();
 
 
 
-           
+
 
 
 
             ConfigureServices(services);
-
             IServiceProvider provider = services.BuildServiceProvider(true);
             
 
-            foreach (var svc in provider.GetServices<ServiceBase>())
-            {
-                AnsiConsole.MarkupLine($"[green]Starting service:[/] [yellow]{svc.GetType().Name}[/]");
-            }
+            ServiceManager serviceManager = provider.GetService<ServiceManager>();
+            await serviceManager.StartAllServices();
 
 
-            var s = provider.GetService<ServiceManager>();
+            Console.ReadKey();
             //AnsiConsole.Markup("[underline red]Hello[/] World!");
         }
 

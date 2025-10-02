@@ -21,9 +21,9 @@ namespace IgniteSE1.Utilities
         private static string mutexName;
 
         // Configuration service reference
-        private IgniteConfigService _configs;
+        private ConfigService _configs;
 
-        public ConsoleManager(IgniteConfigService configs) 
+        public ConsoleManager(ConfigService configs) 
         {
             _configs = configs;
             mutexName = AppDomain.CurrentDomain.FriendlyName.Replace("\\", "_");

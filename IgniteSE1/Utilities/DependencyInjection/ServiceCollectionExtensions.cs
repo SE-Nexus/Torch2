@@ -25,5 +25,24 @@ namespace IgniteSE1.Utilities.DependencyInjection
 
             return services;
         }
+
+        // Register by type (let DI construct it)
+        public static IServiceCollection AddSingletonWithBase<TService>(
+            this IServiceCollection services)
+            where TService : class
+        {
+            services.AddSingleton<TService>();
+
+            // At runtime, resolve and cast
+            services.AddSingleton<ServiceBase>(sp =>
+            {
+                var resolved = sp.GetRequiredService<TService>();
+                return resolved as ServiceBase
+                       ?? throw new InvalidOperationException(
+                           $"{typeof(TService).Name} must inherit ServiceBase to be registered as ServiceBase.");
+            });
+
+            return services;
+        }
     }
 }

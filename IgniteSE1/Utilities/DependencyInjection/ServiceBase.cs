@@ -8,32 +8,32 @@ namespace IgniteSE1.Utilities
 {
     public abstract class ServiceBase : IAppService
     {
-        public void Init()
+        public virtual Task<bool> Init()
+        {
+            return Task.FromResult(true);
+        }
+
+        public virtual void ServerStarted()
         {
             
         }
 
-        public void ServerStarted()
+        public virtual void ServerStarting()
         {
             
         }
 
-        public void ServerStarting()
+        public virtual void ServerStopped()
         {
             
         }
 
-        public void ServerStopped()
+        public virtual void ServerStopping()
         {
             
         }
 
-        public void ServerStopping()
-        {
-            
-        }
-
-        public void Stop()
+        public virtual void Stop()
         {
             
         }
