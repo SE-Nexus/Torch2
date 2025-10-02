@@ -8,6 +8,16 @@ namespace IgniteSE1.Utilities
 {
 
     //We will pull most of this stuff out into a seperate library later
+
+    /// <summary>
+    /// Defines the contract for application service components that manage initialization, lifecycle notifications, and
+    /// operational control within the application.
+    /// </summary>
+    /// <remarks>Implement this interface to provide standardized methods for initializing, starting,
+    /// stopping, and handling server lifecycle events. The interface is intended for use by components that require
+    /// explicit control over their operational state and need to respond to server startup and shutdown notifications.
+    /// Implementations should ensure that lifecycle methods are called in the appropriate order to maintain consistent
+    /// application behavior.</remarks>
     internal interface IAppService
     {
 
