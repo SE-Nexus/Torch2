@@ -1,4 +1,7 @@
-﻿using System;
+﻿using IgniteSE1.Utilities;
+using Microsoft.Extensions.DependencyInjection;
+using Spectre.Console;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,22 +13,28 @@ namespace IgniteSE1
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            var stdout = Console.OpenStandardOutput();
-            var writer = new StreamWriter(stdout) { AutoFlush = true };
-            Console.SetOut(writer);
-            Console.SetError(writer);
+            
 
-            Console.WriteLine("Now this goes to Docker logs");
+            //Setup directories and logging
+            ConsoleManager consoleM = new ConsoleManager();
 
-            Console.WriteLine("Hello World!");
 
-            while(true)
-            {
-                Console.WriteLine("Test");
-                Thread.Sleep(1000); 
-            }
+            IServiceCollection services = new ServiceCollection();
+            //AnsiConsole.Markup("[underline red]Hello[/] World!");
+
+        }
+
+
+
+
+        public static void ConfigureServices(IServiceCollection services)
+        {
+            // Add other services
+
+
+
         }
     }
 }
