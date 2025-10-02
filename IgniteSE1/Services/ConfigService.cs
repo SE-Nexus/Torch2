@@ -31,7 +31,7 @@ namespace IgniteSE1.Services
         public override async Task<bool> Init()
         {
             //Test timeout
-            await Task.Delay(20000);
+            await Task.Delay(2000);
             return true;
         }
 
