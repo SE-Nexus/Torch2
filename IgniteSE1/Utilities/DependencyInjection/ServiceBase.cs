@@ -8,6 +8,8 @@ namespace IgniteSE1.Utilities
 {
     public abstract class ServiceBase : IAppService
     {
+        public bool IsInitialized { get; internal set; } = false;
+
         public virtual Task<bool> Init()
         {
             return Task.FromResult(true);

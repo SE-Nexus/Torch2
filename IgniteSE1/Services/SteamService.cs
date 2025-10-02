@@ -56,9 +56,7 @@ namespace IgniteSE1.Services
             }
 
             _logger.Info("SteamService initialized.");
-
-
-
+            IsInitialized = true;
             return true;
         }
 
