@@ -1,6 +1,7 @@
 ﻿using IgniteSE1.Models;
 using IgniteSE1.Utilities;
 using NLog;
+using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -126,7 +127,7 @@ namespace IgniteSE1.Services
             CurrentSateRequest = newState;
 
             // Raise the ServerStateChanged event to notify subscribers of the state change
-            _logger.Info($"Server state changed to: {CurrentSateRequest}");
+            _logger.InfoColor($"Server state changed to: {CurrentSateRequest}", Color.Green);
             ServerStateChanged?.Invoke(this, CurrentSateRequest);
             ChangeServerStatus(RequestedStatus);
             return true;
@@ -193,7 +194,7 @@ namespace IgniteSE1.Services
             }
 
             CurrentServerStatus = newStatus;
-            _logger.Info($"Server status changed to: {CurrentServerStatus}");
+            _logger.InfoColor($"Server status changed to: {CurrentServerStatus}", Color.Yellow);
             ServerStatusChanged?.Invoke(this, CurrentServerStatus);
             return true;
         }
