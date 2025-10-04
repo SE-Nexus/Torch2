@@ -8,7 +8,7 @@ using YamlDotNet.Serialization;
 
 namespace IgniteSE1.Configs
 {
-    public class IgniteSE1Config : ConfigBase<IgniteSE1Config>
+    public class IgniteSE1Cfg : ConfigBase<IgniteSE1Cfg>
     {
 
         #region Yaml Groups
@@ -23,6 +23,9 @@ namespace IgniteSE1.Configs
 
             [YamlMember(Description = "Path to Mod Storage")]
             public string ModStorage { get; set; } = "Mods";
+
+            [YamlMember(Description = "Path to Instance Storage")]
+            public string Instances { get; set; } = "Instances";
         }
 
         #endregion
@@ -39,6 +42,9 @@ namespace IgniteSE1.Configs
 
         [YamlMember(Description = "Directories Configuration")]
         public DirectoriesConfig Directories { get; set; } = new DirectoriesConfig();
+
+        [YamlMember(Description = "Target Instance to Load")]
+        public string TargetInstance { get; set; } = "MyNewIgniteInstance";
 
 
 

@@ -14,7 +14,7 @@ namespace IgniteSE1.Services
     {
         private const string _cfgName = "cfg.yml";
 
-        public IgniteSE1Config Config { get; private set; }
+        public IgniteSE1Cfg Config { get; private set; }
 
 
         public ConfigService() { }
@@ -23,7 +23,7 @@ namespace IgniteSE1.Services
         public void LoadConfig()
         {
             string fileName = Path.Combine(AppContext.BaseDirectory, _cfgName);
-            Config = IgniteSE1Config.LoadYaml(fileName);
+            Config = IgniteSE1Cfg.LoadYaml(fileName);
 
 
         }

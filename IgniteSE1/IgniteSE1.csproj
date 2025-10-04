@@ -164,12 +164,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configs\IgniteSE1Config.cs" />
+    <Compile Include="Configs\IgniteSE1Cfg.cs" />
+    <Compile Include="Configs\InstanceCfg.cs" />
     <Compile Include="Models\ServerStatusEnum.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\AssemblyResolverService.cs" />
     <Compile Include="Services\GameService.cs" />
+    <Compile Include="Services\InstanceManager.cs" />
     <Compile Include="Services\ServerStateService.cs" />
     <Compile Include="Services\ServiceManager.cs" />
     <Compile Include="Services\SteamService.cs" />

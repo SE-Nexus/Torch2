@@ -40,6 +40,8 @@ namespace IgniteSE1
             services.AddSingletonWithBase<ServerStateService>();
             services.AddSingletonWithBase<AssemblyResolverService>();
             services.AddSingletonWithBase<GameService>();
+            services.AddSingletonWithBase<InstanceManager>();
+
             services.AddSingleton<ServiceManager>();
             services.AddHttpClient();
 
