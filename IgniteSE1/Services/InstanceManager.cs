@@ -1,21 +1,32 @@
-﻿using IgniteSE1.Configs;
+﻿using HarmonyLib;
+using IgniteSE1.Configs;
 using IgniteSE1.Utilities;
 using Microsoft.Extensions.Logging;
 using NLog;
+using Sandbox.Engine.Utils;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design.Serialization;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VRage.FileSystem;
+using VRage.Game;
+using VRage.Game.ModAPI;
+using static VRage.Dedicated.Configurator.SelectInstanceForm;
 
 namespace IgniteSE1.Services
 {
+    [HarmonyPatch]
     public class InstanceManager : ServiceBase
     {
         private const string _instanceCfgFilename = "instancecfg.yaml";
+        private const string _DedicatedCfgFilename = "SpaceEngineers-Dedicated.cfg";
+        private const string _worldSavesFolder = "Saves";
+
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private ConfigService _configs;
         private string _instanceDirectory;
@@ -120,11 +131,13 @@ namespace IgniteSE1.Services
             try
             {
                 Directory.CreateDirectory(fullPath);
+                Directory.CreateDirectory(Path.Combine(fullPath, _worldSavesFolder)); // Create Saves directory
+
                 cfg.filePath = Path.Combine(fullPath, _instanceCfgFilename); // Set the file path for the instance configuration
                 cfg.InstanceName = NeName;
                 cfg.InstancePath = Path.Combine(_instanceDirectory, InstanceName); // Set the instance path in the config
-
                 cfg.Save(); // Save the configuration to the file
+
                 _instances.Add(cfg); // Add the new instance configuration to the list
                 return (true, "Instance Created Successfully");
             }
@@ -180,9 +193,40 @@ namespace IgniteSE1.Services
             return cfg != null;
         }
 
+
+
+
         public InstanceCfg GetCurrentInstance()
         {
             return _selectedInstance;
+        }
+
+        public IMyConfigDedicated GetServerConfigs()
+        {
+            var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _selectedInstance.InstancePath, _DedicatedCfgFilename);
+            var gameconfig = new MyConfigDedicated<MyObjectBuilder_SessionSettings>(configPath);
+
+            /// Load or create the config file
+            if (File.Exists(configPath))
+            {
+                gameconfig.Load();
+            }
+            else
+            {
+                gameconfig.Save();
+            }
+
+            if (_selectedInstance == null)
+                return null;
+
+            return null;
+        }
+
+
+        [HarmonyPatch(typeof(MyFileSystem), "Init")]
+        private static void InitFileSystem_Prefix(string contentPath, string userData, string modDirName = "Mods", string shadersBasePath = null, string modsCachePath = null)
+        {
+            Console.WriteLine($"[Harmony] MyFileSystem.Init called with contentPath: {contentPath}, userData: {userData}");
         }
 
 

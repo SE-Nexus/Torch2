@@ -54,6 +54,9 @@
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="0Harmony, Version=2.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Lib.Harmony.2.4.1\lib\net48\0Harmony.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.9, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.9.0.9\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
@@ -155,6 +158,10 @@
       <HintPath>bin\Debug\Game\DedicatedServer64\VRage.Game.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="VRage.Library">
+      <HintPath>bin\Debug\Game\DedicatedServer64\VRage.Library.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="VRage.Math">
       <HintPath>bin\Debug\Game\DedicatedServer64\VRage.Math.dll</HintPath>
       <Private>False</Private>
@@ -172,6 +179,7 @@
     <Compile Include="Services\AssemblyResolverService.cs" />
     <Compile Include="Services\GameService.cs" />
     <Compile Include="Services\InstanceManager.cs" />
+    <Compile Include="Services\PatchService.cs" />
     <Compile Include="Services\ServerStateService.cs" />
     <Compile Include="Services\ServiceManager.cs" />
     <Compile Include="Services\SteamService.cs" />

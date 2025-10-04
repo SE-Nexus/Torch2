@@ -61,7 +61,7 @@ namespace IgniteSE1.Services
                         continue;
 
                     //We should put this on a debug level, but for now we want to see it
-                    _logger.Info($"Resolving assembly {assemblyName} from directory {dir}...");
+                    //_logger.Info($"Resolving assembly {assemblyName} from directory {dir}...");
                     return Assembly.LoadFrom(candidatePath);
                     
 
