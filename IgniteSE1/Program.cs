@@ -38,6 +38,8 @@ namespace IgniteSE1
             services.AddSingletonWithBase<ConsoleManager>(IgniteConsole);
             services.AddSingletonWithBase<SteamService>();
             services.AddSingletonWithBase<ServerStateService>();
+            services.AddSingletonWithBase<AssemblyResolverService>();
+            services.AddSingletonWithBase<GameService>();
             services.AddSingleton<ServiceManager>();
             services.AddHttpClient();
 

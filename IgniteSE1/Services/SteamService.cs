@@ -196,6 +196,7 @@ namespace IgniteSE1.Services
                     await WaitForExitAsync(cmdProcess);
                 }
 
+                AnsiConsole.WriteLine($"SteamCMD ExitCode: {cmdProcess.ExitCode}");
                 return cmdProcess.ExitCode == 0;
             }
         }
