@@ -36,7 +36,7 @@ namespace IgniteSE1.Services
         {
             //If user error lets fill out a default instance
             if (string.IsNullOrWhiteSpace(_configs.Config.TargetInstance))
-                _configs.Config.TargetInstance = "newInstance";
+                _configs.Config.TargetInstance = "MyNewIgniteInstance";
 
             //Load all instances from the instances directory
             if (_instances.Count == 0)
@@ -178,6 +178,11 @@ namespace IgniteSE1.Services
             // This method should return the instance configuration by name
             cfg = _instances.FirstOrDefault(instance => instance.InstanceName.Equals(instanceName, StringComparison.OrdinalIgnoreCase));
             return cfg != null;
+        }
+
+        public InstanceCfg GetCurrentInstance()
+        {
+            return _selectedInstance;
         }
 
 

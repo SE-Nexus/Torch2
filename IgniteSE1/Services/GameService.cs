@@ -1,4 +1,5 @@
-﻿using IgniteSE1.Utilities;
+﻿using IgniteSE1.Configs;
+using IgniteSE1.Utilities;
 using Sandbox.Engine.Platform;
 using SpaceEngineers.Game;
 using System;
@@ -12,11 +13,12 @@ namespace IgniteSE1.Services
     public class GameService : ServiceBase
     {
         private ConfigService _configs;
+        private InstanceManager _instanceManager;
 
-        public GameService(ConfigService configs) 
+        public GameService(ConfigService configs, InstanceManager instance) 
         {
             _configs = configs;
-
+            _instanceManager = instance;
 
         }
 
@@ -37,6 +39,15 @@ namespace IgniteSE1.Services
 
             return base.Init();
         }
+
+        public override void AfterInit()
+        {
+            InstanceCfg cfg = _instanceManager.GetCurrentInstance();
+
+            base.AfterInit();
+        }
+
+        
 
     }
 }

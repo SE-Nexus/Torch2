@@ -79,6 +79,20 @@ namespace IgniteSE1.Services
                             AnsiConsole.MarkupLine($"[green] Initialized:[/] {type}");
                         }
                     }
+
+                    //After init hooks
+                    if (allSucceeded)
+                    {
+                        foreach(var svc in _Services)
+                        {
+                            if (!svc.IsInitialized)
+                                continue;
+
+                            svc.AfterInit();
+                        }
+                    }
+
+
                 });
 
 

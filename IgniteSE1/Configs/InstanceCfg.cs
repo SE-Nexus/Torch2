@@ -11,7 +11,7 @@ namespace IgniteSE1.Configs
     public class InstanceCfg : ConfigBase<InstanceCfg>
     {
         [YamlIgnore]
-        public string InstanceName { get; set; } = "MyNewIgniteInstance";
+        public string InstanceName { get; set; } = "";
 
         [YamlIgnore]
         public string InstancePath { get; set; } = "";

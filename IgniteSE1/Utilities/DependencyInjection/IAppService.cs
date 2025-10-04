@@ -28,6 +28,14 @@ namespace IgniteSE1.Utilities
         /// initialization succeeds; otherwise, <see langword="false"/>.</returns>
         Task<bool> Init();
 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        void AfterInit();
+
+
+
         /// <summary>
         /// Stops the current operation or service.
         /// </summary>

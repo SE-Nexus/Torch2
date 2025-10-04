@@ -15,6 +15,11 @@ namespace IgniteSE1.Utilities
             return Task.FromResult(true);
         }
 
+        public virtual void AfterInit()
+        {
+            
+        }
+
         public virtual void ServerStarted()
         {
             
