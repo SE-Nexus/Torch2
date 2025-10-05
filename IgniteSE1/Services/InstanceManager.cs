@@ -226,7 +226,7 @@ namespace IgniteSE1.Services
         [HarmonyPatch(typeof(MyFileSystem), "Init")]
         private static void InitFileSystem_Prefix(string contentPath, string userData, string modDirName = "Mods", string shadersBasePath = null, string modsCachePath = null)
         {
-            Console.WriteLine($"[Harmony] MyFileSystem.Init called with contentPath: {contentPath}, userData: {userData}");
+            //Console.WriteLine($"[Harmony] MyFileSystem.Init called with contentPath: {contentPath}, userData: {userData}");
         }
 
 

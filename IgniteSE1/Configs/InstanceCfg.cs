@@ -17,8 +17,6 @@ namespace IgniteSE1.Configs
         public string InstancePath { get; set; } = "";
 
 
-
-
         [YamlMember(Description = "A User Defined Description for this instance")]
         public string Description { get; set; } = "";
 
