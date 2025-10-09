@@ -15,6 +15,9 @@ using VRage.Utils.Keen;
 
 namespace IgniteSE1.Patches
 {
+    /// <summary>
+    /// Largely copied from SE1 to log keen log to NLog Target
+    /// </summary>
     [HarmonyPatch]
     public class KeenLogPatch
     {
