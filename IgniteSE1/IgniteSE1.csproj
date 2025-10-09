@@ -194,6 +194,7 @@
     <Compile Include="Configs\IgniteSE1Cfg.cs" />
     <Compile Include="Configs\InstanceCfg.cs" />
     <Compile Include="Models\ServerStatusEnum.cs" />
+    <Compile Include="Patches\KeenLogPatch.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\AssemblyResolverService.cs" />

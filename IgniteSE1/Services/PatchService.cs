@@ -52,7 +52,9 @@ namespace IgniteSE1.Services
                             if (targetType == null || targetMethodName == null)
                                 continue;
 
-                            var targetMethod = AccessTools.Method(targetType, targetMethodName);
+                         
+
+                            var targetMethod = AccessTools.Method(targetType, targetMethodName, patchAttr.info.argumentTypes);
                             if (targetMethod == null)
                             {
                                 Console.WriteLine("[TorchHarmony] Could not find " + targetType.FullName + "." + targetMethodName);

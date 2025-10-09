@@ -1,4 +1,5 @@
-﻿using IgniteSE1.Services;
+﻿using IgniteSE1.Models;
+using IgniteSE1.Services;
 using IgniteSE1.Utilities;
 using NLog;
 using NLog.Config;
@@ -43,8 +44,7 @@ namespace IgniteSE1.Utilities
             if (CheckMutexNew())
             {
                 // New App
-                Console.Title = _configs.Config.IgniteCMDName;
-
+                UpdateConsoleTitleStatus(ServerStatusEnum.Initializing);
                 SetupConsole();
 
                 return true;
@@ -53,12 +53,19 @@ namespace IgniteSE1.Utilities
             {
                 //Existing App Already Running. We should continue with CLI mode
                 Console.Title = "IgniteSE1 CLI Mode";
-
-
                 return false;
             }
+        }
 
 
+        public void UpdateConsoleTitleStatus(ServerStatusEnum status)
+        {
+            UpdateConsoleTitle($"{_configs.Config.IgniteCMDName} [{status}]");
+        }
+
+        public void UpdateConsoleTitle(string newTitle)
+        {
+            Console.Title = newTitle;
         }
 
 

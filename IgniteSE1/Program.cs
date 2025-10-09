@@ -59,9 +59,6 @@ namespace IgniteSE1
             ServiceManager serviceManager = provider.GetService<ServiceManager>();
             bool success = await serviceManager.StartAllServices();
 
-            ServerStateService s = provider.GetService<ServerStateService>();
-            s.ChangeServerStatus(ServerStatusEnum.Running);
-
             //await Task.Delay(2000);
             //s.RequestServerStateChange(ServerStateCommand.Kill);
 

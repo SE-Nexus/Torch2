@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VRage;
 
 namespace IgniteSE1.Services
 {
@@ -19,6 +20,7 @@ namespace IgniteSE1.Services
     {
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly ConfigService _configService;
+        private readonly ConsoleManager _console;
 
         /// <summary>
         /// Occurs when the server state changes.
@@ -51,8 +53,9 @@ namespace IgniteSE1.Services
 
 
 
-        public ServerStateService(ConfigService configs) 
+        public ServerStateService(ConfigService configs, ConsoleManager console) 
         {
+            _console = console;
             _configService = configs;
             ServerStatusChanged += ServerStatusChanged_Event;
         }
@@ -125,6 +128,7 @@ namespace IgniteSE1.Services
 
 
             CurrentSateRequest = newState;
+            
 
             // Raise the ServerStateChanged event to notify subscribers of the state change
             _logger.InfoColor($"Server state changed to: {CurrentSateRequest}", Color.Green);
@@ -194,6 +198,7 @@ namespace IgniteSE1.Services
             }
 
             CurrentServerStatus = newStatus;
+            _console.UpdateConsoleTitleStatus(CurrentServerStatus);
             _logger.InfoColor($"Server status changed to: {CurrentServerStatus}", Color.Yellow);
             ServerStatusChanged?.Invoke(this, CurrentServerStatus);
             return true;

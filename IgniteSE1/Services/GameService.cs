@@ -1,6 +1,7 @@
 ﻿using EmptyKeys.UserInterface.Generated.StoreBlockView_Bindings;
 using HarmonyLib;
 using IgniteSE1.Configs;
+using IgniteSE1.Models;
 using IgniteSE1.Utilities;
 using NLog;
 using Sandbox;
@@ -8,6 +9,7 @@ using Sandbox.Engine.Networking;
 using Sandbox.Engine.Platform;
 using Sandbox.Engine.Utils;
 using Sandbox.Game;
+using Sandbox.Game.World;
 using SpaceEngineers.Game;
 using Spectre.Console;
 using System;
@@ -47,6 +49,7 @@ namespace IgniteSE1.Services
         private ConfigService _configs;
         private InstanceManager _instanceManager;
         private SteamService _steamService;
+        private ServerStateService _serverState;
 
         private string DedicatedServer64;
         private Thread GameThread;
@@ -54,11 +57,13 @@ namespace IgniteSE1.Services
 
 
 
-        public GameService(ConfigService configs, InstanceManager instance, SteamService steam) 
+        public GameService(ConfigService configs, InstanceManager instance, SteamService steam, ServerStateService serverState) 
         {
             _configs = configs;
             _instanceManager = instance;
             _steamService = steam;
+            _serverState = serverState;
+
             GameThread = new Thread(StartServer);
             GameThread.IsBackground = true;
 
@@ -77,6 +82,7 @@ namespace IgniteSE1.Services
              */
 
             // Set the game to dedicated mode
+            MySandboxGame.IsConsoleVisible = true;
             SetupMyPerGameSettings();
             MyVRageWindows.Init(MyPerGameSettings.BasicGameInfo.ApplicationName, MySandboxGame.Log, null, detectLeaks: false);
 
@@ -194,10 +200,7 @@ namespace IgniteSE1.Services
             {
                 myLogKeen.InitWithDateNoCheck(appName, MyFinalBuildConstants.APP_VERSION_STRING, -1);
             }
-            else
-            {
-                log.InitWithDate(appName, MyFinalBuildConstants.APP_VERSION_STRING, -1);
-            }
+
             MyLog.Default = MySandboxGame.Log;
 
             MySandboxGame.Log.WriteLineAndConsole(string.Format($"Is official: FALSE, TORCH DS"));
@@ -314,20 +317,31 @@ namespace IgniteSE1.Services
             Console.WriteLine($"Setting working directory to: {DedicatedServer64}");
             Directory.SetCurrentDirectory(DedicatedServer64);
 
+            //Set Events:
+            MySession.AfterLoading += MySession_AfterLoading;
+
+
+
             _logger.Info("Starting Game Server...");
             var _game = new MySandboxGame(new string[16]);
-
-
-
 
             if (MySandboxGame.FatalErrorDuringInit)
             {
                 throw new InvalidOperationException("Failed to start sandbox game: see Keen log for details");
             }
 
-            _logger.Info("Running SpaceEngineersGame...");
+
+            //Blocking call
             _game.Run();
         }
+
+
+        // This event is called after the game session has finished loading
+        private void MySession_AfterLoading()
+        {
+            _serverState.ChangeServerStatus(ServerStatusEnum.Running);
+        }
+
 
 
         public void StopServer()
