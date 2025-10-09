@@ -170,8 +170,20 @@
       <HintPath>bin\Debug\Game\DedicatedServer64\VRage.Math.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="VRage.Mod.Io">
+      <HintPath>bin\Debug\Game\DedicatedServer64\VRage.Mod.Io.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="VRage.Platform.Windows">
       <HintPath>bin\Debug\Game\DedicatedServer64\VRage.Platform.Windows.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="VRage.Render">
+      <HintPath>bin\Debug\Game\DedicatedServer64\VRage.Render.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="VRage.Steam">
+      <HintPath>bin\Debug\Game\DedicatedServer64\VRage.Steam.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="YamlDotNet, Version=16.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">

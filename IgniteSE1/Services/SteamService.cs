@@ -23,8 +23,8 @@ namespace IgniteSE1.Services
         private ConfigService _configs;
 
 
-        private string _SteamCMDDir;
-        private string _GameInstallDir;
+        public string SteamCMDDir { get; private set; }
+        public string GameInstallDir { get; private set; }
 
 
         public SteamService(IHttpClientFactory httpClientFactory, ConfigService configs)
@@ -32,15 +32,15 @@ namespace IgniteSE1.Services
             _httpClientFactory = httpClientFactory;
             _configs = configs;
 
-            _SteamCMDDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configs.Config.Directories.SteamCMDFolder);
-            _GameInstallDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configs.Config.Directories.Game);
+            SteamCMDDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configs.Config.Directories.SteamCMDFolder);
+            GameInstallDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configs.Config.Directories.Game);
         }
 
 
 
         public override async Task<bool> Init()
         {
-            Directory.CreateDirectory(_SteamCMDDir);
+            Directory.CreateDirectory(SteamCMDDir);
 
 
             if (!IsSteamCmdInstalled())
@@ -62,7 +62,7 @@ namespace IgniteSE1.Services
 
         private bool IsSteamCmdInstalled()
         {
-            return File.Exists(Path.Combine(_SteamCMDDir, "steamcmd.exe"));
+            return File.Exists(Path.Combine(SteamCMDDir, "steamcmd.exe"));
         }
 
 
@@ -121,7 +121,7 @@ namespace IgniteSE1.Services
                             ctx.Status("Extracting SteamCMD...");
 
                             // Now extract
-                            ZipFile.ExtractToDirectory(zipPath, _SteamCMDDir);
+                            ZipFile.ExtractToDirectory(zipPath, SteamCMDDir);
 
                             ctx.Status("Cleaning up temporary files...");
 
@@ -135,13 +135,13 @@ namespace IgniteSE1.Services
         private async Task<bool> InstallGame(int appId)
         {
 
-            bool isEmpty = !Directory.Exists(_GameInstallDir) || !Directory.EnumerateFileSystemEntries(_GameInstallDir).Any();
+            bool isEmpty = !Directory.Exists(GameInstallDir) || !Directory.EnumerateFileSystemEntries(GameInstallDir).Any();
             bool RedirectStandardOutput = true; //Set to false to see the output in the console
 
             if (isEmpty)
             {
-                _logger.InfoColor($"Installing server with AppID: {appId} to {_GameInstallDir}", Color.Orange1);
-                Directory.CreateDirectory(_GameInstallDir);
+                _logger.InfoColor($"Installing server with AppID: {appId} to {GameInstallDir}", Color.Orange1);
+                Directory.CreateDirectory(GameInstallDir);
                 RedirectStandardOutput = false;
             }
 
@@ -152,8 +152,8 @@ namespace IgniteSE1.Services
             //Start the process to install the game using SteamCMD
             var processStartInfo = new ProcessStartInfo("cmd.exe")
             {
-                Arguments = $"/c \"steamcmd +@ShutdownOnFailedCommand 1 +@NoPromptForPassword 1 +force_install_dir \"{_GameInstallDir}\" +login anonymous +app_update {appId} +quit\"",
-                WorkingDirectory = _SteamCMDDir,
+                Arguments = $"/c \"steamcmd +@ShutdownOnFailedCommand 1 +@NoPromptForPassword 1 +force_install_dir \"{GameInstallDir}\" +login anonymous +app_update {appId} +quit\"",
+                WorkingDirectory = SteamCMDDir,
                 RedirectStandardOutput = RedirectStandardOutput,
                 UseShellExecute = NeedValidate
             };

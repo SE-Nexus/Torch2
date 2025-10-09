@@ -2,6 +2,7 @@
 using HarmonyLib;
 using IgniteSE1.Configs;
 using IgniteSE1.Utilities;
+using NLog;
 using Sandbox;
 using Sandbox.Engine.Networking;
 using Sandbox.Engine.Platform;
@@ -17,31 +18,52 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using VRage;
 using VRage.Dedicated;
 using VRage.FileSystem;
 using VRage.Game;
+using VRage.Game.ModAPI;
+using VRage.Game.ObjectBuilder;
 using VRage.Game.SessionComponents;
+using VRage.GameServices;
+using VRage.Mod.Io;
 using VRage.Platform.Windows;
+using VRage.Plugins;
+using VRage.Steam;
 using VRage.Trace;
 using VRage.Utils;
 using VRage.Utils.Keen;
+using VRageRender;
 
 namespace IgniteSE1.Services
 {
     [HarmonyPatch]
     public class GameService : ServiceBase
     {
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private ConfigService _configs;
         private InstanceManager _instanceManager;
+        private SteamService _steamService;
 
-      
+        private string DedicatedServer64;
+        private Thread GameThread;
 
-        public GameService(ConfigService configs, InstanceManager instance) 
+
+
+
+        public GameService(ConfigService configs, InstanceManager instance, SteamService steam) 
         {
             _configs = configs;
             _instanceManager = instance;
+            _steamService = steam;
+            GameThread = new Thread(StartServer);
+            GameThread.IsBackground = true;
+
+
+            DedicatedServer64 = Path.Combine(_steamService.GameInstallDir, "DedicatedServer64");
         }
 
         
@@ -54,9 +76,87 @@ namespace IgniteSE1.Services
              * 
              */
 
-
-
             // Set the game to dedicated mode
+            SetupMyPerGameSettings();
+            MyVRageWindows.Init(MyPerGameSettings.BasicGameInfo.ApplicationName, MySandboxGame.Log, null, detectLeaks: false);
+
+            //VRage.Platform.Windows.Sys.MyWindowsSystem.WriteLineToConsole()
+
+
+            if (!VRage.Dedicated.DedicatedServer.IsVcRedist2019Installed())
+            {
+                AnsiConsole.MarkupLine("[red]Error:[/] Please install latest C++ redistributable package for 2015-2019 x64");
+                return Task.FromResult(false);
+            }
+
+
+            
+
+            //Move this to the config file??
+            // Ensure necessary directories exist
+            if (!Directory.Exists(_configs.Config.Directories.ModStorage))
+                Directory.CreateDirectory(_configs.Config.Directories.ModStorage);
+
+            MyFileSystem.ExePath = DedicatedServer64;
+            InitializeServices(true, false);
+
+            MyNetworkMonitor.Init();
+            MySandboxGame.InitMultithreading();
+
+            MyPlugins.RegisterGameAssemblyFile(MyPerGameSettings.GameModAssembly);
+            MyPlugins.RegisterGameObjectBuildersAssemblyFile(MyPerGameSettings.GameModObjBuildersAssembly);
+            MyPlugins.RegisterSandboxAssemblyFile(MyPerGameSettings.SandboxAssembly);
+            MyPlugins.RegisterSandboxGameAssemblyFile(MyPerGameSettings.SandboxGameAssembly);
+            MyGlobalTypeMetadata.Static.Init();
+
+            MyRenderProxy.Initialize(new MyNullRender());
+
+            return base.Init();
+        }
+
+        private static void InitializeServices(bool isDedicated, bool isEOS)
+        {
+            MyServiceManager instance = MyServiceManager.Instance;
+
+            IMyGameService myGameService = MySteamGameService.Create(isDedicated, MyPerServerSettings.AppId);
+
+            instance.AddService(myGameService);
+            instance.AddService((IMyMicrophoneService)new MyNullMicrophone());
+            MyPlatformGameSettings.VERBOSE_NETWORK_LOGGING |= MySandboxGame.ConfigDedicated.VerboseNetworkLogging;
+
+            var aggregator = new MyServerDiscoveryAggregator();
+            instance.AddService<IMyServerDiscovery>(aggregator);
+
+
+            IMyGameService service;
+            if (false)
+            {
+                // EOS network setup
+                /*
+                List<string> networkParameters = m_networkParameters;
+                IEnumerable<string> networkParameters2 = MySandboxGame.ConfigDedicated.NetworkParameters;
+                IEnumerable<string> parameters = networkParameters.Union(networkParameters2 ?? Enumerable.Empty<string>());
+                MyEOSService.InitNetworking(isDedicated, useEOSLobbyDiscovery: false, MyPerGameSettings.GameName, myGameService, "xyza7891A4WeGrpP85BTlBa3BSfUEABN", "ZdHZVevSVfIajebTnTmh5MVi3KPHflszD9hJB7mRkgg", "24b1cd652a18461fa9b3d533ac8d6b5b", "1958fe26c66d4151a327ec162e4d49c8", "07c169b3b641401496d352cad1c905d6", "https://retail.epicgames.com/", MyEOSService.CreatePlatform(), MySandboxGame.ConfigDedicated.VerboseNetworkLogging, parameters, null, MyMultiplayer.Channels);
+                MyMockingInventory serviceInstance = new MyMockingInventory(myGameService);
+                instance.AddService((IMyInventoryService)serviceInstance);
+                */
+            }
+            else
+            {
+                MySteamGameService.InitNetworking(isDedicated, myGameService, MyPerGameSettings.GameName, null);
+                IMyUGCService ugc = MySteamUgcService.Create(MyPerServerSettings.AppId, myGameService);
+                MyGameService.WorkshopService.AddAggregate(ugc);
+
+
+
+            }
+
+            IMyUGCService ugc2 = MyModIoService.Create(MyServiceManager.Instance.GetService<IMyGameService>(), "spaceengineers", "264", "1fb4489996a5e8ffc6ec1135f9985b5b", "331", "f2b64abe55452252b030c48adc0c1f0e", MyPlatformGameSettings.UGC_TEST_ENVIRONMENT, true, MyPlatformGameSettings.MODIO_PLATFORM, MyPlatformGameSettings.MODIO_PORTAL);
+            MyGameService.WorkshopService.AddAggregate(ugc2);
+        }
+
+        private void SetupMyPerGameSettings()
+        {
             Sandbox.Engine.Platform.Game.IsDedicated = true;
             SpaceEngineersGame.SetupBasicGameInfo();
             SpaceEngineersGame.SetupPerGameSettings();
@@ -74,28 +174,6 @@ namespace IgniteSE1.Services
 
             int? gameVersion = MyPerGameSettings.BasicGameInfo.GameVersion;
             MyFinalBuildConstants.APP_VERSION = (gameVersion.HasValue ? ((MyVersion)gameVersion.GetValueOrDefault()) : null);
-
-            
-            MyVRageWindows.Init(MyPerGameSettings.BasicGameInfo.ApplicationName, MySandboxGame.Log, null, detectLeaks: false);
-
-            //VRage.Platform.Windows.Sys.MyWindowsSystem.WriteLineToConsole()
-
-
-            if (!VRage.Dedicated.DedicatedServer.IsVcRedist2019Installed())
-            {
-                AnsiConsole.MarkupLine("[red]Error:[/] Please install latest C++ redistributable package for 2015-2019 x64");
-                return Task.FromResult(false);
-            }
-
-
-            MySandboxGame.InitMultithreading();
-
-            //Move this to the config file??
-            // Ensure necessary directories exist
-            if (!Directory.Exists(_configs.Config.Directories.ModStorage))
-                Directory.CreateDirectory(_configs.Config.Directories.ModStorage);
-
-            return base.Init();
         }
 
 
@@ -104,7 +182,7 @@ namespace IgniteSE1.Services
         {
 
             //Dont write any keen log to console
-            return false;
+            return true;
         }
 
         private bool SetupLogs()
@@ -151,16 +229,6 @@ namespace IgniteSE1.Services
             return true;
         }
 
-        private void SetupKeenLog()
-        {
-           
-            bool showConsole = false;
-            if (showConsole && Environment.UserInteractive)
-            {
-                MySandboxGame.IsConsoleVisible = true;
-            }
-        }
-
 
 
 
@@ -196,7 +264,15 @@ namespace IgniteSE1.Services
             Directory.CreateDirectory(Game_ModsPath);
             MyFileSystem.InitUserSpecific(null);
 
-             _instanceManager.GetServerConfigs();
+
+
+            IMyConfigDedicated dedicated = _instanceManager.GetServerConfigs();
+            MySandboxGame.ConfigDedicated = dedicated;
+            MySandboxGame.ConfigDedicated.ConsoleCompatibility = true;
+
+            MySandboxGame.Config = new MyConfig(MyPerServerSettings.GameDSName + ".cfg");
+            MySandboxGame.Config.Load();
+
 
             SetupLogs();
 
@@ -220,6 +296,11 @@ namespace IgniteSE1.Services
 
 
 
+        public override void ServerStarting()
+        {
+            GameThread.Start();
+            base.ServerStarting();
+        }
 
 
 
@@ -227,7 +308,25 @@ namespace IgniteSE1.Services
 
         public void StartServer()
         {
+            var s = MyFileSystem.ExePath;
 
+            // Initialize the game and load required native libraries
+            Console.WriteLine($"Setting working directory to: {DedicatedServer64}");
+            Directory.SetCurrentDirectory(DedicatedServer64);
+
+            _logger.Info("Starting Game Server...");
+            var _game = new MySandboxGame(new string[16]);
+
+
+
+
+            if (MySandboxGame.FatalErrorDuringInit)
+            {
+                throw new InvalidOperationException("Failed to start sandbox game: see Keen log for details");
+            }
+
+            _logger.Info("Running SpaceEngineersGame...");
+            _game.Run();
         }
 
 
@@ -240,3 +339,4 @@ namespace IgniteSE1.Services
 
     }
 }
+

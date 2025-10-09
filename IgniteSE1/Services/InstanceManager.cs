@@ -216,10 +216,15 @@ namespace IgniteSE1.Services
                 gameconfig.Save();
             }
 
+
+            gameconfig.WorldName = _selectedInstance.TargetWorld;
+            gameconfig.LoadWorld = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _selectedInstance.InstancePath, _worldSavesFolder, _selectedInstance.TargetWorld);
+
+
             if (_selectedInstance == null)
                 return null;
 
-            return null;
+            return gameconfig;
         }
 
 

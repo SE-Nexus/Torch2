@@ -26,7 +26,22 @@ namespace IgniteSE1.Services
             _Services = services;
             _steamService = steamService; // Ensure SteamService is injected. We will need to init this first
             _serverState = serverstate;
+
+            _serverState.ServerStatusChanged += _serverState_ServerStatusChanged;
         }
+
+        private void _serverState_ServerStatusChanged(object sender, Models.ServerStatusEnum e)
+        {
+            if(e == Models.ServerStatusEnum.Starting)
+            {
+                foreach (var item in _Services)
+                {
+                    item.ServerStarting();
+                }
+            }
+        }
+
+
 
         public async Task<bool> StartAllServices()
         {
@@ -102,6 +117,11 @@ namespace IgniteSE1.Services
                 _serverState.ChangeServerStatus(Models.ServerStatusEnum.Error);
 
             return allSucceeded;
+
+        }
+
+        public void StateChange()
+        {
 
         }
 
