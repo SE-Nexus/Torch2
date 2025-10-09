@@ -26,6 +26,18 @@ namespace IgniteSE1.Services
             Config = IgniteSE1Cfg.LoadYaml(fileName);
 
 
+            //Ensure directories exist
+            if (!Directory.Exists(Config.Directories.ModStorage))
+                Directory.CreateDirectory(Config.Directories.ModStorage);
+
+            if (!Directory.Exists(Config.Directories.Instances))
+                Directory.CreateDirectory(Config.Directories.Instances);
+
+            if (!Directory.Exists(Config.Directories.Game))
+                Directory.CreateDirectory(Config.Directories.Game);
+
+            if (!Directory.Exists(Config.Directories.SteamCMDFolder))
+                Directory.CreateDirectory(Config.Directories.SteamCMDFolder);
         }
 
         public override async Task<bool> Init()

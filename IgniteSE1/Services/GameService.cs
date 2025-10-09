@@ -51,6 +51,7 @@ namespace IgniteSE1.Services
         private SteamService _steamService;
         private ServerStateService _serverState;
 
+
         private string DedicatedServer64;
         private Thread GameThread;
 
@@ -66,8 +67,6 @@ namespace IgniteSE1.Services
 
             GameThread = new Thread(StartServer);
             GameThread.IsBackground = true;
-
-
             DedicatedServer64 = Path.Combine(_steamService.GameInstallDir, "DedicatedServer64");
         }
 
@@ -82,7 +81,8 @@ namespace IgniteSE1.Services
              */
 
             // Set the game to dedicated mode
-            MySandboxGame.IsConsoleVisible = true;
+
+
             SetupMyPerGameSettings();
             MyVRageWindows.Init(MyPerGameSettings.BasicGameInfo.ApplicationName, MySandboxGame.Log, null, detectLeaks: false);
 
@@ -97,13 +97,6 @@ namespace IgniteSE1.Services
 
 
             
-
-            //Move this to the config file??
-            // Ensure necessary directories exist
-            if (!Directory.Exists(_configs.Config.Directories.ModStorage))
-                Directory.CreateDirectory(_configs.Config.Directories.ModStorage);
-
-            MyFileSystem.ExePath = DedicatedServer64;
             InitializeServices(true, false);
 
             MyNetworkMonitor.Init();
@@ -164,6 +157,10 @@ namespace IgniteSE1.Services
         private void SetupMyPerGameSettings()
         {
             Sandbox.Engine.Platform.Game.IsDedicated = true;
+
+            MySandboxGame.IsConsoleVisible = true;
+            MyFileSystem.ExePath = DedicatedServer64;
+
             SpaceEngineersGame.SetupBasicGameInfo();
             SpaceEngineersGame.SetupPerGameSettings();
             MyFileSystem.Reset();
