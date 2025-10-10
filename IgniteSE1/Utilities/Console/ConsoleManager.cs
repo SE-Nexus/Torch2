@@ -71,10 +71,11 @@ namespace IgniteSE1.Utilities
 
         private void SetupConsole()
         {
-            //Add our Colored Console Target
-            ColoredConsoleLogTarget consoleLogTarget = new ColoredConsoleLogTarget();
-            LoggingRule consoleRule = new LoggingRule("*", NLog.LogLevel.Debug, consoleLogTarget);
-            LogManager.Configuration?.LoggingRules.Add(consoleRule);
+
+            // Very early in startup, before loading config / creating loggers
+            LogManager.Setup()
+                .SetupExtensions(ext => ext.RegisterTarget<ColoredConsoleLogTarget>("ColoredConsole"))
+                .LoadConfigurationFromFile("nlog.config");
 
             LogManager.ReconfigExistingLoggers();
             Logger = LogManager.GetCurrentClassLogger();

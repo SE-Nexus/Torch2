@@ -63,7 +63,7 @@ namespace IgniteSE1.Patches
         {
             var log = PrepareLog(__instance).Append(msg);
             _log.Debug(log);
-            Trace.WriteLine(log);
+            //Trace.WriteLine(log);
             return false;
         }
 
