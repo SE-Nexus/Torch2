@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Grpc.Tools.2.72.0\build\Grpc.Tools.props" Condition="Exists('..\packages\Grpc.Tools.2.72.0\build\Grpc.Tools.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -58,6 +59,15 @@
   <ItemGroup>
     <Reference Include="0Harmony, Version=2.4.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Lib.Harmony.2.4.1\lib\net48\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Protobuf, Version=3.32.1.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Protobuf.3.32.1\lib\net45\Google.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="Grpc.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d754f35622e28bad, processorArchitecture=MSIL">
+      <HintPath>..\packages\Grpc.Core.2.46.6\lib\net45\Grpc.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Grpc.Core.Api, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d754f35622e28bad, processorArchitecture=MSIL">
+      <HintPath>..\packages\Grpc.Core.Api.2.71.0\lib\net462\Grpc.Core.Api.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.9, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.9.0.9\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
@@ -207,11 +217,13 @@
     <Compile Include="Services\GameService.cs" />
     <Compile Include="Services\InstanceManager.cs" />
     <Compile Include="Services\PatchService.cs" />
+    <Compile Include="Services\ProtoServices\GreeterService.cs" />
     <Compile Include="Services\ServerStateService.cs" />
     <Compile Include="Services\ServiceManager.cs" />
     <Compile Include="Services\SteamService.cs" />
     <Compile Include="Utilities\Configs\ConfigBase.cs" />
     <Compile Include="Services\ConfigService.cs" />
+    <Compile Include="Utilities\Console\CommandLineManager.cs" />
     <Compile Include="Utilities\Console\ConsoleManager.cs" />
     <Compile Include="Utilities\DependencyInjection\ServiceBase.cs" />
     <Compile Include="Utilities\DependencyInjection\IAppService.cs" />
@@ -246,6 +258,9 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+<ItemGroup>
+  <Protobuf Include="Protos\greet.proto" GrpcServices="Both" />
+</ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets" Condition="Exists('..\packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets')" />
@@ -254,5 +269,10 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets'))" />
+    <Error Condition="!Exists('..\packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets'))" />
+    <Error Condition="!Exists('..\packages\Grpc.Tools.2.72.0\build\Grpc.Tools.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grpc.Tools.2.72.0\build\Grpc.Tools.props'))" />
+    <Error Condition="!Exists('..\packages\Grpc.Tools.2.72.0\build\Grpc.Tools.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grpc.Tools.2.72.0\build\Grpc.Tools.targets'))" />
   </Target>
+  <Import Project="..\packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets" Condition="Exists('..\packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets')" />
+  <Import Project="..\packages\Grpc.Tools.2.72.0\build\Grpc.Tools.targets" Condition="Exists('..\packages\Grpc.Tools.2.72.0\build\Grpc.Tools.targets')" />
 </Project>

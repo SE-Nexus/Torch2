@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -28,7 +29,7 @@ namespace IgniteSE1
             ConfigService.LoadConfig();
 
             // Initialize Console
-            if (!IgniteConsole.InitConsole(args))
+            if (!await IgniteConsole.InitConsole(args))
                 return;
 
 

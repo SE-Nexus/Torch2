@@ -16,6 +16,8 @@ namespace IgniteSE1.Utilities
 {
     public class ConsoleManager : ServiceBase
     {
+        private CommandLineManager _commandLineManager;
+
         private static Logger Logger;
         private static Mutex appMutex;
 
@@ -26,6 +28,7 @@ namespace IgniteSE1.Utilities
 
         public ConsoleManager(ConfigService configs) 
         {
+            _commandLineManager = new CommandLineManager();
             _configs = configs;
             mutexName = AppDomain.CurrentDomain.FriendlyName.Replace("\\", "_");
         }
@@ -38,7 +41,7 @@ namespace IgniteSE1.Utilities
         /// <param name="args">An array of command-line arguments passed to the application. May be empty if no arguments are provided.</param>
         /// <returns>true if a new instance of the application is started; otherwise, false if an existing instance is detected
         /// and CLI mode should be used.</returns>
-        public bool InitConsole(string[] args)
+        public async Task<bool> InitConsole(string[] args)
         {
             
             if (CheckMutexNew())
@@ -53,6 +56,7 @@ namespace IgniteSE1.Utilities
             {
                 //Existing App Already Running. We should continue with CLI mode
                 Console.Title = "IgniteSE1 CLI Mode";
+                await _commandLineManager.ProcessCLICommand(args);
                 return false;
             }
         }
