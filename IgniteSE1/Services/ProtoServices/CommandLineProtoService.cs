@@ -21,7 +21,7 @@ namespace IgniteSE1.Services.ProtoServices
         public override async Task<CLIReply> ProcessCLI(CLIRequest request, ServerCallContext context)
         {
 
-            string result = await _console.CommandLineManager.ProcessServerArgs(request.Command.ToArray());
+            string result = await _console.CommandLineManager.InvokeCLICommand(request.Command.ToArray());
 
             return new CLIReply
             {

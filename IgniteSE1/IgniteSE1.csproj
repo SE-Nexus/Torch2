@@ -283,4 +283,13 @@
   </Target>
   <Import Project="..\packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets" Condition="Exists('..\packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets')" />
   <Import Project="..\packages\Grpc.Tools.2.72.0\build\Grpc.Tools.targets" Condition="Exists('..\packages\Grpc.Tools.2.72.0\build\Grpc.Tools.targets')" />
+  <Target Name="RemoveSatelliteLanguageFolders" AfterTargets="Build">
+    <ItemGroup>
+      <SatelliteFolders Include="$(OutputPath)[a-z][a-z]\" />
+    </ItemGroup>
+    <RemoveDir Directories="@(SatelliteFolders)" />
+  </Target>
+  <PropertyGroup>
+    <PostBuildEvent>rd /s /q "cs", "de", "es", "fr", "it", "ja", "ko", "pl", "ru", "pt-BR", "tr", "zh-Hans", "zh-Hant"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

@@ -12,6 +12,7 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Sandbox.Game.World.MyWorldGenerator;
 
 namespace IgniteSE1.Utilities
 {
@@ -26,7 +27,11 @@ namespace IgniteSE1.Utilities
         {
             //initialize command line arguments and options here
             consoleManager = console;
+
+            
         }
+
+
 
         public async Task SetupCommandLineManager(bool isServer, string[] args)
         {
@@ -38,14 +43,47 @@ namespace IgniteSE1.Utilities
             {
                await ProcessCLICommand(args);
             }
+        }
 
-
+        private void SetupCommands()
+        {
 
         }
 
         public async Task ProcessCLICommand(string[] args)
         {
 
+            //Check if interactive mode
+            if (args.Length > 0 && args[0].Equals("--interactive", StringComparison.OrdinalIgnoreCase))
+            {
+                AnsiConsole.Write(new Panel("[bold green]Interactive mode enabled![/] [grey]Type [yellow]exit[/] to quit.[/]").Border(BoxBorder.Rounded).Header("[white on green] CLI Mode [/]"));
+
+                while (true)
+                {
+                    Console.Write("> ");
+                    var input = Console.ReadLine();
+
+                    if(string.IsNullOrEmpty(input))
+                        continue;
+
+                    if (input.Equals("exit", StringComparison.OrdinalIgnoreCase) || input.Equals("quit", StringComparison.OrdinalIgnoreCase))
+                        break;
+
+                    string[] inputArgs = input.Split(new char[] { ' '}, StringSplitOptions.RemoveEmptyEntries);
+                    await SendCLIRequest(inputArgs);
+                }
+
+
+                return;
+            }
+
+
+            //Send singular command;
+            await SendCLIRequest(args);
+        }
+
+        private async Task SendCLIRequest(string[] args)
+        {
             Channel channel = new Channel($"localhost:{consoleManager.configs.Config.ProtoServerPort}", ChannelCredentials.Insecure);
             var client = new CommandLine.CommandLineClient(channel);
 
@@ -56,12 +94,10 @@ namespace IgniteSE1.Utilities
             AnsiConsole.WriteLine(reply.Result);
         }
 
-        public Task<string> ProcessServerArgs(string[] args)
-        {
-            return InvokeCLICommand(args);
-        }
 
-        private async Task<string> InvokeCLICommand(string[] args)
+        
+
+        public async Task<string> InvokeCLICommand(string[] args)
         {
             root.Description = "Remote IgniteSE1 Command Line Interface";
             var result = root.Parse(args);
