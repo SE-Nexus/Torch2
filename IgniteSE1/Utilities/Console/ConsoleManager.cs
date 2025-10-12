@@ -16,20 +16,19 @@ namespace IgniteSE1.Utilities
 {
     public class ConsoleManager : ServiceBase
     {
-        private CommandLineManager _commandLineManager;
+        public CommandLineManager CommandLineManager { get; private set; }
 
         private static Logger Logger;
         private static Mutex appMutex;
 
-        private static string mutexName;
-
         // Configuration service reference
-        private ConfigService _configs;
+        public ConfigService configs { get; private set; }
+        public string mutexName { get; private set; }
 
         public ConsoleManager(ConfigService configs) 
         {
-            _commandLineManager = new CommandLineManager();
-            _configs = configs;
+            CommandLineManager = new CommandLineManager(this);
+            this.configs = configs;
             mutexName = AppDomain.CurrentDomain.FriendlyName.Replace("\\", "_");
         }
 
@@ -43,28 +42,28 @@ namespace IgniteSE1.Utilities
         /// and CLI mode should be used.</returns>
         public async Task<bool> InitConsole(string[] args)
         {
+            bool IsServer = CheckMutexNew();
             
-            if (CheckMutexNew())
+            if (IsServer)
             {
                 // New App
                 UpdateConsoleTitleStatus(ServerStatusEnum.Initializing);
                 SetupConsole();
-
-                return true;
             }
             else
             {
                 //Existing App Already Running. We should continue with CLI mode
                 Console.Title = "IgniteSE1 CLI Mode";
-                await _commandLineManager.ProcessCLICommand(args);
-                return false;
             }
+
+            await CommandLineManager.SetupCommandLineManager(IsServer, args);
+            return IsServer;
         }
 
 
         public void UpdateConsoleTitleStatus(ServerStatusEnum status)
         {
-            UpdateConsoleTitle($"{_configs.Config.IgniteCMDName} [{status}]");
+            UpdateConsoleTitle($"{configs.Config.IgniteCMDName} [{status}]");
         }
 
         public void UpdateConsoleTitle(string newTitle)

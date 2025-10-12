@@ -46,6 +46,9 @@ namespace IgniteSE1.Configs
         [YamlMember(Description = "Target Instance to Load")]
         public string TargetInstance { get; set; } = "MyNewIgniteInstance";
 
+        [YamlMember(Description = "gRPC Proto Server Port")]
+        public int ProtoServerPort { get; set; } = 4800;
+
 
 
 

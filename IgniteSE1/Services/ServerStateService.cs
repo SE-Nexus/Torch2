@@ -223,6 +223,7 @@ namespace IgniteSE1.Services
         /// <param name="e">The new server status, represented as a value of the <see cref="ServerStatusEnum"/> enumeration.</param>
         private void ServerStatusChanged_Event(object sender, ServerStatusEnum e)
         {
+            _configService.Config.AutoStartServer = false;
             if (e == ServerStatusEnum.Idle && _configService.Config.AutoStartServer)
             {
                 //Auto start the server

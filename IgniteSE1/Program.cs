@@ -1,8 +1,11 @@
-﻿using IgniteSE1.Models;
+﻿using Grpc.Core;
+using IgniteSE1.Models;
 using IgniteSE1.Services;
+using IgniteSE1.Services.ProtoServices;
 using IgniteSE1.Utilities;
 using IgniteSE1.Utilities.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using MyGrpcApp;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
@@ -32,6 +35,7 @@ namespace IgniteSE1
             if (!await IgniteConsole.InitConsole(args))
                 return;
 
+           
 
             // Setup Dependency Injection
             IServiceCollection services = new ServiceCollection();
@@ -43,11 +47,12 @@ namespace IgniteSE1
             services.AddSingletonWithBase<GameService>();
             services.AddSingletonWithBase<InstanceManager>();
             services.AddSingletonWithBase<PatchService>();
+            
 
+
+            services.AddSingleton<CommandLineProtoService>();
             services.AddSingleton<ServiceManager>();
             services.AddHttpClient();
-
-
 
 
 
@@ -57,7 +62,24 @@ namespace IgniteSE1
             IServiceProvider provider = services.BuildServiceProvider(true);
             
 
+
+
             ServiceManager serviceManager = provider.GetService<ServiceManager>();
+
+            int Port = ConfigService.Config.ProtoServerPort;
+            Server server = new Server
+            {
+                Services =
+                {
+                    Greeter.BindService(new GreeterService()),
+                    CommandLine.BindService(provider.GetService<CommandLineProtoService>())
+
+                },
+                Ports = { new ServerPort("localhost", Port, ServerCredentials.Insecure) }
+            };
+            server.Start();
+            Console.WriteLine("gRPC server listening on port " + Port);
+
             bool success = await serviceManager.StartAllServices();
 
             //await Task.Delay(2000);

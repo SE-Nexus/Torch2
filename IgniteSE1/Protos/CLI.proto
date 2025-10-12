@@ -1,0 +1,17 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "MyGrpcApp";  // 👈 Controls generated C# namespace
+
+package ProtoCLI;
+
+service CommandLine {
+  rpc ProcessCLI (CLIRequest) returns (CLIReply);
+}
+
+message CLIRequest {
+  repeated string command = 1;
+}
+
+message CLIReply {
+  string result = 1;
+}

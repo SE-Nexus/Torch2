@@ -69,11 +69,11 @@ namespace IgniteSE1.Services
                 }
                 catch(Exception ex)
                 {
-                    _logger.Fatal(ex, $"Failed to resolve assembly {assemblyName} from directory {dir}");
+                    _logger.Fatal(ex, $"Failed to resolve assembly {assemblyName} from directory {dir}.");
                 }
             }
 
-            _logger.Warn($"Failed to resolve assembly {assemblyName} from any configured directories.");
+            _logger.Warn($"Failed to resolve assembly {assemblyName} from any configured directories. Requesting Assembly: {args.RequestingAssembly}");
             return null;
         }
     }
