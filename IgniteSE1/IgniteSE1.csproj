@@ -30,7 +30,7 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <LangVersion>latest</LangVersion>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
   </PropertyGroup>
@@ -44,7 +44,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
-    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -54,6 +54,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
   <ItemGroup>
@@ -128,7 +129,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Spectre.Console, Version=0.0.0.0, Culture=neutral, PublicKeyToken=170fe27f8af98a30, processorArchitecture=MSIL">
-      <HintPath>..\packages\Spectre.Console.0.51.2-preview.0.2\lib\netstandard2.0\Spectre.Console.dll</HintPath>
+      <HintPath>..\packages\Spectre.Console.0.52.0\lib\netstandard2.0\Spectre.Console.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -228,16 +229,21 @@
     <Compile Include="Services\ServerStateService.cs" />
     <Compile Include="Services\ServiceManager.cs" />
     <Compile Include="Services\SteamService.cs" />
+    <Compile Include="Utilities\Annotations\CommandAttribute.cs" />
     <Compile Include="Utilities\Configs\ConfigBase.cs" />
     <Compile Include="Services\ConfigService.cs" />
+    <Compile Include="Utilities\Console\CLI\CommandContext.cs" />
+    <Compile Include="Utilities\Console\CLI\CommandLineBuilder.cs" />
     <Compile Include="Utilities\Console\CommandLineManager.cs" />
     <Compile Include="Utilities\Console\ConsoleManager.cs" />
+    <Compile Include="Utilities\Console\CLI\ICommandContext.cs" />
     <Compile Include="Utilities\DependencyInjection\ServiceBase.cs" />
     <Compile Include="Utilities\DependencyInjection\IAppService.cs" />
     <Compile Include="Utilities\DependencyInjection\IgniteServices.cs" />
     <Compile Include="Utilities\DependencyInjection\ServiceCollectionExtensions.cs" />
     <Compile Include="Utilities\Logging\ColoredConsoleLogTarget.cs" />
     <Compile Include="Utilities\Logging\LoggingExtensions.cs" />
+    <Compile Include="Utilities\TestCommand\TestCommand.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".dockerignore">

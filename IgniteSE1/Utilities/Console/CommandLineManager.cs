@@ -13,13 +13,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static Sandbox.Game.World.MyWorldGenerator;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace IgniteSE1.Utilities
 {
 
     public class CommandLineManager
     {
-        private RootCommand root = new RootCommand("IgniteSE1 CLI");
+        public RootCommand RootCommand { get; private set; } = new RootCommand("IgniteSE1 CLI");
         private ConsoleManager consoleManager;
 
 
@@ -28,6 +29,7 @@ namespace IgniteSE1.Utilities
             //initialize command line arguments and options here
             consoleManager = console;
 
+            
             
         }
 
@@ -60,8 +62,10 @@ namespace IgniteSE1.Utilities
 
                 while (true)
                 {
-                    Console.Write("> ");
-                    var input = Console.ReadLine();
+                    var input = AnsiConsole.Prompt(
+                            new TextPrompt<string>("[grey]>[/]")
+                                .PromptStyle("deepskyblue1")
+                        );
 
                     if(string.IsNullOrEmpty(input))
                         continue;
@@ -73,7 +77,7 @@ namespace IgniteSE1.Utilities
                     await SendCLIRequest(inputArgs);
                 }
 
-
+                //Lets return. As the command would attempt to continue with the --interactive stuff
                 return;
             }
 
@@ -99,8 +103,8 @@ namespace IgniteSE1.Utilities
 
         public async Task<string> InvokeCLICommand(string[] args)
         {
-            root.Description = "Remote IgniteSE1 Command Line Interface";
-            var result = root.Parse(args);
+            RootCommand.Description = "Remote IgniteSE1 Command Line Interface";
+            var result = RootCommand.Parse(args);
 
             StringWriter stringWriter = new StringWriter();
             InvocationConfiguration confg = new InvocationConfiguration();

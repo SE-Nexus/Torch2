@@ -20,14 +20,22 @@ namespace IgniteSE1.Services.ProtoServices
 
         public override async Task<CLIReply> ProcessCLI(CLIRequest request, ServerCallContext context)
         {
-
-            string result = await _console.CommandLineManager.InvokeCLICommand(request.Command.ToArray());
-
-            return new CLIReply
+            try
             {
-                Result = result
-            };
+                string result = await _console.CommandLineManager.InvokeCLICommand(request.Command.ToArray());
 
+                return new CLIReply
+                {
+                    Result = result
+                };
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[gRPC Handler Error] {ex}");
+                throw;
+            }
+           
         }
       
 

@@ -1,9 +1,12 @@
 ﻿using IgniteSE1.Models;
 using IgniteSE1.Utilities;
+using IgniteSE1.Utilities.CLI;
+using IgniteSE1.Utilities.TestCommand;
 using NLog;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -60,10 +63,83 @@ namespace IgniteSE1.Services
             ServerStatusChanged += ServerStatusChanged_Event;
         }
 
-        public override async Task<bool> Init()
+        public override Task<bool> Init()
         {
-            
-            return true;
+            // define subcommands
+            var startCmd = new Command("start", "Starts the Server")
+            {
+                new Option<bool>("--force")
+            };
+
+            var stopCmd = new Command("stop", "Stops the Server")
+            {
+               
+                new Option<bool>("--force")
+                {
+                    Description = "Force stop the server",
+                }
+            };
+
+            var restartCmd = new Command("restart", "Restarts the Server")
+            {
+                new Option<bool>("--force"),
+            };
+
+            var op = new Option<bool>("--test")
+            {
+                Description = "test group options",
+            };
+
+
+            var serverCmd = new Command("server", "Manage game servers");
+            serverCmd.Add(startCmd);
+            serverCmd.Add(stopCmd);
+            serverCmd.Add(restartCmd);
+            serverCmd.Options.Add(op);
+
+            ;
+
+            serverCmd.SetAction((ParseResult result) =>
+            {
+
+               
+
+                bool val = result.GetValue<bool>("--test");
+                Console.WriteLine($"Stopping the server... {val}");
+
+            });
+
+            _console.CommandLineManager.RootCommand.Add(serverCmd);
+            _console.CommandLineManager.RootCommand.Add(CommandLineBuilder.BuildFromType<TestCommand>());
+
+            stopCmd.SetAction((ParseResult result) =>
+            {
+                
+                bool val =  result.GetValue<bool>("--force");
+                Console.WriteLine($"Stopping the server... {val}");
+
+            });
+
+
+            /*
+            stopCmd.SetAction()
+
+            stopCmd.SetAction((bool force) =>
+            {
+                parseResult.GetResult<bool>("force");
+
+                RequestServerStateChange(ServerStateCommand.Stop);
+            });
+
+            */
+
+
+            return Task.FromResult(true);
+        }
+
+        private void SetupConsoleCommands()
+        {
+
         }
 
 
