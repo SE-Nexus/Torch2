@@ -3,7 +3,9 @@ using IgniteSE1.Models;
 using IgniteSE1.Services;
 using IgniteSE1.Services.ProtoServices;
 using IgniteSE1.Utilities;
+using IgniteSE1.Utilities.CLI;
 using IgniteSE1.Utilities.DependencyInjection;
+using IgniteSE1.Utilities.TestCommand;
 using Microsoft.Extensions.DependencyInjection;
 using MyGrpcApp;
 using Spectre.Console;
@@ -16,6 +18,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using VRage;
 
 namespace IgniteSE1
 {
@@ -55,12 +58,12 @@ namespace IgniteSE1
             services.AddHttpClient();
 
 
-
+            
 
 
             ConfigureServices(services);
             IServiceProvider provider = services.BuildServiceProvider(true);
-            
+            IgniteConsole.CommandLineManager.RootCommand.Add(CommandLineBuilder.BuildFromType<TestCommand>(provider));
 
 
 

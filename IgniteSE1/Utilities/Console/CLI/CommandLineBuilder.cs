@@ -1,4 +1,6 @@
 ﻿using IgniteSE1.Utilities.Annotations;
+using Microsoft.Extensions.DependencyInjection;
+using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -11,10 +13,12 @@ namespace IgniteSE1.Utilities.CLI
 {
     public static class CommandLineBuilder
     {
+        public static Command BuildFromType<T>(IServiceProvider services = null) where T : class
+            => BuildFromType(typeof(T), services);
 
-        public static Command BuildFromType<T>() where T : class
+
+        public static Command BuildFromType(Type type, IServiceProvider services)
         {
-            var type = typeof(T);
             var groupAttr = type.GetCustomAttribute<CommandGroupAttribute>();
             if (groupAttr == null)
                 throw new InvalidOperationException($"{type.Name} is missing [CommandGroup]");
@@ -22,7 +26,7 @@ namespace IgniteSE1.Utilities.CLI
             var groupCommand = new Command(groupAttr.Name, groupAttr.Description);
 
             // Create instance of T
-            var instance = (T)Activator.CreateInstance(typeof(T), nonPublic: true);
+            var instance = CreateInstance(type, services);
 
 
             // 1️. Group-level options (properties)
@@ -96,19 +100,48 @@ namespace IgniteSE1.Utilities.CLI
                 groupCommand.Add(subCommand);
             }
 
-
-
-
+            //3. TODO Implement recursive group commands
 
 
             return groupCommand;
         }
 
+        private static object CreateInstance(Type type, IServiceProvider? services)
+        {
+            try
+            {
+                //No DI container? Fallback to plain reflection
+                if (services == null)
+                    return Activator.CreateInstance(type, nonPublic: true)!;
 
-        
+
+                //just use the main provider. Maybe add scoped stuff in future
+                return ActivatorUtilities.CreateInstance(services, type);
+            }
+            catch (Exception ex)
+            {
+                // 💥 Fallback to reflection if DI creation fails
+                AnsiConsole.MarkupLineInterpolated(
+                $"[bold red][[DI]][/] Failed to create instance of [yellow]{type.Name}[/]: {ex.Message}");
+                try
+                {
+                    return Activator.CreateInstance(type, nonPublic: true)!;
+                }
+                catch (Exception innerEx)
+                {
+                    throw new InvalidOperationException(
+                        $"Unable to create instance of type {type.FullName}. " +
+                        $"DI failed and fallback instantiation also failed.",
+                        innerEx);
+                }
+            }
+        }
 
 
-        
+
+
+
+
 
 
     }

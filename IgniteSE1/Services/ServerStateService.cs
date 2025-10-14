@@ -110,7 +110,7 @@ namespace IgniteSE1.Services
             });
 
             _console.CommandLineManager.RootCommand.Add(serverCmd);
-            _console.CommandLineManager.RootCommand.Add(CommandLineBuilder.BuildFromType<TestCommand>());
+            
 
             stopCmd.SetAction((ParseResult result) =>
             {

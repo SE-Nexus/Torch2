@@ -73,7 +73,10 @@ namespace IgniteSE1.Services
                 }
             }
 
-            _logger.Warn($"Failed to resolve assembly {assemblyName} from any configured directories. Requesting Assembly: {args.RequestingAssembly}");
+            //Only log if we have a valid requesting assembly
+            if(args.RequestingAssembly != null)
+                _logger.Warn($"Failed to resolve assembly {assemblyName} from any configured directories. Requesting Assembly: {args.RequestingAssembly}");
+
             return null;
         }
     }

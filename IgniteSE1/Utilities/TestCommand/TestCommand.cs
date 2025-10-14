@@ -1,4 +1,5 @@
-﻿using IgniteSE1.Utilities.Annotations;
+﻿using IgniteSE1.Services;
+using IgniteSE1.Utilities.Annotations;
 using IgniteSE1.Utilities.CLI;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,16 @@ namespace IgniteSE1.Utilities.TestCommand
     [CommandGroup("test", "Manage game servers")]
     public class TestCommand
     {
+        private GameService gameService;
+
+        public TestCommand(GameService service) 
+        {
+            this.gameService = service;
+        
+        
+        }
+
+
         [Option("--verbose", "Enable verbose logging")]
         public bool Verbose { get; set; }
 
@@ -22,6 +33,7 @@ namespace IgniteSE1.Utilities.TestCommand
 
             Console.WriteLine($"Starting server... Force={force}");
             Console.WriteLine($"Parsed command: {ctx.command.Name}");
+            Console.WriteLine($"{gameService.IsInitialized}");
         }
 
         [Command("stop", "Stops the server")]
