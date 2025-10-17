@@ -1,4 +1,5 @@
 ﻿using IgniteSE1.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using Spectre.Console;
 using System;
@@ -14,16 +15,13 @@ namespace IgniteSE1.Services
         private static Logger _logger = LogManager.GetCurrentClassLogger();
         private SteamService _steamService; 
         private ServerStateService _serverState;
+        public IServiceProvider ServiceProvider { private set; get; }
 
-        public IEnumerable<ServiceBase> _Services { get; private set; }
-
-
-
-
+        public IEnumerable<ServiceBase> Services { get; private set; }
 
         public ServiceManager(IEnumerable<ServiceBase> services, SteamService steamService, ServerStateService serverstate) 
         {
-            _Services = services;
+            Services = services;
             _steamService = steamService; // Ensure SteamService is injected. We will need to init this first
             _serverState = serverstate;
 
@@ -34,7 +32,7 @@ namespace IgniteSE1.Services
         {
             if(e == Models.ServerStatusEnum.Starting)
             {
-                foreach (var item in _Services)
+                foreach (var item in Services)
                 {
                     item.ServerStarting();
                 }
@@ -43,9 +41,12 @@ namespace IgniteSE1.Services
 
 
 
-        public async Task<bool> StartAllServices()
+        public async Task<bool> StartAllServices(IServiceProvider provider)
         {
-            if(!await _steamService.Init())
+            ServiceProvider = provider;
+
+
+            if (!await _steamService.Init())
             {
                 _logger.Fatal("Failed to init SteamService. Exiting...");
                 return false;
@@ -59,10 +60,13 @@ namespace IgniteSE1.Services
                 .SpinnerStyle(Style.Parse("yellow"))
                 .StartAsync("Initializing services...", async ctx =>
                 {
-                    foreach (var svc in _Services)
+                    foreach (var svc in Services)
                     {
                         if (svc.IsInitialized)
                             continue;
+
+                        //Set the service provider
+                        svc.SetServiceProvider(provider);
 
                         string type = svc.GetType().Name;
                         ctx.Status($"[green]Initializing[/] [yellow]{type}[/]");
@@ -98,7 +102,7 @@ namespace IgniteSE1.Services
                     //After init hooks
                     if (allSucceeded)
                     {
-                        foreach(var svc in _Services)
+                        foreach(var svc in Services)
                         {
                             if (!svc.IsInitialized)
                                 continue;

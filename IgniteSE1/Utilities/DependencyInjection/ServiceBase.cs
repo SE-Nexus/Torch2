@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,16 @@ namespace IgniteSE1.Utilities
     public abstract class ServiceBase : IAppService
     {
         public bool IsInitialized { get; internal set; } = false;
+
+        public IServiceProvider ServiceProvider { get; internal set; }
+
+
+        internal void SetServiceProvider(IServiceProvider provider)
+        {
+            ServiceProvider = provider;
+        }
+
+
 
         public virtual Task<bool> Init()
         {

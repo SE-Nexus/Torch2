@@ -106,6 +106,7 @@ namespace IgniteSE1.Utilities
             RootCommand.Description = "Remote IgniteSE1 Command Line Interface";
             var result = RootCommand.Parse(args);
 
+
             StringWriter stringWriter = new StringWriter();
             InvocationConfiguration confg = new InvocationConfiguration();
             confg.Output = stringWriter;
@@ -114,5 +115,8 @@ namespace IgniteSE1.Utilities
             await result.InvokeAsync(confg);
             return stringWriter.ToString();
         }
+
+
+
     }
 }

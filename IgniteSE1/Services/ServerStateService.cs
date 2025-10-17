@@ -1,7 +1,7 @@
 ﻿using IgniteSE1.Models;
 using IgniteSE1.Utilities;
-using IgniteSE1.Utilities.CLI;
-using IgniteSE1.Utilities.TestCommand;
+using IgniteUtils.Commands;
+using IgniteUtils.Commands.TestCommand;
 using NLog;
 using Spectre.Console;
 using System;
@@ -91,34 +91,15 @@ namespace IgniteSE1.Services
             };
 
 
-            var serverCmd = new Command("server", "Manage game servers");
-            serverCmd.Add(startCmd);
-            serverCmd.Add(stopCmd);
-            serverCmd.Add(restartCmd);
-            serverCmd.Options.Add(op);
 
-            ;
 
-            serverCmd.SetAction((ParseResult result) =>
-            {
 
-               
+          
 
-                bool val = result.GetValue<bool>("--test");
-                Console.WriteLine($"Stopping the server... {val}");
-
-            });
-
-            _console.CommandLineManager.RootCommand.Add(serverCmd);
+            
             
 
-            stopCmd.SetAction((ParseResult result) =>
-            {
-                
-                bool val =  result.GetValue<bool>("--force");
-                Console.WriteLine($"Stopping the server... {val}");
 
-            });
 
 
             /*

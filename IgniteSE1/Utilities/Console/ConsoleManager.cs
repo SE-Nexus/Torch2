@@ -1,11 +1,13 @@
 ﻿using IgniteSE1.Models;
 using IgniteSE1.Services;
 using IgniteSE1.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using NLog.Config;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -102,7 +104,5 @@ namespace IgniteSE1.Utilities
             appMutex = new Mutex(true, mutexName, out bool isNewInstance);
             return isNewInstance;
         }
-
-
     }
 }

@@ -1,11 +1,12 @@
 ﻿using Grpc.Core;
+using IgniteSE1.Commands;
 using IgniteSE1.Models;
 using IgniteSE1.Services;
 using IgniteSE1.Services.ProtoServices;
 using IgniteSE1.Utilities;
-using IgniteSE1.Utilities.CLI;
 using IgniteSE1.Utilities.DependencyInjection;
-using IgniteSE1.Utilities.TestCommand;
+using IgniteUtils.Commands;
+using IgniteUtils.Commands.TestCommand;
 using Microsoft.Extensions.DependencyInjection;
 using MyGrpcApp;
 using Spectre.Console;
@@ -63,9 +64,10 @@ namespace IgniteSE1
 
             ConfigureServices(services);
             IServiceProvider provider = services.BuildServiceProvider(true);
+          
+
+            IgniteConsole.CommandLineManager.RootCommand.Add(CommandLineBuilder.BuildFromType<StateCommands>(provider));
             IgniteConsole.CommandLineManager.RootCommand.Add(CommandLineBuilder.BuildFromType<TestCommand>(provider));
-
-
 
             ServiceManager serviceManager = provider.GetService<ServiceManager>();
 
@@ -83,7 +85,7 @@ namespace IgniteSE1
             server.Start();
             Console.WriteLine("gRPC server listening on port " + Port);
 
-            bool success = await serviceManager.StartAllServices();
+            bool success = await serviceManager.StartAllServices(provider);
 
             //await Task.Delay(2000);
             //s.RequestServerStateChange(ServerStateCommand.Kill);

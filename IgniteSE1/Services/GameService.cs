@@ -110,7 +110,7 @@ namespace IgniteSE1.Services
 
             MyRenderProxy.Initialize(new MyNullRender());
 
-            return base.Init();
+            return Task.FromResult(true);
         }
 
         private static void InitializeServices(bool isDedicated, bool isEOS)

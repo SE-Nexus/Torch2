@@ -213,6 +213,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\StateCommands.cs" />
     <Compile Include="Configs\IgniteSE1Cfg.cs" />
     <Compile Include="Configs\InstanceCfg.cs" />
     <Compile Include="Models\ServerStatusEnum.cs" />
@@ -229,21 +230,16 @@
     <Compile Include="Services\ServerStateService.cs" />
     <Compile Include="Services\ServiceManager.cs" />
     <Compile Include="Services\SteamService.cs" />
-    <Compile Include="Utilities\Annotations\CommandAttribute.cs" />
     <Compile Include="Utilities\Configs\ConfigBase.cs" />
     <Compile Include="Services\ConfigService.cs" />
-    <Compile Include="Utilities\Console\CLI\CommandContext.cs" />
-    <Compile Include="Utilities\Console\CLI\CommandLineBuilder.cs" />
     <Compile Include="Utilities\Console\CommandLineManager.cs" />
     <Compile Include="Utilities\Console\ConsoleManager.cs" />
-    <Compile Include="Utilities\Console\CLI\ICommandContext.cs" />
     <Compile Include="Utilities\DependencyInjection\ServiceBase.cs" />
     <Compile Include="Utilities\DependencyInjection\IAppService.cs" />
     <Compile Include="Utilities\DependencyInjection\IgniteServices.cs" />
     <Compile Include="Utilities\DependencyInjection\ServiceCollectionExtensions.cs" />
     <Compile Include="Utilities\Logging\ColoredConsoleLogTarget.cs" />
     <Compile Include="Utilities\Logging\LoggingExtensions.cs" />
-    <Compile Include="Utilities\TestCommand\TestCommand.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".dockerignore">
@@ -275,7 +271,10 @@
     <Protobuf Include="Protos\greet.proto" GrpcServices="Both" />
     <Protobuf Include="Protos\CLI.proto" GrpcServices="Both" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Utilities\Annotations\" />
+  </ItemGroup>
+  <Import Project="..\..\IgniteUtils\IgniteUtils.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets" Condition="Exists('..\packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
