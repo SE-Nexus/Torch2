@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IgniteSE1.Models
+namespace IgniteUtils.Models
 {
 
     /// <summary>

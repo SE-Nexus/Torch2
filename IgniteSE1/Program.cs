@@ -1,12 +1,11 @@
 ﻿using Grpc.Core;
 using IgniteSE1.Commands;
-using IgniteSE1.Models;
 using IgniteSE1.Services;
 using IgniteSE1.Services.ProtoServices;
 using IgniteSE1.Utilities;
-using IgniteSE1.Utilities.DependencyInjection;
 using IgniteUtils.Commands;
 using IgniteUtils.Commands.TestCommand;
+using IgniteUtils.Services;
 using Microsoft.Extensions.DependencyInjection;
 using MyGrpcApp;
 using Spectre.Console;
@@ -25,16 +24,21 @@ namespace IgniteSE1
 {
     internal class Program
     {
+        public const string AppName = "IgniteSE1";
+
+
+
         static async Task Main(string[] args)
         {
             //Setup directories and logging
             ConfigService ConfigService = new ConfigService();
-            ConsoleManager IgniteConsole = new ConsoleManager(ConfigService);
-            
-
-            // Load Config. Even if we are in CLI mode, we may need config values
             ConfigService.LoadConfig();
 
+
+            CommandLineManager CLI = new CommandLineManager(ConfigService.Config.ProtoServerPort);
+            ConsoleManager IgniteConsole = new ConsoleManager(AppName, CLI);
+         
+            
             // Initialize Console
             if (!await IgniteConsole.InitConsole(args))
                 return;
@@ -45,13 +49,15 @@ namespace IgniteSE1
             IServiceCollection services = new ServiceCollection();
             services.AddSingletonWithBase<ConfigService>(ConfigService);
             services.AddSingletonWithBase<ConsoleManager>(IgniteConsole);
+            services.AddSingletonWithBase<CommandLineManager>(CLI);
             services.AddSingletonWithBase<SteamService>();
             services.AddSingletonWithBase<ServerStateService>();
             services.AddSingletonWithBase<AssemblyResolverService>();
             services.AddSingletonWithBase<GameService>();
             services.AddSingletonWithBase<InstanceManager>();
             services.AddSingletonWithBase<PatchService>();
-            
+
+
 
 
             services.AddSingleton<CommandLineProtoService>();
@@ -64,10 +70,11 @@ namespace IgniteSE1
 
             ConfigureServices(services);
             IServiceProvider provider = services.BuildServiceProvider(true);
-          
 
-            IgniteConsole.CommandLineManager.RootCommand.Add(CommandLineBuilder.BuildFromType<StateCommands>(provider));
-            IgniteConsole.CommandLineManager.RootCommand.Add(CommandLineBuilder.BuildFromType<TestCommand>(provider));
+
+            CommandLineManager cmdLine = provider.GetService<CommandLineManager>();
+            cmdLine.RootCommand.Add(CommandLineBuilder.BuildFromType<StateCommands>(provider));
+            cmdLine.RootCommand.Add(CommandLineBuilder.BuildFromType<TestCommand>(provider));
 
             ServiceManager serviceManager = provider.GetService<ServiceManager>();
 

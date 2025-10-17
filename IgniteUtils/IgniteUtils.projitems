@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>834c8593-3128-43ff-b7c8-c26ebb8aa1d3</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>IgniteUtils</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Attributes\CommandAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\StateCommands\ServerStateCommands.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommandUtils\CLIContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommandUtils\CommandLineBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommandUtils\ICommandContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommandUtils\TestCommand\TestCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\ColoredConsoleLogTarget.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\LoggingExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Server\ServerStatusEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Base\IAppService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Base\ServiceBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Base\ServiceCollectionExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\CommandLineManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\ConsoleManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\PatchService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Protos\CommandLineProtoService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\ServerStateService.cs" />
+  </ItemGroup>
+</Project>

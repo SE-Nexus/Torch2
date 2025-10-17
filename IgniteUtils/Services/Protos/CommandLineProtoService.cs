@@ -1,5 +1,5 @@
 ﻿using Grpc.Core;
-using IgniteSE1.Utilities;
+using IgniteUtils.Services;
 using MyGrpcApp;
 using System;
 using System.Collections.Generic;
@@ -12,8 +12,9 @@ namespace IgniteSE1.Services.ProtoServices
     public class CommandLineProtoService : CommandLine.CommandLineBase
     {
         private ConsoleManager _console;
+        private CommandLineManager _cli;
 
-        public CommandLineProtoService(ConsoleManager console)
+        public CommandLineProtoService(ConsoleManager console, CommandLineManager cli)
         {
             _console = console;
         }
@@ -22,7 +23,7 @@ namespace IgniteSE1.Services.ProtoServices
         {
             try
             {
-                string result = await _console.CommandLineManager.InvokeCLICommand(request.Command.ToArray());
+                string result = await _cli.InvokeCLICommand(request.Command.ToArray());
 
                 return new CLIReply
                 {

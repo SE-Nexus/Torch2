@@ -1,7 +1,9 @@
-﻿using IgniteSE1.Models;
-using IgniteSE1.Utilities;
+﻿using IgniteSE1.Utilities;
 using IgniteUtils.Commands;
 using IgniteUtils.Commands.TestCommand;
+using IgniteUtils.Logging;
+using IgniteUtils.Models;
+using IgniteUtils.Services;
 using NLog;
 using Spectre.Console;
 using System;
@@ -12,7 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VRage;
 
-namespace IgniteSE1.Services
+namespace IgniteUtils.Services
 {
     /// <summary>
     /// Provides functionality to manage and monitor the state of a server.
@@ -22,7 +24,6 @@ namespace IgniteSE1.Services
     public class ServerStateService : ServiceBase
     {
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private readonly ConfigService _configService;
         private readonly ConsoleManager _console;
 
         /// <summary>
@@ -56,10 +57,9 @@ namespace IgniteSE1.Services
 
 
 
-        public ServerStateService(ConfigService configs, ConsoleManager console) 
+        public ServerStateService(ConsoleManager console) 
         {
             _console = console;
-            _configService = configs;
             ServerStatusChanged += ServerStatusChanged_Event;
         }
 
@@ -255,7 +255,7 @@ namespace IgniteSE1.Services
             }
 
             CurrentServerStatus = newStatus;
-            _console.UpdateConsoleTitleStatus(CurrentServerStatus);
+            _console.UpdateConsoleTitle(CurrentServerStatus.ToString());
             _logger.InfoColor($"Server status changed to: {CurrentServerStatus}", Color.Yellow);
             ServerStatusChanged?.Invoke(this, CurrentServerStatus);
             return true;
@@ -280,14 +280,8 @@ namespace IgniteSE1.Services
         /// <param name="e">The new server status, represented as a value of the <see cref="ServerStatusEnum"/> enumeration.</param>
         private void ServerStatusChanged_Event(object sender, ServerStatusEnum e)
         {
-            _configService.Config.AutoStartServer = false;
-            if (e == ServerStatusEnum.Idle && _configService.Config.AutoStartServer)
-            {
-                //Auto start the server
-                _logger.Info("Auto starting the server...");
-                // Here you would add the logic to start the server.
-                RequestServerStateChange(ServerStateCommand.Start);
-            }
+            
+
         }
 
 

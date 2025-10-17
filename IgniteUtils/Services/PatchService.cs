@@ -1,5 +1,5 @@
 ﻿using HarmonyLib;
-using IgniteSE1.Utilities;
+using IgniteUtils.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IgniteSE1.Services
+namespace IgniteUtils.Services
 {
 
     public class PatchService : ServiceBase

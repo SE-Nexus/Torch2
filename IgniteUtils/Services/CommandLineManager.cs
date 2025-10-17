@@ -1,6 +1,5 @@
 ﻿using Grpc.Core;
 using HarmonyLib;
-using IgniteSE1.Services;
 using MyGrpcApp;
 using Spectre.Console;
 using System;
@@ -14,23 +13,21 @@ using System.Text;
 using System.Threading.Tasks;
 using static Sandbox.Game.World.MyWorldGenerator;
 using Microsoft.Extensions.DependencyInjection;
+using IgniteUtils.Services;
 
-namespace IgniteSE1.Utilities
+namespace IgniteUtils.Services
 {
 
-    public class CommandLineManager
+    public class CommandLineManager : ServiceBase
     {
         public RootCommand RootCommand { get; private set; } = new RootCommand("IgniteSE1 CLI");
-        private ConsoleManager consoleManager;
+        int ProtoServicePort;
 
 
-        public CommandLineManager(ConsoleManager console)
+        public CommandLineManager(int ProtoServicePort)
         {
             //initialize command line arguments and options here
-            consoleManager = console;
-
-            
-            
+            this.ProtoServicePort = ProtoServicePort;
         }
 
 
@@ -88,7 +85,7 @@ namespace IgniteSE1.Utilities
 
         private async Task SendCLIRequest(string[] args)
         {
-            Channel channel = new Channel($"localhost:{consoleManager.configs.Config.ProtoServerPort}", ChannelCredentials.Insecure);
+            Channel channel = new Channel($"localhost:{ProtoServicePort}", ChannelCredentials.Insecure);
             var client = new CommandLine.CommandLineClient(channel);
 
             var request = new CLIRequest();

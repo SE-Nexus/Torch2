@@ -1,4 +1,6 @@
 ﻿using IgniteSE1.Utilities;
+using IgniteUtils.Models;
+using IgniteUtils.Services;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using Spectre.Console;
@@ -28,9 +30,9 @@ namespace IgniteSE1.Services
             _serverState.ServerStatusChanged += _serverState_ServerStatusChanged;
         }
 
-        private void _serverState_ServerStatusChanged(object sender, Models.ServerStatusEnum e)
+        private void _serverState_ServerStatusChanged(object sender, ServerStatusEnum e)
         {
-            if(e == Models.ServerStatusEnum.Starting)
+            if(e == ServerStatusEnum.Starting)
             {
                 foreach (var item in Services)
                 {
@@ -116,9 +118,9 @@ namespace IgniteSE1.Services
 
 
             if (allSucceeded)
-                _serverState.ChangeServerStatus(Models.ServerStatusEnum.Idle);
+                _serverState.ChangeServerStatus(ServerStatusEnum.Idle);
             else
-                _serverState.ChangeServerStatus(Models.ServerStatusEnum.Error);
+                _serverState.ChangeServerStatus(ServerStatusEnum.Error);
 
             return allSucceeded;
 

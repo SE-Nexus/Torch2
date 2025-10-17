@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IgniteSE1.Utilities
+namespace IgniteUtils.Logging
 {
     public static class LoggingExtensions
     {

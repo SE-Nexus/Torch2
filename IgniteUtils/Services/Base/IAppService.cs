@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IgniteSE1.Utilities
+namespace IgniteUtils.Services
 {
 
     //We will pull most of this stuff out into a seperate library later

@@ -1,11 +1,12 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using IgniteUtils.Services;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IgniteSE1.Utilities
+namespace IgniteUtils.Services
 {
     public abstract class ServiceBase : IAppService
     {

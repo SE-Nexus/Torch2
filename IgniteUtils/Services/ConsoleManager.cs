@@ -1,6 +1,5 @@
-﻿using IgniteSE1.Models;
-using IgniteSE1.Services;
-using IgniteSE1.Utilities;
+﻿using IgniteUtils.Logging;
+using IgniteUtils.Services;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using NLog.Config;
@@ -14,23 +13,23 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace IgniteSE1.Utilities
+namespace IgniteUtils.Services
 {
     public class ConsoleManager : ServiceBase
     {
-        public CommandLineManager CommandLineManager { get; private set; }
-
         private static Logger Logger;
         private static Mutex appMutex;
+        private CommandLineManager _cli;
 
-        // Configuration service reference
-        public ConfigService configs { get; private set; }
+
+        public string ConsoleName { get; private set; }
         public string mutexName { get; private set; }
 
-        public ConsoleManager(ConfigService configs) 
+
+        public ConsoleManager(string Name, CommandLineManager cli) 
         {
-            CommandLineManager = new CommandLineManager(this);
-            this.configs = configs;
+            _cli = cli;
+            ConsoleName = Name;
             mutexName = AppDomain.CurrentDomain.FriendlyName.Replace("\\", "_");
         }
 
@@ -49,23 +48,16 @@ namespace IgniteSE1.Utilities
             if (IsServer)
             {
                 // New App
-                UpdateConsoleTitleStatus(ServerStatusEnum.Initializing);
                 SetupConsole();
             }
             else
             {
                 //Existing App Already Running. We should continue with CLI mode
-                Console.Title = "IgniteSE1 CLI Mode";
+                Console.Title = $"{ConsoleName} CLI Mode";
             }
 
-            await CommandLineManager.SetupCommandLineManager(IsServer, args);
+            await _cli.SetupCommandLineManager(IsServer, args);
             return IsServer;
-        }
-
-
-        public void UpdateConsoleTitleStatus(ServerStatusEnum status)
-        {
-            UpdateConsoleTitle($"{configs.Config.IgniteCMDName} [{status}]");
         }
 
         public void UpdateConsoleTitle(string newTitle)

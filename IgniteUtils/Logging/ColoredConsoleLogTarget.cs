@@ -8,7 +8,7 @@ using NLog;
 using NLog.Layouts;
 using NLog.Targets;
 
-namespace IgniteSE1.Utilities
+namespace IgniteUtils.Logging
 {
     [Target("ColoredConsole")]
     public class ColoredConsoleLogTarget : TargetWithLayout

@@ -1,7 +1,7 @@
 ﻿using IgniteSE1.Services;
-using IgniteUtils.Attributes;
 using IgniteUtils.Commands;
 using IgniteUtils.Commands.StateCommands;
+using IgniteUtils.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,14 +21,14 @@ namespace IgniteSE1.Commands
             this.gameService = service;
             this.serverStateService = serverState;
 
-          
-            
+
+
         }
 
 
         public override void Start(ICommandContext ctx)
         {
-            
+
         }
 
         public override void Status(ICommandContext ctx)
