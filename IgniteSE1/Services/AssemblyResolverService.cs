@@ -55,6 +55,7 @@ namespace IgniteSE1.Services
                 try
                 {
 
+
                     string candidatePath = Directory.GetFiles(dir, assemblyName, SearchOption.AllDirectories).FirstOrDefault();
                     
                     if (string.IsNullOrEmpty(candidatePath))
