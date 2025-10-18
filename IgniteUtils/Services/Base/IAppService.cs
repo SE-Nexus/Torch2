@@ -42,7 +42,7 @@ namespace IgniteUtils.Services
         /// <remarks>Call this method to halt ongoing activity. The specific behavior depends on the
         /// implementation; some services may require additional cleanup or may not be immediately stopped. This method
         /// is typically used to gracefully terminate processing or release resources.</remarks>
-        void Stop();
+        Task<bool> Stop();
 
         /// <summary>
         /// Notifies that the server is beginning its startup process.
@@ -50,7 +50,7 @@ namespace IgniteUtils.Services
         /// <remarks>Implement this method to perform any initialization or setup required before the
         /// server becomes fully operational. This method is typically called once during the server's lifecycle, prior
         /// to accepting client connections.</remarks>
-        void ServerStarting();
+        Task<bool> ServerStarting();
 
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace IgniteUtils.Services
         /// </summary>
         /// <remarks>Implement this method to perform any necessary cleanup or resource release before the
         /// server stops. This notification is typically used to gracefully handle server shutdown events.</remarks>
-        void ServerStopping();
+        Task<bool> ServerStopping();
 
 
         /// <summary>
@@ -72,6 +72,6 @@ namespace IgniteUtils.Services
         /// <remarks>Implement this method to handle any cleanup or state updates required when the server
         /// stops. This notification is typically used to trigger actions such as releasing resources or updating user
         /// interfaces.</remarks>
-        void ServerStopped();
+        Task<bool> ServerStopped();
     }
 }

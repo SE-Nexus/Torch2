@@ -27,14 +27,33 @@ namespace IgniteUtils.Models
     /// <summary>
     /// Represents the set of commands that can be issued to control the state of a server.
     /// </summary>
-    /// <remarks>This enumeration defines commands for managing the lifecycle of a server, such as starting,
-    /// stopping, or restarting it.</remarks>
+    /// <remarks>Server boots in kill and will transition to idle when initializing is done.</remarks>
     public enum ServerStateCommand
     {
+
+        /// <summary>
+        /// Server is Idle, awaiting start signal. (Enter from Stopped, or kill etc)
+        /// </summary>
         Idle,
+
+        /// <summary>
+        /// Server is started.
+        /// </summary>
         Start,
+
+        /// <summary>
+        /// Server stopped
+        /// </summary>
         Stop,
+
+        /// <summary>
+        /// Server Restart Command
+        /// </summary>
         Restart,
+
+        /// <summary>
+        /// Server Kill command
+        /// </summary>
         Kill
     }
 }

@@ -4,6 +4,7 @@ using IgniteUtils.Commands.TestCommand;
 using IgniteUtils.Logging;
 using IgniteUtils.Models;
 using IgniteUtils.Services;
+using IgniteUtils.Utils;
 using NLog;
 using Spectre.Console;
 using System;
@@ -52,6 +53,13 @@ namespace IgniteUtils.Services
         /// Gets the current state request for the server.
         /// </summary>
         public ServerStateCommand CurrentSateRequest { get; private set; } = ServerStateCommand.Kill;
+
+
+
+        /// <summary>
+        /// Datetime of the last server status change
+        /// </summary>
+        public DateTime LastStatusChangeTime { get; private set; } = DateTime.Now;
 
 
 
@@ -144,6 +152,17 @@ namespace IgniteUtils.Services
             // Validate transition based on current status
             switch (newState)
             {
+                case ServerStateCommand.Idle:
+
+                    if (CurrentServerStatus != ServerStatusEnum.Initializing)
+                        return FailTransition(newState, ServerStatusEnum.Stopped);
+
+
+
+                    RequestedStatus = ServerStatusEnum.Idle;
+                    break;
+
+
                 case ServerStateCommand.Start:
                     if (CurrentServerStatus != ServerStatusEnum.Idle)
                         return FailTransition(newState, ServerStatusEnum.Idle);
@@ -170,12 +189,6 @@ namespace IgniteUtils.Services
                     RequestedStatus = ServerStatusEnum.Error;
                     break;
 
-                case ServerStateCommand.Idle:
-                    if (CurrentServerStatus != ServerStatusEnum.Stopped)
-                        return FailTransition(newState, ServerStatusEnum.Stopped);
-                    RequestedStatus = ServerStatusEnum.Idle;
-                    break;
-
                 default:
                     _logger.Error($"Unhandled server state command: {newState}");
                     RequestedStatus = ServerStatusEnum.Error;
@@ -189,7 +202,15 @@ namespace IgniteUtils.Services
 
             // Raise the ServerStateChanged event to notify subscribers of the state change
             _logger.InfoColor($"Server state changed to: {CurrentSateRequest}", Color.Green);
-            ServerStateChanged?.Invoke(this, CurrentSateRequest);
+
+            ServerStateChanged?.GetInvocationList()
+                .Cast<EventHandler<ServerStateCommand>>()
+                .ToList()
+                .ForEach(handler =>
+                {
+                    Task.Run(() => handler(this, CurrentSateRequest));
+                });
+
             ChangeServerStatus(RequestedStatus);
             return true;
         }
@@ -257,7 +278,16 @@ namespace IgniteUtils.Services
             CurrentServerStatus = newStatus;
             _console.UpdateConsoleTitle(CurrentServerStatus.ToString());
             _logger.InfoColor($"Server status changed to: {CurrentServerStatus}", Color.Yellow);
-            ServerStatusChanged?.Invoke(this, CurrentServerStatus);
+
+            ServerStatusChanged?.GetInvocationList()
+                .Cast<EventHandler<ServerStatusEnum>>()
+                .ToList()
+                .ForEach(handler =>
+                {
+                    Task.Run(() => handler(this, CurrentServerStatus));
+                });
+
+            LastStatusChangeTime = DateTime.Now;
             return true;
         }
 
@@ -284,6 +314,16 @@ namespace IgniteUtils.Services
 
         }
 
+        public TimeSpan GetCurrentTime()
+        {
+            return DateTime.Now - LastStatusChangeTime;
+        }
+
+
+        public override string ToString()
+        {
+            return $"Server state: [{CurrentSateRequest}] | Status: [{CurrentServerStatus}] for {GetCurrentTime().ToCompactString()}";
+        }
 
         
 

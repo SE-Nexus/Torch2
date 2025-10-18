@@ -37,24 +37,24 @@ namespace IgniteUtils.Services
             
         }
 
-        public virtual void ServerStarting()
+        public virtual Task<bool> ServerStarting()
         {
-            
+            return Task.FromResult(true);
         }
 
-        public virtual void ServerStopped()
+        public virtual Task<bool> ServerStopped()
         {
-            
+            return Task.FromResult(true);
         }
 
-        public virtual void ServerStopping()
+        public virtual Task<bool> ServerStopping()
         {
-            
+            return Task.FromResult(true);
         }
 
-        public virtual void Stop()
+        public virtual Task<bool> Stop()
         {
-            
+            return Task.FromResult(true);
         }
     }
 }

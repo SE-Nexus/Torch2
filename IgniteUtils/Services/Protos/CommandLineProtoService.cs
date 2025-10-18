@@ -17,6 +17,7 @@ namespace IgniteSE1.Services.ProtoServices
         public CommandLineProtoService(ConsoleManager console, CommandLineManager cli)
         {
             _console = console;
+            _cli = cli;
         }
 
         public override async Task<CLIReply> ProcessCLI(CLIRequest request, ServerCallContext context)

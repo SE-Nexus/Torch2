@@ -30,6 +30,10 @@ namespace IgniteUtils.Logging
 
         protected override void Write(LogEventInfo logEvent)
         {
+            bool NoConsole = TryGetNoConsole(logEvent);
+            if (NoConsole)
+                return;
+
             string logMessage = Layout.Render(logEvent);
             string prefixText;
 
@@ -111,18 +115,27 @@ namespace IgniteUtils.Logging
 
         public static bool TryGetColor(LogEventInfo logEvent, out Color color)
         {
-
-            if (logEvent.Properties != null && logEvent.Properties.Count > 0)
+            if (logEvent.Properties != null &&
+                    logEvent.Properties.TryGetValue("Color", out var value) &&
+                    value is Color logColor)
             {
-                var firstArg = logEvent.Properties.First();
-                if (firstArg.Value is Color logColor)
-                {
-                    color = logColor;
-                    return true;
-                }
+                color = logColor;
+                return true;
             }
 
             color = default;
+            return false;
+        }
+
+        public static bool TryGetNoConsole(LogEventInfo logEvent)
+        {
+            if (logEvent.Properties != null &&
+                logEvent.Properties.TryGetValue("NoConsole", out var value) &&
+                value is bool flag)
+            {
+                return flag;
+            }
+
             return false;
         }
 

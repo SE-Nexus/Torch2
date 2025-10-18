@@ -56,6 +56,8 @@ namespace IgniteSE1.Services
         private string DedicatedServer64;
         private Thread GameThread;
 
+        private TaskCompletionSource<bool> _serverStartTcs;
+
 
 
 
@@ -70,8 +72,6 @@ namespace IgniteSE1.Services
             GameThread.IsBackground = true;
             DedicatedServer64 = Path.Combine(_steamService.GameInstallDir, "DedicatedServer64");
         }
-
-        
 
         public override Task<bool> Init()
         {
@@ -297,10 +297,15 @@ namespace IgniteSE1.Services
 
 
 
-        public override void ServerStarting()
+        public override async Task<bool> ServerStarting()
         {
+            _serverStartTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
             GameThread.Start();
-            base.ServerStarting();
+
+            bool success = await _serverStartTcs.Task;
+
+            return success;
         }
 
 
@@ -309,6 +314,7 @@ namespace IgniteSE1.Services
 
         public void StartServer()
         {
+            
             var s = MyFileSystem.ExePath;
 
             // Initialize the game and load required native libraries
@@ -325,6 +331,7 @@ namespace IgniteSE1.Services
 
             if (MySandboxGame.FatalErrorDuringInit)
             {
+                _serverStartTcs.TrySetResult(false);
                 throw new InvalidOperationException("Failed to start sandbox game: see Keen log for details");
             }
 
@@ -337,7 +344,7 @@ namespace IgniteSE1.Services
         // This event is called after the game session has finished loading
         private void MySession_AfterLoading()
         {
-            _serverState.ChangeServerStatus(ServerStatusEnum.Running);
+            _serverStartTcs.TrySetResult(true);
         }
 
 

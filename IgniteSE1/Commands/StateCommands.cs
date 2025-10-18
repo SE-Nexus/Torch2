@@ -19,7 +19,7 @@ namespace IgniteSE1.Commands
         public StateCommands(GameService service, ServerStateService serverState)
         {
             this.gameService = service;
-            this.serverStateService = serverState;
+            this.serverStateService = serverState; 
 
 
 
@@ -28,17 +28,31 @@ namespace IgniteSE1.Commands
 
         public override void Start(ICommandContext ctx)
         {
-
+            if (serverStateService.RequestServerStateChange(IgniteUtils.Models.ServerStateCommand.Start))
+            {
+                ctx.Respond("Server is now starting!");
+            }
+            else
+            {
+                ctx.Respond("Unable to start the server!");
+            }
         }
 
         public override void Status(ICommandContext ctx)
         {
-            ctx.Respond($"{serverStateService.CurrentServerStatus}");
+            ctx.Respond(serverStateService.ToString());
         }
 
         public override void Stop(ICommandContext ctx, bool kill)
         {
-
+            if (serverStateService.RequestServerStateChange(IgniteUtils.Models.ServerStateCommand.Stop))
+            {
+                ctx.Respond("Server is now stopping!");
+            }
+            else
+            {
+                ctx.Respond("Unable to stop the server!");
+            }
         }
 
 

@@ -26,5 +26,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\PatchService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Protos\CommandLineProtoService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\ServerStateService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\TimeSpanExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Utils\Serializers\" />
   </ItemGroup>
 </Project>

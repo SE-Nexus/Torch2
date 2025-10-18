@@ -36,11 +36,11 @@ namespace IgniteUtils.Commands
                 if (optAttr == null)
                     continue;
 
-
                 //We create an option of the appropriate type
                 var optionType = typeof(Option<>).MakeGenericType(prop.PropertyType);
                 var option = (Option)Activator.CreateInstance(optionType, new[] { optAttr.Name });
                 option.Description = optAttr.Description;
+
 
 
                 //Add any options to the group command
@@ -108,19 +108,22 @@ namespace IgniteUtils.Commands
             if (cmdAttr is CommandAttribute)
             {
                 var subCommand = new Command(cmdAttr.Name, cmdAttr.Description);
+
+                //Get options
+                GenerateCmdOptions(method, subCommand);
+
+
                 subCommand.SetAction((ParseResult result) =>
                 {
-
-
                     //Get the method parameters attributes and parse the result for those values
                     //Then invoke the method with those parameters
-
                     CLIContext ctx = new CLIContext(subCommand, result);
 
                     List<object?> allMethodInputArgs = new List<object?>();
                     allMethodInputArgs.Add(ctx);
 
-                    foreach (var param in GetMethodOptions(method, subCommand))
+                    List<OptionAttribute> options = GetMethodOptions(method, subCommand);
+                    foreach (var param in options)
                     {
                         allMethodInputArgs.Add(result.GetValue<object?>(param.Name));
                     }
@@ -143,7 +146,9 @@ namespace IgniteUtils.Commands
                     List<object?> allMethodInputArgs = new List<object?>();
                     allMethodInputArgs.Add(ctx);
 
-                    foreach (var param in GetMethodOptions(method, groupCommand))
+
+                    List<OptionAttribute> options = GetMethodOptions(method, groupCommand);
+                    foreach (var param in options)
                     {
                         allMethodInputArgs.Add(result.GetValue<object?>(param.Name));
                     }
@@ -166,6 +171,19 @@ namespace IgniteUtils.Commands
                 if (optAttr == null)
                     continue;
 
+                allMethodOptions.Add(optAttr);
+            }
+            return allMethodOptions;
+        }
+
+        private static void GenerateCmdOptions(MethodInfo method, Command cmd)
+        {
+            foreach (var param in method.GetParameters())
+            {
+                var optAttr = param.GetCustomAttribute<OptionAttribute>(true);
+                if (optAttr == null)
+                    continue;
+
                 var optionType = typeof(Option<>).MakeGenericType(param.ParameterType);
 
                 //Set the type in the option
@@ -174,10 +192,7 @@ namespace IgniteUtils.Commands
                 var option = (Option)Activator.CreateInstance(optionType, new[] { optAttr.Name });
                 option.Description = optAttr.Description;
                 cmd.Options.Add(option);
-
-                allMethodOptions.Add(optAttr);
             }
-            return allMethodOptions;
         }
 
 

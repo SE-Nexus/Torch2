@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VRageMath;
+using Color = Spectre.Console.Color;
 
 namespace IgniteUtils.Logging
 {
@@ -22,6 +24,16 @@ namespace IgniteUtils.Logging
 
 
 
+        }
+
+        public static void NoConsole(this Logger _log, LogLevel lvl, string message)
+        {
+            LogEventBuilder logEventBuilder = new LogEventBuilder(_log, lvl);
+            logEventBuilder.Message(message);
+            logEventBuilder.Property("NoConsole", true);
+
+
+            _log.Log(logEventBuilder.LogEvent);
         }
     }
 }
