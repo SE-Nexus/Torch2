@@ -92,7 +92,7 @@ namespace IgniteSE1
             server.Start();
             Console.WriteLine("gRPC server listening on port " + Port);
 
-            bool success = await serviceManager.StartAllServices(provider);
+            bool success = await serviceManager.InitAllServicesAsync(provider);
 
             //await Task.Delay(2000);
             //s.RequestServerStateChange(ServerStateCommand.Kill);

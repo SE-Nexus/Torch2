@@ -55,8 +55,12 @@ namespace IgniteSE1.Services
 
         private string DedicatedServer64;
         private Thread GameThread;
+        private MySandboxGame Game;
+
 
         private TaskCompletionSource<bool> _serverStartTcs;
+        private TaskCompletionSource<bool> _serverStoppingTcs;
+        private TaskCompletionSource<bool> _serverStoppedTcs;
 
 
 
@@ -68,8 +72,8 @@ namespace IgniteSE1.Services
             _steamService = steam;
             _serverState = serverState;
 
-            GameThread = new Thread(StartServer);
-            GameThread.IsBackground = true;
+           
+           
             DedicatedServer64 = Path.Combine(_steamService.GameInstallDir, "DedicatedServer64");
         }
 
@@ -300,7 +304,11 @@ namespace IgniteSE1.Services
         public override async Task<bool> ServerStarting()
         {
             _serverStartTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            _serverStoppingTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            _serverStoppedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
+            GameThread = new Thread(StartServer);
+            GameThread.IsBackground = true;
             GameThread.Start();
 
             bool success = await _serverStartTcs.Task;
@@ -308,8 +316,14 @@ namespace IgniteSE1.Services
             return success;
         }
 
+        public override async Task<bool> ServerStopping()
+        {
+            
+            MySandboxGame.Static.Exit();
+            ParallelTasks.Parallel.Scheduler.WaitForTasksToFinish(TimeSpan.FromSeconds(10.0));
 
-
+            return await _serverStoppedTcs.Task;
+        }
 
 
         public void StartServer()
@@ -323,11 +337,14 @@ namespace IgniteSE1.Services
 
             //Set Events:
             MySession.AfterLoading += MySession_AfterLoading;
-
+            MySession.OnUnloading += MySession_OnUnloading;
+            MySession.OnUnloaded += MySession_OnUnloaded;
 
 
             _logger.Info("Starting Game Server...");
-            var _game = new MySandboxGame(new string[16]);
+            Game = new MySandboxGame(new string[16]);
+       
+
 
             if (MySandboxGame.FatalErrorDuringInit)
             {
@@ -337,7 +354,19 @@ namespace IgniteSE1.Services
 
 
             //Blocking call
-            _game.Run();
+            Game.Run();
+            MyGameService.ShutDown();
+        }
+
+        private void MySession_OnUnloaded()
+        {
+            _serverStoppedTcs.TrySetResult(true);
+            GameThread.Join();
+        }
+
+        private void MySession_OnUnloading()
+        {
+            _serverStoppingTcs.TrySetResult(true);
         }
 
 
@@ -348,11 +377,6 @@ namespace IgniteSE1.Services
         }
 
 
-
-        public void StopServer()
-        {
-
-        }
 
 
 

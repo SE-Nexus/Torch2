@@ -1,7 +1,9 @@
-﻿using IgniteUtils.Services;
+﻿using IgniteUtils.Models;
+using IgniteUtils.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -55,6 +57,36 @@ namespace IgniteUtils.Services
         public virtual Task<bool> Stop()
         {
             return Task.FromResult(true);
+        }
+
+
+        internal Task<bool> CallState(ServerStatusEnum status)
+        {
+            switch (status)
+            {
+                case ServerStatusEnum.Initializing:
+                    return Init();
+
+                case ServerStatusEnum.Idle:
+                    AfterInit();
+                    return Task.FromResult(true);
+
+                case ServerStatusEnum.Running:
+                    ServerStarted();
+                    return Task.FromResult(true);
+
+                case ServerStatusEnum.Starting:
+                    return ServerStarting();
+
+                case ServerStatusEnum.Stopped:
+                    return ServerStopped();
+
+                case ServerStatusEnum.Stopping:
+                    return ServerStopping();
+
+                default: 
+                    return Task.FromResult(false);
+            }
         }
     }
 }

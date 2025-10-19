@@ -154,8 +154,8 @@ namespace IgniteUtils.Services
             {
                 case ServerStateCommand.Idle:
 
-                    if (CurrentServerStatus != ServerStatusEnum.Initializing)
-                        return FailTransition(newState, ServerStatusEnum.Stopped);
+                    if (CurrentServerStatus != ServerStatusEnum.Initializing && CurrentServerStatus != ServerStatusEnum.Stopped)
+                        return FailTransition(newState, ServerStatusEnum.Initializing | ServerStatusEnum.Stopped);
 
 
 
@@ -266,8 +266,8 @@ namespace IgniteUtils.Services
                     break;
 
                 case ServerStatusEnum.Idle:
-                    if (CurrentServerStatus != ServerStatusEnum.Initializing)
-                        return FailStatusTransition(newStatus, ServerStatusEnum.Initializing);
+                    if (CurrentServerStatus != ServerStatusEnum.Initializing && CurrentServerStatus != ServerStatusEnum.Stopped)
+                        return FailStatusTransition(newStatus, ServerStatusEnum.Initializing | ServerStatusEnum.Stopped);
                     break;
 
                 default:
@@ -288,6 +288,9 @@ namespace IgniteUtils.Services
                 });
 
             LastStatusChangeTime = DateTime.Now;
+
+
+
             return true;
         }
 
