@@ -18,7 +18,6 @@ using System.Threading.Tasks;
 using VRage.FileSystem;
 using VRage.Game;
 using VRage.Game.ModAPI;
-using static VRage.Dedicated.Configurator.SelectInstanceForm;
 
 namespace IgniteSE1.Services
 {
