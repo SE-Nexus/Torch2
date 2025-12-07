@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using static Sandbox.Game.World.MyWorldGenerator;
 using Microsoft.Extensions.DependencyInjection;
 using IgniteUtils.Services;
+using IgniteUtils.Utils.CommandUtils;
 
 namespace IgniteUtils.Services
 {
@@ -51,9 +52,12 @@ namespace IgniteUtils.Services
 
         public async Task ProcessCLICommand(string[] args)
         {
+            if (args.Length == 0)
+                return;
+
 
             //Check if interactive mode
-            if (args.Length > 0 && args[0].Equals("--interactive", StringComparison.OrdinalIgnoreCase))
+            if (args[0].Equals("--interactive", StringComparison.OrdinalIgnoreCase))
             {
                 AnsiConsole.Write(new Panel("[bold green]Interactive mode enabled![/] [grey]Type [yellow]exit[/] to quit.[/]").Border(BoxBorder.Rounded).Header("[white on green] CLI Mode [/]"));
 
@@ -76,11 +80,16 @@ namespace IgniteUtils.Services
 
                 //Lets return. As the command would attempt to continue with the --interactive stuff
                 return;
+            }else if (args[0].Equals("--snake", StringComparison.OrdinalIgnoreCase))
+            {
+                SnakeGame game = new SnakeGame();
+                game.Run();
+                return;
             }
 
 
-            //Send singular command;
-            await SendCLIRequest(args);
+                //Send singular command;
+                await SendCLIRequest(args);
         }
 
         private async Task SendCLIRequest(string[] args)

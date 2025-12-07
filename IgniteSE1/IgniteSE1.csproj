@@ -226,7 +226,6 @@
     <Compile Include="Services\ProtoServices\GreeterService.cs" />
     <Compile Include="Services\ServiceManager.cs" />
     <Compile Include="Services\SteamService.cs" />
-    <Compile Include="Utilities\Configs\ConfigBase.cs" />
     <Compile Include="Services\ConfigService.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -260,8 +259,7 @@
     <Protobuf Include="Protos\CLI.proto" GrpcServices="Both" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Utilities\Annotations\" />
-    <Folder Include="Utilities\Console\" />
+    <Folder Include="Utilities\" />
   </ItemGroup>
   <Import Project="..\IgniteUtils\IgniteUtils.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

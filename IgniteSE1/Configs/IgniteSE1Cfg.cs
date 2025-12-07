@@ -1,4 +1,5 @@
-﻿using IgniteSE1.Utilities;
+﻿using IgniteUtils.Attributes;
+using IgniteUtils.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +32,7 @@ namespace IgniteSE1.Configs
         #endregion
 
 
-
+        [EnvVar("IGNITE_CMD_NAME")]
         [YamlMember(Description = "Changes the name of the CMD Window")]
         public string IgniteCMDName { get; set; } = "Ignite SE1";
 

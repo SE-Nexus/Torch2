@@ -2,10 +2,10 @@
 using IgniteSE1.Commands;
 using IgniteSE1.Services;
 using IgniteSE1.Services.ProtoServices;
-using IgniteSE1.Utilities;
 using IgniteUtils.Commands;
 using IgniteUtils.Commands.TestCommand;
 using IgniteUtils.Services;
+using IgniteUtils.Utils.CommandUtils;
 using Microsoft.Extensions.DependencyInjection;
 using MyGrpcApp;
 using Spectre.Console;

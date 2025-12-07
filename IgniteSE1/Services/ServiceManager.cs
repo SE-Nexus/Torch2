@@ -1,5 +1,4 @@
-﻿using IgniteSE1.Utilities;
-using IgniteUtils.Logging;
+﻿using IgniteUtils.Logging;
 using IgniteUtils.Models;
 using IgniteUtils.Services;
 using Microsoft.Extensions.DependencyInjection;

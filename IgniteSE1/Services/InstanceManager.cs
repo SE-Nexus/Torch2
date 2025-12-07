@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using IgniteSE1.Configs;
-using IgniteSE1.Utilities;
 using IgniteUtils.Logging;
 using IgniteUtils.Services;
 using Microsoft.Extensions.Logging;

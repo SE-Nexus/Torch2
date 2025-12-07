@@ -1,5 +1,4 @@
-﻿using IgniteSE1.Utilities;
-using IgniteUtils.Commands;
+﻿using IgniteUtils.Commands;
 using IgniteUtils.Commands.TestCommand;
 using IgniteUtils.Logging;
 using IgniteUtils.Models;

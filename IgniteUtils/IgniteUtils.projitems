@@ -10,11 +10,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Attributes\CommandAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Attributes\EnvVarAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\StateCommands\ServerStateCommands.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CommandUtils\CLIContext.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CommandUtils\CommandLineBuilder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CommandUtils\ICommandContext.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CommandUtils\TestCommand\TestCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\CLIContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\CommandLineBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\ICommandContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\SnakeGame.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\TestCommand\TestCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging\ColoredConsoleLogTarget.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging\LoggingExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Server\ServerStatusEnum.cs" />
@@ -26,6 +28,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\PatchService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Protos\CommandLineProtoService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\ServerStateService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Configs\ConfigBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Configs\EnviromentVarLoader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\TimeSpanExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

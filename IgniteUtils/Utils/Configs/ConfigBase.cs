@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IgniteUtils.Utils.Configs;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace IgniteSE1.Utilities
+namespace IgniteUtils.Utils
 {
     public abstract class ConfigBase<T> where T : ConfigBase<T>, new()
     {
@@ -32,6 +33,7 @@ namespace IgniteSE1.Utilities
                 // Optionally create a default file
                 var defaultInstance = new T();
                 defaultInstance.filePath = filePath; // Set the file path for saving later
+                EnviromentVarLoader.Load(defaultInstance);
                 defaultInstance.Save();
                 return defaultInstance;
             }
@@ -42,7 +44,9 @@ namespace IgniteSE1.Utilities
                 .Build();
 
             var yaml = File.ReadAllText(filePath);
-            return deserializer.Deserialize<T>(yaml);
+            T ob = deserializer.Deserialize<T>(yaml);
+            EnviromentVarLoader.Load(ob);
+            return ob;
         }
 
     }
