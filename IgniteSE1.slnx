@@ -4,4 +4,5 @@
   </Project>
   <Project Path="IgniteSE1/IgniteSE1.csproj" Id="18569b32-136d-4a7e-a3f3-63d84f90ad11" />
   <Project Path="IgniteUtils/IgniteUtils.shproj" Id="834c8593-3128-43ff-b7c8-c26ebb8aa1d3" />
+  <Project Path="Torch2WebUI/Torch2WebUI.csproj" Id="5eda7124-a8b3-4534-a65f-03fc10bd4f8d" />
 </Solution>
