@@ -6,7 +6,9 @@ using NLog;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -63,7 +65,12 @@ namespace IgniteSE1.Services
 
                     if (success)
                     {
-                        _serverState.RequestServerStateChange(ServerStateCommand.Idle);
+                        string exePath = Assembly.GetEntryAssembly().Location;
+
+                        Process.Start(exePath);
+                        Environment.Exit(0); // clean exit, triggers finally{} blocks
+
+                        //_serverState.RequestServerStateChange(ServerStateCommand.Idle);
                     }
 
                 });

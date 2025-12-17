@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="../IgniteShared/IgniteShared.shproj" Id="edc11851-10d8-4400-9b0f-d75ef4f561d6" />
   <Project Path="docker-compose.dcproj">
     <Build />
   </Project>

@@ -4,7 +4,9 @@ using IgniteSE1.Services;
 using IgniteSE1.Services.ProtoServices;
 using IgniteUtils.Commands;
 using IgniteUtils.Commands.TestCommand;
+using IgniteUtils.Models.Server;
 using IgniteUtils.Services;
+using IgniteUtils.Services.Networking;
 using IgniteUtils.Utils.CommandUtils;
 using Microsoft.Extensions.DependencyInjection;
 using MyGrpcApp;
@@ -12,6 +14,7 @@ using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -30,6 +33,8 @@ namespace IgniteSE1
 
         static async Task Main(string[] args)
         {
+            Console.Clear();
+
             //Setup directories and logging
             ConfigService ConfigService = new ConfigService();
             ConfigService.LoadConfig();
@@ -47,21 +52,27 @@ namespace IgniteSE1
 
             // Setup Dependency Injection
             IServiceCollection services = new ServiceCollection();
-            services.AddSingletonWithBase<ConfigService>(ConfigService);
+            services.AddCoreServices(ConfigService.TargetWebPanel);
+
+            services.AddSingletonWithBase<ConfigService, IConfigService>(ConfigService);
             services.AddSingletonWithBase<ConsoleManager>(IgniteConsole);
             services.AddSingletonWithBase<CommandLineManager>(CLI);
             services.AddSingletonWithBase<SteamService>();
-            services.AddSingletonWithBase<ServerStateService>();
-            services.AddSingletonWithBase<AssemblyResolverService>();
+            
+            
             services.AddSingletonWithBase<GameService>();
             services.AddSingletonWithBase<InstanceManager>();
-            services.AddSingletonWithBase<PatchService>();
+           
 
 
 
 
             services.AddSingleton<CommandLineProtoService>();
             services.AddSingleton<ServiceManager>();
+ 
+
+
+
             services.AddHttpClient();
 
 
@@ -92,8 +103,7 @@ namespace IgniteSE1
             server.Start();
             Console.WriteLine("gRPC server listening on port " + Port);
 
-            bool success = await serviceManager.InitAllServicesAsync(provider);
-
+            //bool success = await serviceManager.InitAllServicesAsync(provider);
             //await Task.Delay(2000);
             //s.RequestServerStateChange(ServerStateCommand.Kill);
 

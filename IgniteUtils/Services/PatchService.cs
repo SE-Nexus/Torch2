@@ -17,15 +17,13 @@ namespace IgniteUtils.Services
         public PatchService()
         {
             Harmony = new Harmony("Torch2");
-
-            //Clean this up
-            var assembly = Assembly.GetExecutingAssembly();
-
-            PatchAll(Harmony, assembly);
         }
 
         public override Task<bool> Init()
         {
+            //Clean this up
+            var assembly = Assembly.GetExecutingAssembly();
+            PatchAll(Harmony, assembly);
             return base.Init();
         }
 

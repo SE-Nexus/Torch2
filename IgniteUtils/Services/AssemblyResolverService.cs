@@ -1,4 +1,4 @@
-﻿using IgniteUtils.Services;
+﻿using IgniteUtils.Models.Server;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -6,9 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace IgniteSE1.Services
+namespace IgniteUtils.Services
 {
     /// <summary>
     /// Provides functionality for resolving and managing assemblies within the application.
@@ -22,11 +21,11 @@ namespace IgniteSE1.Services
         private List<string> _searchDirs = new List<string>();
 
 
-        public AssemblyResolverService(ConfigService configs)
+        public AssemblyResolverService(IConfigService configs)
         {
 
-            AddRelativeSearchDir(configs.Config.Directories.SteamCMDFolder);
-            AddRelativeSearchDir(configs.Config.Directories.Game);
+            AddRelativeSearchDir(configs.SteamCMDPath);
+            AddRelativeSearchDir(configs.GamePath);
 
             AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembliesFromFolders;
         }
@@ -57,25 +56,25 @@ namespace IgniteSE1.Services
 
 
                     string candidatePath = Directory.GetFiles(dir, assemblyName, SearchOption.AllDirectories).FirstOrDefault();
-                    
+
                     if (string.IsNullOrEmpty(candidatePath))
                         continue;
 
                     //We should put this on a debug level, but for now we want to see it
                     //_logger.Info($"Resolving assembly {assemblyName} from directory {dir}...");
                     return Assembly.LoadFrom(candidatePath);
-                    
+
 
 
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     _logger.Fatal(ex, $"Failed to resolve assembly {assemblyName} from directory {dir}.");
                 }
             }
 
             //Only log if we have a valid requesting assembly
-            if(args.RequestingAssembly != null)
+            if (args.RequestingAssembly != null)
                 _logger.Warn($"Failed to resolve assembly {assemblyName} from any configured directories. Requesting Assembly: {args.RequestingAssembly}");
 
             return null;

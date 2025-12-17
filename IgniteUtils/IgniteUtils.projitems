@@ -12,6 +12,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Attributes\CommandAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Attributes\EnvVarAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\StateCommands\ServerStateCommands.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Server\IConfigService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\AssemblyResolverService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Networking\DelegatingHandlers\InstanceHeaderHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Networking\HttpConsoleLogClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\ServiceExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\CLIContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\CommandLineBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\ICommandContext.cs" />
@@ -30,9 +35,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\ServerStateService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Configs\ConfigBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Configs\EnviromentVarLoader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Identification\InstanceIdentification.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\TimeSpanExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Services\Networking\DelegatingHandlers\" />
     <Folder Include="$(MSBuildThisFileDirectory)Utils\Serializers\" />
   </ItemGroup>
 </Project>

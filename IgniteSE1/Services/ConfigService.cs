@@ -1,5 +1,7 @@
 ﻿using IgniteSE1.Configs;
+using IgniteUtils.Models.Server;
 using IgniteUtils.Services;
+using IgniteUtils.Utils.Identification;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,11 +11,25 @@ using System.Threading.Tasks;
 
 namespace IgniteSE1.Services
 {
-    public class ConfigService : ServiceBase
+    //This can be cleaned up
+    public class ConfigService : ServiceBase, IConfigService
     {
         private const string _cfgName = "cfg.yml";
 
+
         public IgniteSE1Cfg Config { get; private set; }
+
+        
+        public InstanceIdentification Identification { get; private set; }
+
+        public string InstanceName => Config.IgniteCMDName;
+
+        public Uri TargetWebPanel => new Uri(Config.WebServerAddress);
+
+        public string SteamCMDPath => Config.Directories.SteamCMDFolder;
+
+        public string GamePath => Config.Directories.Game;
+
 
 
         public ConfigService() { }
@@ -21,6 +37,10 @@ namespace IgniteSE1.Services
 
         public void LoadConfig()
         {
+            //Load the identification file
+            Identification = new InstanceIdentification(AppContext.BaseDirectory);
+            Identification.Initialize();
+
             string fileName = Path.Combine(AppContext.BaseDirectory, _cfgName);
             Config = IgniteSE1Cfg.LoadYaml(fileName);
 

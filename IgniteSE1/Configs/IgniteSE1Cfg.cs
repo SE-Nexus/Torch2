@@ -50,6 +50,9 @@ namespace IgniteSE1.Configs
         [YamlMember(Description = "gRPC Proto Server Port")]
         public int ProtoServerPort { get; set; } = 4800;
 
+        [YamlMember(Description = "Target Web Panel Address (ex. http://localhost:5000)")]
+        public string WebServerAddress { get; set; } = "https://localhost:7076/";
+
 
 
 
