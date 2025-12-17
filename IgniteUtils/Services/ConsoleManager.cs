@@ -1,5 +1,6 @@
 ﻿using IgniteUtils.Logging;
 using IgniteUtils.Services;
+using IgniteUtils.Services.Networking;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using NLog.Config;
@@ -26,7 +27,7 @@ namespace IgniteUtils.Services
         public string mutexName { get; private set; }
 
 
-        public ConsoleManager(string Name, CommandLineManager cli) 
+        public ConsoleManager(string Name, CommandLineManager cli)
         {
             _cli = cli;
             ConsoleName = Name;
@@ -44,7 +45,7 @@ namespace IgniteUtils.Services
         public async Task<bool> InitConsole(string[] args)
         {
             bool IsServer = CheckMutexNew();
-            
+
             if (IsServer)
             {
                 // New App
@@ -72,10 +73,13 @@ namespace IgniteUtils.Services
             // Very early in startup, before loading config / creating loggers
             LogManager.Setup()
                 .SetupExtensions(ext => ext.RegisterTarget<ColoredConsoleLogTarget>("ColoredConsole"))
+
                 .LoadConfigurationFromFile("nlog.config");
 
             LogManager.ReconfigExistingLoggers();
             Logger = LogManager.GetCurrentClassLogger();
+
+            
 
             //Enable Colored Console Formattings
             Console.InputEncoding = new System.Text.UTF8Encoding(false);
@@ -95,6 +99,18 @@ namespace IgniteUtils.Services
         {
             appMutex = new Mutex(true, mutexName, out bool isNewInstance);
             return isNewInstance;
+        }
+
+        public override Task<bool> Init()
+        {
+            HttpConsoleLogClient client = this.ServiceProvider.GetService<HttpConsoleLogClient>();
+            var rule = new LoggingRule("*", LogLevel.Debug, client);
+            LogManager.Configuration.AddTarget("HttpConsoleLog", client);
+          
+            LogManager.Configuration.LoggingRules.Add(rule);
+            LogManager.ReconfigExistingLoggers();
+
+            return Task.FromResult(true);
         }
     }
 }
