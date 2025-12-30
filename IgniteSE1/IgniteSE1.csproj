@@ -281,6 +281,12 @@
   <ItemGroup>
     <Folder Include="Utilities\" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Torch2API\Torch2API.csproj">
+      <Project>{69a879f4-f46f-4b13-ae1d-410a2ee199ce}</Project>
+      <Name>Torch2API</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="..\IgniteUtils\IgniteUtils.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets" Condition="Exists('..\packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets')" />
