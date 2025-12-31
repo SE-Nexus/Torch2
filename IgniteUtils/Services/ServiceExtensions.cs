@@ -19,10 +19,11 @@ namespace IgniteUtils.Services
             services.AddSingletonWithBase<AssemblyResolverService>();
 
 
-            services.AddHostedService<InstanceStatusService>();
+            services.AddSingleton<PanelCoreService>();
+            services.AddHostedService<PanelBackgroundService>();
 
-            //Register ConsoleLogStream HTTP Client
-            services.AddIgniteHttpClient<HttpConsoleLogClient>(new Uri(TargetWebApp, "api/instance/logstream/"));
+            //Register a specific HTTP client for the web panel. This will include the necessary headers (PanelHTTPClient)
+            services.AddIgniteHttpClient(TargetWebApp);
 
 
             return services;
@@ -39,22 +40,18 @@ namespace IgniteUtils.Services
         /// <typeparam name="TClient">The type of the HTTP client to register. Must be a class.</typeparam>
         /// <param name="services">The service collection to which the HTTP client and its handlers are added.</param>
         /// <returns>An IHttpClientBuilder that can be used to further configure the HTTP client.</returns>
-        public static IHttpClientBuilder AddIgniteHttpClient<TClient>(
-                this IServiceCollection services, Uri baseAddress)
-                where TClient : class
+        public static IHttpClientBuilder AddIgniteHttpClient(
+            this IServiceCollection services,
+            Uri baseAddress)
         {
             services.TryAddTransient<InstanceHeaderHandler>();
-            //services.TryAddTransient<RunIdHeaderHandler>();
-            // services.TryAddTransient<AuthHeaderHandler>();
 
             return services
-                .AddHttpClient<TClient>(client =>
+                .AddHttpClient<PanelHTTPClient>(client =>
                 {
                     client.BaseAddress = baseAddress;
                 })
                 .AddHttpMessageHandler<InstanceHeaderHandler>();
-                //.AddHttpMessageHandler<RunIdHeaderHandler>()
-                //.AddHttpMessageHandler<AuthHeaderHandler>();
         }
 
     }

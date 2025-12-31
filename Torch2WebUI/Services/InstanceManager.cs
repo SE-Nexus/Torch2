@@ -7,17 +7,18 @@ namespace Torch2WebUI.Services
 {
     public class InstanceManager
     {
-        private readonly ConcurrentDictionary<string, ITorchInstanceInfo> _PendingInstances = new();
+        private readonly ConcurrentDictionary<string, TorchInstanceBase> _PendingInstances = new();
 
         private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(5);
         private readonly Timer CleanupTimer;
+        private readonly IServiceScopeFactory _scopeFactory;
 
-        private readonly AppDbContext _Database;
 
 
-        public InstanceManager(AppDbContext Database) 
+
+        public InstanceManager(IServiceScopeFactory scopeFactory) 
         {
-            _Database = Database;
+            _scopeFactory = scopeFactory;
             CleanupTimer = new Timer(_timeout.Add(TimeSpan.FromSeconds(2)));
             CleanupTimer.AutoReset = false;
 

@@ -10,6 +10,7 @@ using IgniteUtils.Services.Networking;
 using IgniteUtils.Utils.CommandUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using MyGrpcApp;
 using Spectre.Console;
 using System;
@@ -72,7 +73,7 @@ namespace IgniteSE1
                
                 services.AddHttpClient();
 
-            });
+            }).ConfigureLogging(logging => { logging.ClearProviders(); });
 
             IHost host = builder.Build();
             IServiceProvider provider = host.Services;

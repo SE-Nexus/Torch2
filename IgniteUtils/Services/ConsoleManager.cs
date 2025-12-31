@@ -103,12 +103,12 @@ namespace IgniteUtils.Services
 
         public override Task<bool> Init()
         {
-            HttpConsoleLogClient client = this.ServiceProvider.GetService<HttpConsoleLogClient>();
-            var rule = new LoggingRule("*", LogLevel.Debug, client);
-            LogManager.Configuration.AddTarget("HttpConsoleLog", client);
+            //HttpConsoleLogClient client = this.ServiceProvider.GetService<HttpConsoleLogClient>();
+            //var rule = new LoggingRule("*", LogLevel.Debug, client);
+            //LogManager.Configuration.AddTarget("HttpConsoleLog", client);
           
-            LogManager.Configuration.LoggingRules.Add(rule);
-            LogManager.ReconfigExistingLoggers();
+            //LogManager.Configuration.LoggingRules.Add(rule);
+            //LogManager.ReconfigExistingLoggers();
 
             return Task.FromResult(true);
         }

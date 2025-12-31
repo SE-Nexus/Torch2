@@ -2,9 +2,8 @@
 
 namespace Torch2WebUI.Services.SQL
 {
-    public class TorchInstance : ITorchInstanceInfo
+    public class TorchInstance : TorchInstanceBase
     {
-        public string Name { get; set; } = string.Empty;
-        public string InstanceID { get; set; } = string.Empty;
+
     }
 }

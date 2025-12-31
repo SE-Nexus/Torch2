@@ -4,11 +4,11 @@ using System.Text;
 
 namespace Torch2API.DTOs.Instances
 {
-    public interface ITorchInstanceInfo
+    public class TorchInstanceBase
     {
-        string Name { get; }
+        public string Name { get; set; }
 
-        string InstanceID { get; }
+        public string InstanceID { get; set; }
 
 
 
