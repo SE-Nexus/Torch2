@@ -15,6 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\Networking\DelegatingHandlers\InstanceHeaderHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Networking\HttpConsoleLogClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\ServiceExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\WebPanel\InstanceStatusService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\CLIContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\CommandLineBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\ICommandContext.cs" />

@@ -9,6 +9,7 @@ using IgniteUtils.Services;
 using IgniteUtils.Services.Networking;
 using IgniteUtils.Utils.CommandUtils;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using MyGrpcApp;
 using Spectre.Console;
 using System;
@@ -48,46 +49,40 @@ namespace IgniteSE1
             if (!await IgniteConsole.InitConsole(args))
                 return;
 
-           
+            IHostBuilder builder = Host.CreateDefaultBuilder(args).UseConsoleLifetime();
+            builder.ConfigureServices((hostContext, services) =>
+            {
+                // Add hosted services or other services here if needed
+                services.AddHostedService<ServiceManager>();
+                ConfigureServices(services);
 
-            // Setup Dependency Injection
-            IServiceCollection services = new ServiceCollection();
-            services.AddCoreServices(ConfigService.TargetWebPanel);
+                // Setup Dependency Injection
+                services.AddCoreServices(ConfigService.TargetWebPanel);
 
-            services.AddSingletonWithBase<ConfigService, IConfigService>(ConfigService);
-            services.AddSingletonWithBase<ConsoleManager>(IgniteConsole);
-            services.AddSingletonWithBase<CommandLineManager>(CLI);
-            services.AddSingletonWithBase<SteamService>();
-            
-            
-            services.AddSingletonWithBase<GameService>();
-            services.AddSingletonWithBase<InstanceManager>();
-           
+                services.AddSingletonWithBase<ConfigService, IConfigService>(ConfigService);
+                services.AddSingletonWithBase<ConsoleManager>(IgniteConsole);
+                services.AddSingletonWithBase<CommandLineManager>(CLI);
+                services.AddSingletonWithBase<SteamService>();
 
-
-
-
-            services.AddSingleton<CommandLineProtoService>();
-            services.AddSingleton<ServiceManager>();
- 
+                services.AddSingletonWithBase<GameService>();
+                services.AddSingletonWithBase<InstanceManager>();
 
 
+                services.AddSingleton<CommandLineProtoService>();
+               
+                services.AddHttpClient();
 
-            services.AddHttpClient();
+            });
 
-
-            
-
-
-            ConfigureServices(services);
-            IServiceProvider provider = services.BuildServiceProvider(true);
+            IHost host = builder.Build();
+            IServiceProvider provider = host.Services;
 
 
             CommandLineManager cmdLine = provider.GetService<CommandLineManager>();
             cmdLine.RootCommand.Add(CommandLineBuilder.BuildFromType<StateCommands>(provider));
             cmdLine.RootCommand.Add(CommandLineBuilder.BuildFromType<TestCommand>(provider));
 
-            ServiceManager serviceManager = provider.GetService<ServiceManager>();
+            //ServiceManager serviceManager = provider.GetService<ServiceManager>();
 
             int Port = ConfigService.Config.ProtoServerPort;
             Server server = new Server
@@ -103,13 +98,15 @@ namespace IgniteSE1
             server.Start();
             Console.WriteLine("gRPC server listening on port " + Port);
 
-            bool success = await serviceManager.InitAllServicesAsync(provider);
+
+            await host.RunAsync();
+
+          
             //await Task.Delay(2000);
             //s.RequestServerStateChange(ServerStateCommand.Kill);
 
 
-
-            Console.ReadKey();
+           
             //AnsiConsole.Markup("[underline red]Hello[/] World!");
         }
 

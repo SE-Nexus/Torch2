@@ -7,6 +7,8 @@ namespace Torch2WebUI.Services.SQL
     {
         static readonly string DatabaseName = "Torch2WebData";
 
+        //Saved Instances
+        public DbSet<TorchInstance> TorchInstances { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {

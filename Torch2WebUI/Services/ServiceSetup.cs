@@ -6,7 +6,7 @@ namespace Torch2WebUI.Services
 {
     public static class ServiceSetup
     {
-        static readonly string DatabaseName = "NexusData";
+        static readonly string DatabaseFileName = "Torch2";
 
         public static void SetupSQL(this IServiceCollection Services)
         {
@@ -16,7 +16,7 @@ namespace Torch2WebUI.Services
             //Create Base Directory
             Directory.CreateDirectory(directoryPath);
 
-            string databasePath = Path.Combine(directoryPath, $"{DatabaseName}.db");
+            string databasePath = Path.Combine(directoryPath, $"{DatabaseFileName}.db");
             string SQLiteConnectionString = $"Data Source={databasePath}";
 
             Services.AddDbContext<AppDbContext>(options => options.UseSqlite(SQLiteConnectionString));

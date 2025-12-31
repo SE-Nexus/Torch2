@@ -1,20 +1,23 @@
 ﻿using System.Collections.Concurrent;
 using Torch2API.DTOs.Instances;
+using Torch2WebUI.Services.SQL;
 using Timer = System.Timers.Timer;
 
 namespace Torch2WebUI.Services
 {
     public class InstanceManager
     {
-        private readonly ConcurrentDictionary<string, ITorchInstanceInfo> _instances = new();
+        private readonly ConcurrentDictionary<string, ITorchInstanceInfo> _PendingInstances = new();
 
         private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(5);
         private readonly Timer CleanupTimer;
 
+        private readonly AppDbContext _Database;
 
-        public InstanceManager() 
+
+        public InstanceManager(AppDbContext Database) 
         {
-
+            _Database = Database;
             CleanupTimer = new Timer(_timeout.Add(TimeSpan.FromSeconds(2)));
             CleanupTimer.AutoReset = false;
 

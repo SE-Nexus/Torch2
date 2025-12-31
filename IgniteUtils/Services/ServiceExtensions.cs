@@ -1,5 +1,6 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using IgniteUtils.Services.Networking;
+using IgniteUtils.Services.WebPanel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
@@ -16,6 +17,9 @@ namespace IgniteUtils.Services
             services.AddSingletonWithBase<PatchService>();
             services.AddSingletonWithBase<ServerStateService>();
             services.AddSingletonWithBase<AssemblyResolverService>();
+
+
+            services.AddHostedService<InstanceStatusService>();
 
             //Register ConsoleLogStream HTTP Client
             services.AddIgniteHttpClient<HttpConsoleLogClient>(new Uri(TargetWebApp, "api/instance/logstream/"));

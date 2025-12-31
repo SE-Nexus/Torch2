@@ -2,6 +2,7 @@
 using IgniteUtils.Models;
 using IgniteUtils.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using NLog;
 using Spectre.Console;
 using System;
@@ -10,11 +11,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace IgniteSE1.Services
 {
-    public class ServiceManager
+    public class ServiceManager : BackgroundService
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
         private SteamService _steamService;
@@ -28,8 +30,9 @@ namespace IgniteSE1.Services
 
         public IEnumerable<ServiceBase> Services { get; private set; }
 
-        public ServiceManager(IEnumerable<ServiceBase> services, SteamService steamService, ServerStateService serverstate)
+        public ServiceManager(IEnumerable<ServiceBase> services, SteamService steamService, ServerStateService serverstate, IServiceProvider provider)
         {
+            ServiceProvider = provider;
             consoleSpinner = Spinner.Known.Dots2;
             consoleSpinnerStyle = Style.Parse("yellow");
 
@@ -79,10 +82,9 @@ namespace IgniteSE1.Services
 
 
 
-        public async Task<bool> InitAllServicesAsync(IServiceProvider provider)
+        public async Task<bool> InitAllServicesAsync()
         {
-            ServiceProvider = provider;
-
+            
 
             if (!await _steamService.Init())
             {
@@ -96,7 +98,7 @@ namespace IgniteSE1.Services
                 .SpinnerStyle(consoleSpinnerStyle)
                 .StartAsync("Initializing services...", async ctx =>
                 {
-                    allSucceeded = await InitAllServicesAsync(ctx, provider);
+                    allSucceeded = await InitAllServicesAsync(ctx, ServiceProvider);
                 });
 
 
@@ -245,6 +247,9 @@ namespace IgniteSE1.Services
             return allSucceeded;
         }
 
-
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            await InitAllServicesAsync();
+        }
     }
 }

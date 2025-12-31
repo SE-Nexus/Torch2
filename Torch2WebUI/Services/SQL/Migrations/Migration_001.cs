@@ -8,6 +8,11 @@ namespace Torch2WebUI.Services.SQL.Migrations
     {
         public override void Up()
         {
+            Create.Table("TorchInstances")
+                .WithColumn("InstanceID").AsString().PrimaryKey().NotNullable()
+                .WithColumn("Name").AsString().NotNullable();
+                
+
             //throw new NotImplementedException();
         }
 

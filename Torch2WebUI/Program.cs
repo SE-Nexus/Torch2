@@ -8,7 +8,7 @@ namespace Torch2WebUI
     {
         public static void Main(string[] args)
         {
-
+            
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddControllers();
 
@@ -20,6 +20,7 @@ namespace Torch2WebUI
 
 
             builder.Services.AddSingleton<InstanceManager>();
+            builder.Services.SetupSQL();
 
             var app = builder.Build();
 
