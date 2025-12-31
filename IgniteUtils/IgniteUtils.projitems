@@ -9,8 +9,6 @@
     <Import_RootNamespace>IgniteUtils</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Attributes\CommandAttribute.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Attributes\EnvVarAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\StateCommands\ServerStateCommands.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Server\IConfigService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\AssemblyResolverService.cs" />
@@ -33,10 +31,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\PatchService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Protos\CommandLineProtoService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\ServerStateService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\Configs\ConfigBase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\Configs\EnviromentVarLoader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Identification\InstanceIdentification.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\TimeSpanExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Services\Networking\DelegatingHandlers\" />

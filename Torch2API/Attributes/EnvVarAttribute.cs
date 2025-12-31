@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace IgniteUtils.Attributes
+namespace Torch2API.Attributes
 {
 
     [AttributeUsage(AttributeTargets.Property)]

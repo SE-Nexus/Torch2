@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace IgniteUtils.Attributes
+namespace Torch2API.Attributes
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = true)]
     public class CommandGroupAttribute : Attribute
@@ -31,7 +31,7 @@ namespace IgniteUtils.Attributes
             Description = description;
         }
 
-        internal void SetType(Type optionType)
+        public void SetType(Type optionType)
         {
             this.OptionType = optionType;
         }

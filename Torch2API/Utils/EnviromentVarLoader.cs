@@ -1,10 +1,10 @@
-﻿using IgniteUtils.Attributes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using Torch2API.Attributes;
 
-namespace IgniteUtils.Utils.Configs
+namespace Torch2API.Utils
 {
     public static class EnviromentVarLoader
     {

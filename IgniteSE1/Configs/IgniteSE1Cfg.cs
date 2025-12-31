@@ -1,10 +1,11 @@
-﻿using IgniteUtils.Attributes;
-using IgniteUtils.Utils;
+﻿using IgniteUtils.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Torch2API.Attributes;
+using Torch2API.Utils;
 using YamlDotNet.Serialization;
 
 namespace IgniteSE1.Configs

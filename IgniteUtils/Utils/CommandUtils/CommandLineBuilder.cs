@@ -1,5 +1,4 @@
 ﻿using Google.Protobuf.Reflection;
-using IgniteUtils.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using System;
@@ -7,6 +6,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.Linq;
 using System.Reflection;
+using Torch2API.Attributes;
 using static VRage.Dedicated.Configurator.SelectInstanceForm;
 
 namespace IgniteUtils.Commands

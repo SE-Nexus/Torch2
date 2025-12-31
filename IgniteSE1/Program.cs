@@ -107,6 +107,8 @@ namespace IgniteSE1
             //await Task.Delay(2000);
             //s.RequestServerStateChange(ServerStateCommand.Kill);
 
+
+
             Console.ReadKey();
             //AnsiConsole.Markup("[underline red]Hello[/] World!");
         }

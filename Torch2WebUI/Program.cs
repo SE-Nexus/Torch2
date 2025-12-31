@@ -1,5 +1,6 @@
 using MudBlazor.Services;
 using Torch2WebUI.Components;
+using Torch2WebUI.Services;
 
 namespace Torch2WebUI
 {
@@ -16,6 +17,10 @@ namespace Torch2WebUI
 
             // Add services to the container.
             builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+
+
+            builder.Services.AddSingleton<InstanceManager>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -30,6 +35,8 @@ namespace Torch2WebUI
 
 
             app.UseAntiforgery();
+            app.UseWebSockets();
+            app.MapControllers();
 
             app.MapStaticAssets();
             app.MapRazorComponents<App>()

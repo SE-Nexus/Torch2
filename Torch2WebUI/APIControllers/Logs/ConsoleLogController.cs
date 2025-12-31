@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Torch2API.DTOs.Logs;
 
 namespace Torch2WebUI.APIControllers.Logs
 {
@@ -7,11 +8,13 @@ namespace Torch2WebUI.APIControllers.Logs
     public class ConsoleLogController : ControllerBase
     {
 
-        [HttpGet("{instanceName}")]
-        public IActionResult GetLogStream(string instanceName)
+        [HttpPost]
+        public IActionResult GetLogStream([FromBody] LogLine log)
         {
-            // Placeholder implementation
-            return Ok($"Log stream for instance: {instanceName}");
+            // Example handling
+            Console.WriteLine($"[{log.Timestamp:u}] [{log.Level}] [{log.InstanceName}] {log.Message}");
+
+            return Ok();
         }
     }
 }

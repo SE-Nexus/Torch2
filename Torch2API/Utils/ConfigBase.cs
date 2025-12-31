@@ -1,5 +1,4 @@
-﻿using IgniteUtils.Utils.Configs;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +7,7 @@ using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace IgniteUtils.Utils
+namespace Torch2API.Utils
 {
     public abstract class ConfigBase<T> where T : ConfigBase<T>, new()
     {

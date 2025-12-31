@@ -4,9 +4,12 @@ using NLog.Targets;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Torch2API.DTOs.Logs;
+using VRage.Scripting;
 
 namespace IgniteUtils.Services.Networking
 {
@@ -37,8 +40,15 @@ namespace IgniteUtils.Services.Networking
 
         public async Task SendLogLineAsync(string line)
         {
-            var content = new StringContent(line, Encoding.UTF8, "text/plain");
-            await _http.PostAsync("/api/console/log", content);
+            var log = new LogLine
+            {
+                InstanceName = "MyNewInstance",
+                Level = "INFO",
+                Message = line,
+                Timestamp = DateTime.UtcNow
+            };
+
+            await _http.PostAsJsonAsync("/api/instance/logstream", log);
         }
 
         protected override void Write(LogEventInfo logEvent)
