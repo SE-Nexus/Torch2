@@ -15,8 +15,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\Networking\DelegatingHandlers\InstanceHeaderHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Networking\HttpConsoleLogClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\ServiceExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\WebPanel\IPanelCoreService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\WebPanel\PanelBackgroundService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Services\WebPanel\PanelCoreService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\WebPanel\PanelHTTPClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\CLIContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\CommandLineBuilder.cs" />
@@ -25,7 +25,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\TestCommand\TestCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging\ColoredConsoleLogTarget.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging\LoggingExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\Server\ServerStatusEnum.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Base\IAppService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Base\ServiceBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Base\ServiceCollectionExtensions.cs" />

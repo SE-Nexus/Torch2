@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IgniteUtils.Models
+namespace Torch2API.Models
 {
 
     /// <summary>

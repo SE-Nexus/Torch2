@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore; // Add this using directive
 using Torch2WebUI.Services.SQL;
-using FluentMigrator.Runner; // Add this using directive
+using FluentMigrator.Runner;
+using System.Threading.Tasks; // Add this using directive
 
 namespace Torch2WebUI.Services
 {
@@ -21,6 +22,23 @@ namespace Torch2WebUI.Services
 
             Services.AddDbContext<AppDbContext>(options => options.UseSqlite(SQLiteConnectionString));
             Services.AddFluentMigratorCore().ConfigureRunner(rb => rb.AddSQLite().WithGlobalConnectionString(SQLiteConnectionString).ScanIn(typeof(ServiceSetup).Assembly).For.Migrations());
+        }
+
+        public static async Task MigrateDatabase(this IServiceProvider serviceProvider)
+        {
+            using (var scope = serviceProvider.CreateScope())
+            {
+                var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
+                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                //Development only: Ensure database is created
+                await dbContext.Database.EnsureDeletedAsync();
+
+                runner.MigrateUp();
+
+                //Development only: Seed initial data
+                //await dbContext.SaveChangesAsync();
+            }
         }
 
     }

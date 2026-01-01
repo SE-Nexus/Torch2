@@ -1,0 +1,233 @@
+﻿@page "/Instances"
+@using Torch2API.DTOs.Instances
+@using Torch2API.Models
+@using Torch2WebUI.Services
+
+@inject InstanceManager InstanceManager
+
+<PageTitle>Instance Dashboard</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Instance Dashboard</MudText>
+
+@* ===================== PENDING ===================== *@
+<MudStack Row="true"
+          AlignItems="AlignItems.Center"
+          Spacing="2"
+          Class="mt-4 mb-2">
+
+    <MudText Typo="Typo.h5">
+        Adoptable Instances
+    </MudText>
+
+    <MudSpacer />
+
+    <MudSwitch @bind-Value="InstanceManager.EnableServerDiscovery"
+               Color="Color.Primary"
+               Label="Allow Adoption" />
+</MudStack>
+@if (!InstanceManager.PendingInstances.Any())
+{
+    <MudAlert Severity="Severity.Info" Dense="true">
+        No adoptable instances.
+    </MudAlert>
+}
+else
+{
+    <MudGrid Spacing="6">
+        @foreach (var instance in InstanceManager.PendingInstances.Values)
+        {
+            <MudItem xs="12" sm="8" md="6" lg="3">
+                <MudCard Elevation="2">
+
+
+                    <MudCardContent>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudText Typo="Typo.h6">
+                                @instance.Name
+                            </MudText>
+
+                            <MudChip T="string"
+                                     Size="Size.Small"
+                                     Color="@GetStatusColor(instance.ServerStatus)"
+                                     Variant="Variant.Filled">
+                                @instance.ServerStatus
+                            </MudChip>
+
+                            <MudSpacer />
+
+                            <MudTooltip Text="@instance.InstanceID" Placement="Placement.Bottom">
+                                <MudIcon Icon="@Icons.Material.Filled.Fingerprint"
+                                         Size="Size.Small"
+                                         Color="Color.Secondary" />
+                            </MudTooltip>
+                        </MudStack>
+
+                        <div class="d-flex align-center">
+                            <MudText Typo="Typo.caption">
+                                @instance.InstanceName
+                            </MudText>
+
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-1">
+                                (@instance.TargetWorld)
+                            </MudText>
+                        </div>
+
+                        <MudDivider Class="my-2" />
+
+                        <MudText Typo="Typo.body2">
+                            <strong>Host:</strong> @instance.MachineName
+                        </MudText>
+
+                        <MudText Typo="Typo.body2">
+                            <strong>Address:</strong> @instance.IPAddress:@instance.GamePort
+                        </MudText>
+
+
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Torch Version @instance.TorchVersion
+                        </MudText>
+
+                    </MudCardContent>
+
+                    <MudCardActions>
+                        <MudButton Size="Size.Small"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   OnClick="@(() => Adopt(instance))">
+                            Adopt
+                        </MudButton>
+
+                        <MudButton Size="Size.Small"
+                                   Variant="Variant.Text"
+                                   Color="Color.Default">
+                            View
+                        </MudButton>
+                    </MudCardActions>
+
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@* ===================== ACTIVE ===================== *@
+<MudText Typo="Typo.h5" Class="mt-6 mb-2">
+    Active Instances
+</MudText>
+
+@if (!InstanceManager.ActiveInstances.Any())
+{
+    <MudAlert Severity="Severity.Info" Dense="true">
+        No active instances.
+    </MudAlert>
+}
+else
+{
+    <MudGrid Spacing="3">
+        @foreach (var instance in InstanceManager.ActiveInstances.Values)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudCard Elevation="2">
+
+                    <MudCardContent>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudText Typo="Typo.h6">
+                                @instance.Name
+                            </MudText>
+
+                            <MudChip T="string"
+                                     Size="Size.Small"
+                                     Color="@GetStatusColor(instance.ServerStatus)"
+                                     Variant="Variant.Filled">
+                                @instance.ServerStatus
+                            </MudChip>
+
+                            <MudSpacer />
+
+                            <MudTooltip Text="@instance.InstanceID" Placement="Placement.Bottom">
+                                <MudIcon Icon="@Icons.Material.Filled.Fingerprint"
+                                         Size="Size.Small"
+                                         Color="Color.Secondary" />
+                            </MudTooltip>
+                        </MudStack>
+
+                        <div class="d-flex align-center">
+                            <MudText Typo="Typo.caption">
+                                @instance.InstanceName
+                            </MudText>
+
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-1">
+                                (@instance.TargetWorld)
+                            </MudText>
+                        </div>
+
+                        <MudDivider Class="my-2" />
+
+                        <MudText Typo="Typo.body2">
+                            <strong>Host:</strong> @instance.MachineName
+                        </MudText>
+
+                        <MudText Typo="Typo.body2">
+                            <strong>Address:</strong> @instance.IPAddress:@instance.GamePort
+                        </MudText>
+
+
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Torch Version @instance.TorchVersion
+                        </MudText>
+
+                    </MudCardContent>
+
+                    <MudCardActions>
+                        <MudButton Size="Size.Small"
+                                   Variant="Variant.Text"
+                                   Color="Color.Primary">
+                            View
+                        </MudButton>
+
+                        <MudButton Size="Size.Small"
+                                   Variant="Variant.Text"
+                                   Color="Color.Warning">
+                            Restart
+                        </MudButton>
+                    </MudCardActions>
+
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+
+    private Action? _onChangeHandler;
+
+    void Adopt(TorchInstanceBase instance)
+    {
+        InstanceManager.AdoptInstance(instance.InstanceID);
+    }
+
+    Color GetStatusColor(ServerStatusEnum status) => status switch
+    {
+        ServerStatusEnum.Initializing => Color.Info,      // booting up
+        ServerStatusEnum.Idle => Color.Secondary, // waiting / standby
+        ServerStatusEnum.Starting => Color.Warning,   // transition
+        ServerStatusEnum.Running => Color.Success,   // healthy
+        ServerStatusEnum.Stopping => Color.Warning,   // transition
+        ServerStatusEnum.Stopped => Color.Default,   // off
+        ServerStatusEnum.Error => Color.Error,     // bad
+        _ => Color.Default
+    };
+
+    protected override void OnInitialized()
+    {
+        _onChangeHandler = () => InvokeAsync(StateHasChanged);
+        InstanceManager.OnChange += _onChangeHandler;
+    }
+
+    public void Dispose()
+    {
+        if (_onChangeHandler is not null)
+            InstanceManager.OnChange -= _onChangeHandler;
+    }
+}

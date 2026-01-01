@@ -1,9 +1,47 @@
 ﻿
 <MudNavMenu>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
-    
-    <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
+
+    <MudNavLink Href="Logs" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Terminal">Logs</MudNavLink>
+
+    <MudNavLink Href="GameChat" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Chat">Game Chat</MudNavLink>
+
+    <MudNavLink Href="players" Icon="@Icons.Material.Filled.Groups">Players</MudNavLink>
+
+    <MudNavLink Href="Instances" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ViewList">Instances</MudNavLink>
+
+    <MudNavLink Href="Configs" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.SettingsApplications">Config Groups</MudNavLink>
+
+    <MudNavLink Href="plugins" Icon="@Icons.Material.Filled.Extension">Plugins</MudNavLink>
+
+    <MudDivider Class="mt-4" />
+
+    <MudNavGroup Title="Administration"
+                 Icon="@Icons.Material.Filled.Security"
+                 Expanded="false">
+
+        <MudNavLink Href="users" Match="NavLinkMatch.Prefix"
+                    Icon="@Icons.Material.Filled.AdminPanelSettings">
+            Users
+        </MudNavLink>
+
+        <MudNavLink Href="roles" Match="NavLinkMatch.Prefix"
+                    Icon="@Icons.Material.Filled.Rule">
+            Roles
+        </MudNavLink>
+
+        <MudNavLink Href="audit" Match="NavLinkMatch.Prefix"
+                    Icon="@Icons.Material.Filled.History">
+            Audit Log
+        </MudNavLink>
+
+        <MudNavLink Href="settings" Match="NavLinkMatch.Prefix"
+                    Icon="@Icons.Material.Filled.Settings">
+            Settings
+        </MudNavLink>
+
+    </MudNavGroup>
+
 
 </MudNavMenu>
 

@@ -6,7 +6,7 @@ namespace Torch2WebUI
 {
     internal class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             
             var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +20,7 @@ namespace Torch2WebUI
 
 
             builder.Services.AddSingleton<InstanceManager>();
+            builder.Services.AddMemoryCache();
             builder.Services.SetupSQL();
 
             var app = builder.Build();
@@ -34,6 +35,7 @@ namespace Torch2WebUI
 
             app.UseHttpsRedirection();
 
+            await app.Services.MigrateDatabase();
 
             app.UseAntiforgery();
             app.UseWebSockets();

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Torch2API.DTOs.Instances;
 
 namespace Torch2WebUI.Services.SQL
 {
@@ -8,7 +9,7 @@ namespace Torch2WebUI.Services.SQL
         static readonly string DatabaseName = "Torch2WebData";
 
         //Saved Instances
-        public DbSet<TorchInstance> TorchInstances { get; set; }
+        public DbSet<ConfiguredInstance> ConfiguredInstances { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {

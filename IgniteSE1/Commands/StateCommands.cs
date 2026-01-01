@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Torch2API.Models;
 
 namespace IgniteSE1.Commands
 {
@@ -28,7 +29,7 @@ namespace IgniteSE1.Commands
 
         public override void Start(ICommandContext ctx)
         {
-            if (serverStateService.RequestServerStateChange(IgniteUtils.Models.ServerStateCommand.Start))
+            if (serverStateService.RequestServerStateChange(ServerStateCommand.Start))
             {
                 ctx.Respond("Server is now starting!");
             }
@@ -45,7 +46,7 @@ namespace IgniteSE1.Commands
 
         public override void Stop(ICommandContext ctx, bool kill)
         {
-            if (serverStateService.RequestServerStateChange(IgniteUtils.Models.ServerStateCommand.Stop))
+            if (serverStateService.RequestServerStateChange(ServerStateCommand.Stop))
             {
                 ctx.Respond("Server is now stopping!");
             }

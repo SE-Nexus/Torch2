@@ -7,6 +7,7 @@ using IgniteUtils.Commands.TestCommand;
 using IgniteUtils.Models.Server;
 using IgniteUtils.Services;
 using IgniteUtils.Services.Networking;
+using IgniteUtils.Services.WebPanel;
 using IgniteUtils.Utils.CommandUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -70,6 +71,7 @@ namespace IgniteSE1
 
 
                 services.AddSingleton<CommandLineProtoService>();
+                services.AddSingleton<IPanelCoreService, PanelCoreService>();
                
                 services.AddHttpClient();
 

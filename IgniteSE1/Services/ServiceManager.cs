@@ -1,5 +1,4 @@
 ﻿using IgniteUtils.Logging;
-using IgniteUtils.Models;
 using IgniteUtils.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -13,6 +12,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Torch2API.Models;
 
 namespace IgniteSE1.Services
 {

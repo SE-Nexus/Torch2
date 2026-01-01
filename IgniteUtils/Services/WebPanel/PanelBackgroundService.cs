@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,11 +12,11 @@ namespace IgniteUtils.Services.WebPanel
 {
     public class PanelBackgroundService : BackgroundService
     {
-        private readonly PanelCoreService _WebService;
+        private readonly IPanelCoreService _WebService;
         private readonly int _UpdateIntervalMs = 500;
         private readonly Timer _UpdateTimer;
 
-        public PanelBackgroundService(PanelCoreService webService)
+        public PanelBackgroundService(IPanelCoreService webService)
         {
             _UpdateTimer = new Timer(_UpdateIntervalMs);
             _UpdateTimer.AutoReset = false;
@@ -25,16 +26,17 @@ namespace IgniteUtils.Services.WebPanel
             _WebService = webService;
         }
 
-        private void _UpdateTimer_Elapsed(object sender, ElapsedEventArgs e)
+        private async void _UpdateTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            _WebService.SendStatus();
+            await _WebService.SendStatus();
             _UpdateTimer.Start();
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _UpdateTimer.Start();
-            return Task.CompletedTask;
+            await _WebService.GetPublicIP();
+            return;
         }
 
         public override Task StopAsync(CancellationToken cancellationToken)
@@ -43,5 +45,26 @@ namespace IgniteUtils.Services.WebPanel
             return base.StopAsync(cancellationToken);
         }
 
+        public static async Task<string?> GetPublicIpAsync()
+        {
+            try
+            {
+                using var http = new HttpClient
+                {
+                    Timeout = TimeSpan.FromSeconds(5)
+                };
+
+                var ip = await http.GetStringAsync("https://api.ipify.org");
+                return string.IsNullOrWhiteSpace(ip) ? null : ip.Trim();
+            }
+            catch (HttpRequestException)   // No internet, DNS failure, 4xx/5xx
+            {
+                return null;
+            }
+            catch (TaskCanceledException)  // Timeout
+            {
+                return null;
+            }
+        }
     }
 }
