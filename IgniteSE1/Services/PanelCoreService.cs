@@ -59,8 +59,8 @@ namespace IgniteUtils.Services.WebPanel
         public async Task SendStatus()
         {
             InstanceCfg cfg = _instanceManager.GetCurrentInstance();
-            
-            
+
+
 
             var status = new TorchInstanceBase
             {
@@ -72,7 +72,10 @@ namespace IgniteUtils.Services.WebPanel
                 InstanceName = cfg?.InstanceName ?? "Loading...",
                 TargetWorld = cfg?.TargetWorld ?? "Loading...",
                 TorchVersion = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "v0.0.0",
-                ServerStatus = _serverStateService.CurrentServerStatus
+                ServerStatus = _serverStateService.CurrentServerStatus,
+                CurrentStateCmd = _serverStateService.CurrentSateRequest,
+                GameUpTime = _serverStateService.GetGameRunningTime(),
+                StateTime = _serverStateService.GetStateTime()
             };
 
             HttpResponseMessage response =

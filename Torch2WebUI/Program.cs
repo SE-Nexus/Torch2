@@ -21,6 +21,8 @@ namespace Torch2WebUI
 
             builder.Services.AddSingleton<InstanceManager>();
             builder.Services.AddMemoryCache();
+
+            builder.Services.AddSingleton<ThemeService>();
             builder.Services.SetupSQL();
 
             var app = builder.Build();

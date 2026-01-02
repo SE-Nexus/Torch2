@@ -31,5 +31,18 @@ namespace Torch2API.DTOs.Instances
 
 
 
+        public string GetShortId()
+        {
+            if (string.IsNullOrEmpty(InstanceID))
+                return string.Empty;
+
+            if (InstanceID.Length > 6)
+            {
+                return InstanceID.Substring(InstanceID.Length - 6, 6)
+                                 .ToUpperInvariant();
+            }
+
+            return InstanceID;
+        }
     }
 }

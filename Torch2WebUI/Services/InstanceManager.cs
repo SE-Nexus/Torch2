@@ -17,8 +17,8 @@ namespace Torch2WebUI.Services
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IMemoryCache _cache;
 
-        public event Action? OnChange;
-        private void NotifyStateChanged() => OnChange?.Invoke();
+        public event Action<string>? OnChange;
+        private void NotifyStateChanged(string instanceid) => OnChange?.Invoke(instanceid);
 
         //Do not need to notify the page when its a bind
         public bool EnableServerDiscovery { get; set; } = false;
@@ -63,7 +63,7 @@ namespace Torch2WebUI.Services
                 PendingInstances[instance.InstanceID].UpdateFromConfiguredInstance(instance);
             }
 
-            NotifyStateChanged();
+            NotifyStateChanged(instance.InstanceID);
             return;
         }
 
@@ -87,7 +87,7 @@ namespace Torch2WebUI.Services
                 if (_database.ConfiguredInstances.Any(i => i.InstanceID == instance.InstanceID))
                 {
                     ActiveInstances.TryAdd(instance.InstanceID, instance);
-                    NotifyStateChanged();
+                    NotifyStateChanged(instance.InstanceID);
                     return true;
                 }
             }
@@ -96,11 +96,43 @@ namespace Torch2WebUI.Services
             if (EnableServerDiscovery)
             {
                 PendingInstances.TryAdd(instance.InstanceID, instance);
-                NotifyStateChanged();
+                NotifyStateChanged(instance.InstanceID);
                 return true;
             }
 
             return false;
+        }
+
+        public TorchInstanceBase? GetInstanceByID(string instanceID)
+        {
+            if (string.IsNullOrWhiteSpace(instanceID))
+                return null;
+
+            // 1️⃣ Exact match (fast path)
+            if (ActiveInstances.TryGetValue(instanceID, out var active))
+                return active;
+
+            if (PendingInstances.TryGetValue(instanceID, out var pending))
+                return pending;
+
+            // 2️⃣ Short ID match (last 6 chars)
+            if (instanceID.Length == 6)
+            {
+                var match = ActiveInstances.Values
+                    .Concat(PendingInstances.Values)
+                    .Where(i => !string.IsNullOrEmpty(i.InstanceID))
+                    .Where(i => i.InstanceID.Length >= 6)
+                    .Where(i => i.InstanceID
+                        .Substring(i.InstanceID.Length - 6, 6)
+                        .Equals(instanceID, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                // Safety: only return if exactly one match
+                if (match.Count == 1)
+                    return match[0];
+            }
+
+            return null;
         }
 
         public void AdoptInstance(string instanceID)

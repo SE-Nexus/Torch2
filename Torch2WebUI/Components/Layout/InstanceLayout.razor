@@ -1,0 +1,64 @@
+﻿@using Torch2WebUI.Components.NavMenus
+@using Torch2WebUI.Services
+@inherits LayoutComponentBase
+@inject ThemeService Theme
+
+<MudThemeProvider Theme="@Theme.CurrentTheme" IsDarkMode="@Theme.IsDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+
+<MudLayout>
+
+    <!-- Same top app bar -->
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="@DrawerToggle" />
+
+        <MudText Typo="Typo.h5" Class="ml-3">
+            Torch2 Panel · Instances
+        </MudText>
+
+        <MudSpacer />
+
+        <MudIconButton Icon="@(DarkLightModeButtonIcon)"
+                       Color="Color.Inherit"
+                       OnClick="@DarkModeToggle" />
+    </MudAppBar>
+
+    <!-- INSTANCE NAV DRAWER -->
+    <MudDrawer @bind-Open="_drawerOpen"
+               ClipMode="DrawerClipMode.Always"
+               Elevation="2">
+
+        <InstanceNavMenu />
+
+    </MudDrawer>
+
+    <MudMainContent Class="pt-20 pa-8">
+        @Body
+    </MudMainContent>
+
+</MudLayout>
+
+
+
+@code {
+    private bool _drawerOpen = true;
+
+    private void DrawerToggle()
+        => _drawerOpen = !_drawerOpen;
+
+    private string DarkLightModeButtonIcon =>
+        Theme.IsDarkMode
+            ? Icons.Material.Filled.LightMode
+            : Icons.Material.Filled.DarkMode;
+
+    private void DarkModeToggle()
+    {
+        Theme.IsDarkMode = !Theme.IsDarkMode;
+    }
+}

@@ -34,6 +34,8 @@ namespace IgniteSE1.Services
         private List<InstanceCfg> _instances = new List<InstanceCfg>();
         private InstanceCfg _selectedInstance = null;
 
+
+
         public InstanceManager(ConfigService configs)
         {
             _configs = configs;

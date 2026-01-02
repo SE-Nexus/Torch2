@@ -1,0 +1,31 @@
+﻿@page "/Settings"
+@using MudBlazor.Utilities
+@using Torch2WebUI.Services
+@inject ThemeService ThemeService
+
+<PageTitle>Settings</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Panel Settings</MudText>
+
+<MudPaper Class="pa-4" Elevation="2" MaxWidth="400px">
+
+    <MudText Typo="Typo.h6" GutterBottom>
+        Theme
+    </MudText>
+
+    <MudStack Spacing="3">
+
+        <!-- Primary Color -->
+        <MudColorPicker Label="Primary Color"
+                        ColorChanged="OnPrimaryChanged" />
+
+        <!-- Secondary Color -->
+        <MudColorPicker Label="Secondary Color"
+                        ColorChanged="OnSecondaryChanged" />
+
+    </MudStack>
+</MudPaper>
+
+@code {
+   
+}

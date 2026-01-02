@@ -28,6 +28,10 @@ namespace IgniteUtils.Services
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly ConsoleManager _console;
 
+
+        //Not sure if this should go here?
+        public DateTime? GameRunningTime { get; set; }
+
         /// <summary>
         /// Occurs when the server state changes.
         /// </summary>
@@ -60,7 +64,7 @@ namespace IgniteUtils.Services
         /// <summary>
         /// Datetime of the last server status change
         /// </summary>
-        public DateTime LastStatusChangeTime { get; private set; } = DateTime.Now;
+        public DateTime LastStatusChangeTime { get; private set; } = DateTime.UtcNow;
 
 
 
@@ -70,6 +74,9 @@ namespace IgniteUtils.Services
         {
             _console = console;
             ServerStatusChanged += ServerStatusChanged_Event;
+
+            //Debug only
+            GameRunningTime = DateTime.UtcNow;
         }
 
         public override Task<bool> Init()
@@ -250,6 +257,8 @@ namespace IgniteUtils.Services
                 case ServerStatusEnum.Running:
                     if (CurrentServerStatus != ServerStatusEnum.Starting)
                         return FailStatusTransition(newStatus, ServerStatusEnum.Starting);
+
+                    GameRunningTime = DateTime.UtcNow;
                     break;
 
                 case ServerStatusEnum.Stopping:
@@ -318,15 +327,20 @@ namespace IgniteUtils.Services
 
         }
 
-        public TimeSpan GetCurrentTime()
+        public TimeSpan GetStateTime()
         {
-            return DateTime.Now - LastStatusChangeTime;
+            return DateTime.UtcNow - LastStatusChangeTime;
+        }
+
+        public TimeSpan GetGameRunningTime()
+        {
+            return DateTime.UtcNow - (GameRunningTime ?? DateTime.UtcNow);
         }
 
 
         public override string ToString()
         {
-            return $"Server state: [{CurrentSateRequest}] | Status: [{CurrentServerStatus}] for {GetCurrentTime().ToCompactString()}";
+            return $"Server state: [{CurrentSateRequest}] | Status: [{CurrentServerStatus}] for {GetStateTime().ToCompactString()}";
         }
 
         

@@ -1,0 +1,151 @@
+﻿@page "/instances/{InstanceId}"
+@using Torch2API.DTOs.Instances
+@using Torch2API.Models
+@using Torch2WebUI.Components.Layout
+@using Torch2WebUI.Services
+@layout InstanceLayout
+
+
+@inject InstanceManager InstanceManager
+<PageTitle>Instance Details</PageTitle>
+
+
+@if (_instance is null)
+{
+    <MudAlert Severity="Severity.Error">
+        Instance not found
+    </MudAlert>
+
+   
+   
+}
+else
+{
+    <!-- Header -->
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
+        <MudText Typo="Typo.h4">@_instance.Name</MudText>
+
+        <MudChip T="ServerStatusEnum" Color="@GetStatusColor(_instance.ServerStatus)"
+                 Variant="Variant.Filled">
+            @_instance.ServerStatus
+        </MudChip>
+
+        <MudTooltip Text="@_instance.InstanceID">
+            <MudIcon Icon="@Icons.Material.Filled.Fingerprint"
+                     Color="Color.Secondary" />
+        </MudTooltip>
+    </MudStack>
+
+    <MudDivider Class="my-2" />
+
+    <!-- Dashboard Cards -->
+    <MudGrid Spacing="3">
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2">World</MudText>
+                    <MudText Typo="Typo.body1">@_instance.TargetWorld</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2">Instance Name</MudText>
+                    <MudText Typo="Typo.body1">@_instance.InstanceName</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2">Host Machine</MudText>
+                    <MudText Typo="Typo.body1">@_instance.MachineName</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2">Address</MudText>
+                    <MudText Typo="Typo.body1">
+                        @_instance.IPAddress:@_instance.GamePort
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2">Torch Version</MudText>
+                    <MudText Typo="Typo.body1">@_instance.TorchVersion</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2">Uptime</MudText>
+                    <MudText Typo="Typo.body1">@_instance.GetFormattedGameUptime()</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2">Current State</MudText>
+                    <MudText Typo="Typo.body1">@_instance.CurrentStateCmd</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+    </MudGrid>
+    <!-- details UI -->
+}
+
+@code {
+    [Parameter] public string InstanceId { get; set; } = default!;
+
+    private TorchInstanceBase? _instance;
+
+    protected override void OnInitialized()
+    {
+        _instance = InstanceManager.GetInstanceByID(InstanceId);
+        InstanceManager.OnChange += OnInstanceUpdated;
+
+    }
+
+    private Color GetStatusColor(ServerStatusEnum status) => status switch
+    {
+        ServerStatusEnum.Running => Color.Success,
+        ServerStatusEnum.Starting => Color.Warning,
+        ServerStatusEnum.Initializing => Color.Info,
+        ServerStatusEnum.Stopped => Color.Default,
+        ServerStatusEnum.Error => Color.Error,
+        _ => Color.Secondary
+    };
+
+    private void OnInstanceUpdated(string updatedId)
+    {
+        if (updatedId != _instance.InstanceID)
+            return;
+
+        InvokeAsync(() =>
+        {
+            _instance = InstanceManager.GetInstanceByID(InstanceId);
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        InstanceManager.OnChange -= OnInstanceUpdated;
+    }
+}

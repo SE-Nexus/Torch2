@@ -23,7 +23,7 @@ namespace Torch2WebUI.APIControllers.Status
             InstanceService.UpdateStatus(status);
 
             // Example handling
-            Console.WriteLine($"Status Recieved: {status.Name} - {status.InstanceID}");
+            //Console.WriteLine($"Status Recieved: {status.Name} - {status.InstanceID}");
 
             return Ok();
         }

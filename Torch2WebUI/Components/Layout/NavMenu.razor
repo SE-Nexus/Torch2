@@ -1,4 +1,6 @@
-﻿
+﻿@using Torch2WebUI.Services
+@inject InstanceManager InstanceManager
+
 <MudNavMenu>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
 
@@ -8,7 +10,34 @@
 
     <MudNavLink Href="players" Icon="@Icons.Material.Filled.Groups">Players</MudNavLink>
 
-    <MudNavLink Href="Instances" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ViewList">Instances</MudNavLink>
+    <MudNavGroup Title="Instances"
+                 Icon="@Icons.Material.Filled.ViewList"
+                 Expanded="true">
+
+        <!-- All Instances / Overview -->
+        <MudNavLink Href="/instances"
+                    Match="NavLinkMatch.Prefix"
+                    Icon="@Icons.Material.Filled.Dashboard">
+            Overview
+        </MudNavLink>
+
+        @foreach (var instance in InstanceManager.ActiveInstances)
+        {
+            <MudNavLink Href="@($"/instances/{instance.Value.GetShortId()}")"
+                        IconColor="@(instance.Value.IsOnline? Color.Success: Color.Error)"
+                        Icon="@Icons.Material.Filled.Dns">
+               
+                <MudBadge Content="3"
+                          Color="Color.Error"
+                          Origin="@(RightToLeft ? Origin.CenterLeft : Origin.CenterRight)"
+                          BadgeClass="mx-2">
+                    @instance.Value.Name
+                </MudBadge>
+
+            </MudNavLink>
+        }
+
+    </MudNavGroup>
 
     <MudNavLink Href="Configs" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.SettingsApplications">Config Groups</MudNavLink>
 
@@ -44,5 +73,9 @@
 
 
 </MudNavMenu>
+
+@code {
+    [CascadingParameter(Name = "RightToLeft")] public bool RightToLeft { get; set; }
+}
 
 

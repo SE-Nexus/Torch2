@@ -2,6 +2,7 @@
 @using Torch2API.DTOs.Instances
 @using Torch2API.Models
 @using Torch2WebUI.Services
+@inject NavigationManager Navigation
 
 @inject InstanceManager InstanceManager
 
@@ -62,15 +63,19 @@ else
                             </MudTooltip>
                         </MudStack>
 
-                        <div class="d-flex align-center">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
                             <MudText Typo="Typo.caption">
-                                @instance.InstanceName
+                                [<strong>Instance:</strong> @instance.InstanceName]
                             </MudText>
 
-                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-1">
-                                (@instance.TargetWorld)
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                [<strong>World:</strong> @instance.TargetWorld]
                             </MudText>
-                        </div>
+
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                [<strong>UpTime:</strong> @instance.GetFormattedGameUptime()]
+                            </MudText>
+                        </MudStack>
 
                         <MudDivider Class="my-2" />
 
@@ -99,7 +104,8 @@ else
 
                         <MudButton Size="Size.Small"
                                    Variant="Variant.Text"
-                                   Color="Color.Default">
+                                   Color="Color.Primary"
+                                   OnClick="@(() => NavigateToInstance(instance.GetShortId()))">
                             View
                         </MudButton>
                     </MudCardActions>
@@ -112,7 +118,7 @@ else
 
 @* ===================== ACTIVE ===================== *@
 <MudText Typo="Typo.h5" Class="mt-6 mb-2">
-    Active Instances
+    Configured Instances
 </MudText>
 
 @if (!InstanceManager.ActiveInstances.Any())
@@ -181,7 +187,8 @@ else
                     <MudCardActions>
                         <MudButton Size="Size.Small"
                                    Variant="Variant.Text"
-                                   Color="Color.Primary">
+                                   Color="Color.Primary"
+                                   OnClick="@(() => NavigateToInstance(instance.GetShortId()))">
                             View
                         </MudButton>
 
@@ -200,7 +207,7 @@ else
 
 @code {
 
-    private Action? _onChangeHandler;
+    private Action<string>? _onChangeHandler;
 
     void Adopt(TorchInstanceBase instance)
     {
@@ -221,7 +228,7 @@ else
 
     protected override void OnInitialized()
     {
-        _onChangeHandler = () => InvokeAsync(StateHasChanged);
+        _onChangeHandler = (s) => InvokeAsync(StateHasChanged);
         InstanceManager.OnChange += _onChangeHandler;
     }
 
@@ -229,5 +236,10 @@ else
     {
         if (_onChangeHandler is not null)
             InstanceManager.OnChange -= _onChangeHandler;
+    }
+
+    private void NavigateToInstance(string instanceId)
+    {
+        Navigation.NavigateTo($"/instances/{instanceId}");
     }
 }
