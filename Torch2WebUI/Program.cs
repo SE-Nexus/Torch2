@@ -1,6 +1,7 @@
 using MudBlazor.Services;
 using Torch2WebUI.Components;
 using Torch2WebUI.Services;
+using Torch2WebUI.Services.InstanceServices;
 
 namespace Torch2WebUI
 {
@@ -14,18 +15,32 @@ namespace Torch2WebUI
 
             // Add MudBlazor services
             builder.Services.AddMudServices();
+            builder.Services.AddMemoryCache();
 
             // Add services to the container.
             builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 
             builder.Services.AddSingleton<InstanceManager>();
-            builder.Services.AddMemoryCache();
-
+            builder.Services.AddSingleton<InstanceSocketManager>();
             builder.Services.AddSingleton<ThemeService>();
             builder.Services.SetupSQL();
 
             var app = builder.Build();
+
+            app.Map("/ws/instance", async context =>
+            {
+                if (!context.WebSockets.IsWebSocketRequest)
+                {
+                    context.Response.StatusCode = 400;
+                    return;
+                }
+
+                var socket = await context.WebSockets.AcceptWebSocketAsync();
+                var manager = context.RequestServices.GetRequiredService<InstanceSocketManager>();
+
+                await manager.HandleConnectionAsync(context, socket);
+            });
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
@@ -44,8 +59,7 @@ namespace Torch2WebUI
             app.MapControllers();
 
             app.MapStaticAssets();
-            app.MapRazorComponents<App>()
-                .AddInteractiveServerRenderMode();
+            app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
             app.Run();
 

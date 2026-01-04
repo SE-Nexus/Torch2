@@ -1,8 +1,8 @@
 ﻿using EmptyKeys.UserInterface.Generated.StoreBlockView_Bindings;
 using HarmonyLib;
 using IgniteSE1.Configs;
-using IgniteUtils.Models;
-using IgniteUtils.Services;
+using InstanceUtils.Models;
+using InstanceUtils.Services;
 using NLog;
 using Sandbox;
 using Sandbox.Engine.Networking;

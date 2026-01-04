@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Torch2API.Attributes;
 
-namespace IgniteUtils.Commands.StateCommands
+namespace InstanceUtils.Commands.StateCommands
 {
     [CommandGroup("server", "Manage server state changes and status")]
     public abstract class ServerStateCommands

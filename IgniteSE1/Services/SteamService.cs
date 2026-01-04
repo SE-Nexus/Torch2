@@ -1,5 +1,5 @@
-﻿using IgniteUtils.Logging;
-using IgniteUtils.Services;
+﻿using InstanceUtils.Logging;
+using InstanceUtils.Services;
 using NLog;
 using Spectre.Console;
 using System;

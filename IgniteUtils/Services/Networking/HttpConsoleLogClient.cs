@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Torch2API.DTOs.Logs;
 using VRage.Scripting;
 
-namespace IgniteUtils.Services.Networking
+namespace InstanceUtils.Services.Networking
 {
     [Target("HttpIntercept")]
     public class HttpConsoleLogClient : Target

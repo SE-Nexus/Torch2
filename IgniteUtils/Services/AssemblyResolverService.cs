@@ -1,4 +1,4 @@
-﻿using IgniteUtils.Models.Server;
+﻿using InstanceUtils.Models.Server;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace IgniteUtils.Services
+namespace InstanceUtils.Services
 {
     /// <summary>
     /// Provides functionality for resolving and managing assemblies within the application.

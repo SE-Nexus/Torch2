@@ -1,7 +1,7 @@
 ﻿using IgniteSE1.Services;
-using IgniteUtils.Commands;
-using IgniteUtils.Commands.StateCommands;
-using IgniteUtils.Services;
+using InstanceUtils.Commands;
+using InstanceUtils.Commands.StateCommands;
+using InstanceUtils.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;

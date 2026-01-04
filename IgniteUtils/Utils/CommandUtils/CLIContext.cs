@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.Text;
 
-namespace IgniteUtils.Commands
+namespace InstanceUtils.Commands
 {
     public class CLIContext : ICommandContext
     {

@@ -9,7 +9,7 @@ using System.Reflection;
 using Torch2API.Attributes;
 using static VRage.Dedicated.Configurator.SelectInstanceForm;
 
-namespace IgniteUtils.Commands
+namespace InstanceUtils.Commands
 {
     public static class CommandLineBuilder
     {

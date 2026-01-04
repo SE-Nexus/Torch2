@@ -1,5 +1,5 @@
-﻿using IgniteUtils.Logging;
-using IgniteUtils.Services;
+﻿using InstanceUtils.Logging;
+using InstanceUtils.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NLog;

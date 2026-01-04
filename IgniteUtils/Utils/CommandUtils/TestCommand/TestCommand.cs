@@ -1,5 +1,5 @@
 ﻿using IgniteSE1.Services;
-using IgniteUtils.Commands;
+using InstanceUtils.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Torch2API.Attributes;
 
-namespace IgniteUtils.Commands.TestCommand
+namespace InstanceUtils.Commands.TestCommand
 {
     [CommandGroup("utils", "Simple CLI utilities")]
     public class TestCommand

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace IgniteUtils.Commands
+namespace InstanceUtils.Commands
 {
     public interface ICommandContext
     {

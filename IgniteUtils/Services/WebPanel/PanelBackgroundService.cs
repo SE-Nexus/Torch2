@@ -8,21 +8,23 @@ using System.Threading.Tasks;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
-namespace IgniteUtils.Services.WebPanel
+namespace InstanceUtils.Services.WebPanel
 {
     public class PanelBackgroundService : BackgroundService
     {
         private readonly IPanelCoreService _WebService;
         private readonly int _UpdateIntervalMs = 500;
         private readonly Timer _UpdateTimer;
+        private readonly PanelSocketClient _socketClient;
 
-        public PanelBackgroundService(IPanelCoreService webService)
+        public PanelBackgroundService(IPanelCoreService webService, PanelSocketClient sClient)
         {
             _UpdateTimer = new Timer(_UpdateIntervalMs);
             _UpdateTimer.AutoReset = false;
             _UpdateTimer.Elapsed += _UpdateTimer_Elapsed;
             //Can pull the config service here if needed for intervals/URIs
 
+            _socketClient = sClient;
             _WebService = webService;
         }
 
@@ -35,6 +37,7 @@ namespace IgniteUtils.Services.WebPanel
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _UpdateTimer.Start();
+            await _socketClient.RunAsync(stoppingToken);
             await _WebService.GetPublicIP();
             return;
         }

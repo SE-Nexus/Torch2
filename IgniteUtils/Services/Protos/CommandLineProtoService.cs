@@ -1,5 +1,5 @@
 ﻿using Grpc.Core;
-using IgniteUtils.Services;
+using InstanceUtils.Services;
 using MyGrpcApp;
 using System;
 using System.Collections.Generic;

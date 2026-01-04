@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 
-namespace IgniteUtils.Services.WebPanel
+namespace InstanceUtils.Services.WebPanel
 {
     public class PanelHTTPClient
     {

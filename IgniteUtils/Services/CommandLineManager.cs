@@ -13,10 +13,10 @@ using System.Text;
 using System.Threading.Tasks;
 using static Sandbox.Game.World.MyWorldGenerator;
 using Microsoft.Extensions.DependencyInjection;
-using IgniteUtils.Services;
-using IgniteUtils.Utils.CommandUtils;
+using InstanceUtils.Services;
+using InstanceUtils.Utils.CommandUtils;
 
-namespace IgniteUtils.Services
+namespace InstanceUtils.Services
 {
 
     public class CommandLineManager : ServiceBase

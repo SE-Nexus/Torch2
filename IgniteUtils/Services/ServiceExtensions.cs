@@ -1,13 +1,13 @@
 ﻿using Google.Protobuf.WellKnownTypes;
-using IgniteUtils.Services.Networking;
-using IgniteUtils.Services.WebPanel;
+using InstanceUtils.Services.Networking;
+using InstanceUtils.Services.WebPanel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace IgniteUtils.Services
+namespace InstanceUtils.Services
 {
     public static class ServiceExtensions
     {
@@ -17,9 +17,11 @@ namespace IgniteUtils.Services
             services.AddSingletonWithBase<PatchService>();
             services.AddSingletonWithBase<ServerStateService>();
             services.AddSingletonWithBase<AssemblyResolverService>();
+           
 
 
             services.AddSingleton<PanelCoreService>();
+            services.AddSingleton<PanelSocketClient>();
             services.AddHostedService<PanelBackgroundService>();
 
             //Register a specific HTTP client for the web panel. This will include the necessary headers (PanelHTTPClient)

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using Torch2API.DTOs.Instances;
 using Torch2API.DTOs.Logs;
-using Torch2WebUI.Services;
+using Torch2WebUI.Services.InstanceServices;
 
 namespace Torch2WebUI.APIControllers.Status
 {

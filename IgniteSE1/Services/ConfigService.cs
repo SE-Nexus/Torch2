@@ -1,7 +1,7 @@
 ﻿using IgniteSE1.Configs;
-using IgniteUtils.Models.Server;
-using IgniteUtils.Services;
-using IgniteUtils.Utils.Identification;
+using InstanceUtils.Models.Server;
+using InstanceUtils.Services;
+using InstanceUtils.Utils.Identification;
 using System;
 using System.Collections.Generic;
 using System.IO;

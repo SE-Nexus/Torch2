@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-namespace IgniteUtils.Utils.CommandUtils
+namespace InstanceUtils.Utils.CommandUtils
 {
     public class SnakeGame
     {

@@ -1,4 +1,4 @@
-﻿using IgniteUtils.Utils;
+﻿using InstanceUtils.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;

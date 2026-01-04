@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using VRageMath;
 using Color = Spectre.Console.Color;
 
-namespace IgniteUtils.Logging
+namespace InstanceUtils.Logging
 {
     public static class LoggingExtensions
     {

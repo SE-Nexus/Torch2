@@ -2,10 +2,11 @@
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
 using Torch2API.DTOs.Instances;
+using Torch2WebUI.Components.Pages;
 using Torch2WebUI.Services.SQL;
 using Timer = System.Timers.Timer;
 
-namespace Torch2WebUI.Services
+namespace Torch2WebUI.Services.InstanceServices
 {
     public class InstanceManager
     {
@@ -16,6 +17,7 @@ namespace Torch2WebUI.Services
         private readonly Timer CleanupTimer;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IMemoryCache _cache;
+        private readonly InstanceSocketManager _InstanceSocketManager;
 
         public event Action<string>? OnChange;
         private void NotifyStateChanged(string instanceid) => OnChange?.Invoke(instanceid);
@@ -25,8 +27,9 @@ namespace Torch2WebUI.Services
 
 
 
-        public InstanceManager(IServiceScopeFactory scopeFactory, IMemoryCache cache) 
+        public InstanceManager(IServiceScopeFactory scopeFactory, IMemoryCache cache, InstanceSocketManager socketmanager) 
         {
+            _InstanceSocketManager = socketmanager; 
             _cache = cache;
             _scopeFactory = scopeFactory;
             CleanupTimer = new Timer(_timeout.Add(TimeSpan.FromSeconds(2)));
@@ -141,6 +144,14 @@ namespace Torch2WebUI.Services
             {
                 ActiveInstances.TryAdd(instanceID, instance);
             }
+        }
+
+        public async Task SendCommand(TorchInstanceBase instanceBase, string command)
+        {
+            // Placeholder for sending command to instance
+            // Implementation depends on communication method (e.g., WebSocket, HTTP, etc.)
+
+            await _InstanceSocketManager.SendCommandAsync(instanceBase.InstanceID, "restart");
         }
 
     }

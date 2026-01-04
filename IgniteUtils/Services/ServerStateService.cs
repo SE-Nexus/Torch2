@@ -1,9 +1,9 @@
-﻿using IgniteUtils.Commands;
-using IgniteUtils.Commands.TestCommand;
-using IgniteUtils.Logging;
-using IgniteUtils.Models;
-using IgniteUtils.Services;
-using IgniteUtils.Utils;
+﻿using InstanceUtils.Commands;
+using InstanceUtils.Commands.TestCommand;
+using InstanceUtils.Logging;
+using InstanceUtils.Models;
+using InstanceUtils.Services;
+using InstanceUtils.Utils;
 using NLog;
 using Spectre.Console;
 using System;
@@ -16,7 +16,7 @@ using Torch2API.Models;
 using Torch2API.Utils;
 using VRage;
 
-namespace IgniteUtils.Services
+namespace InstanceUtils.Services
 {
     /// <summary>
     /// Provides functionality to manage and monitor the state of a server.

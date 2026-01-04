@@ -1,6 +1,6 @@
 ﻿using IgniteSE1.Configs;
 using IgniteSE1.Services;
-using IgniteUtils.Models.Server;
+using InstanceUtils.Models.Server;
 using Sandbox.Engine.Utils;
 using System;
 using System.Collections.Generic;
@@ -8,10 +8,11 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Torch2API.DTOs.Instances;
 
-namespace IgniteUtils.Services.WebPanel
+namespace InstanceUtils.Services.WebPanel
 {
     public class PanelCoreService : IPanelCoreService
     {
@@ -56,35 +57,70 @@ namespace IgniteUtils.Services.WebPanel
         }
 
 
-        public async Task SendStatus()
+        public async Task SendStatus(CancellationToken ct = default)
         {
-            InstanceCfg cfg = _instanceManager.GetCurrentInstance();
-
-
-
-            var status = new TorchInstanceBase
+            try
             {
-                InstanceID = _ConfigService.Identification.InstanceID.ToString(),
-                Name = _ConfigService.InstanceName,
-                MachineName = Environment.MachineName,
-                IPAddress = InstancePublicIP,
-                GamePort = cfg?.InstancePort ?? 0,
-                InstanceName = cfg?.InstanceName ?? "Loading...",
-                TargetWorld = cfg?.TargetWorld ?? "Loading...",
-                TorchVersion = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "v0.0.0",
-                ServerStatus = _serverStateService.CurrentServerStatus,
-                CurrentStateCmd = _serverStateService.CurrentSateRequest,
-                GameUpTime = _serverStateService.GetGameRunningTime(),
-                StateTime = _serverStateService.GetStateTime()
-            };
+                InstanceCfg cfg = _instanceManager.GetCurrentInstance();
 
-            HttpResponseMessage response =
-           await _webPanelClient.Http.PostAsJsonAsync(
-               "api/instance/update",
-               status);
+                var status = new TorchInstanceBase
+                {
+                    InstanceID = _ConfigService.Identification.InstanceID.ToString(),
+                    Name = _ConfigService.InstanceName,
+                    MachineName = Environment.MachineName,
+                    IPAddress = InstancePublicIP,
+                    GamePort = cfg?.InstancePort ?? 0,
+                    InstanceName = cfg?.InstanceName ?? "Loading...",
+                    TargetWorld = cfg?.TargetWorld ?? "Loading...",
+                    TorchVersion = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "v0.0.0",
+                    ServerStatus = _serverStateService.CurrentServerStatus,
+                    CurrentStateCmd = _serverStateService.CurrentSateRequest,
+                    GameUpTime = _serverStateService.GetGameRunningTime(),
+                    StateTime = _serverStateService.GetStateTime()
+                };
 
-            response.EnsureSuccessStatusCode();
+                using var cts = CancellationTokenSource
+                    .CreateLinkedTokenSource(ct);
+
+                cts.CancelAfter(TimeSpan.FromSeconds(5)); // ⏱ timeout
+
+                HttpResponseMessage response =
+                    await _webPanelClient.Http.PostAsJsonAsync(
+                        "api/instance/update",
+                        status,
+                        cts.Token);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine(
+                        $"Status update failed: {(int)response.StatusCode} {response.ReasonPhrase}");
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Timeout or shutdown — safe to ignore
+            }
+            catch (HttpRequestException ex)
+            {
+                // Panel unreachable / refused / DNS failure
+                Console.WriteLine($"Panel unreachable: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                // Last line of defense
+                Console.WriteLine($"Unexpected SendStatus error: {ex}");
+            }
         }
 
+        public async Task RunAsync(CancellationToken ct)
+        {
+            await Task.CompletedTask;
+        }
+
+        public Task RunWSCommand(string json)
+        {
+            Console.WriteLine("Received WS Command: " + json);
+            return Task.CompletedTask;
+        }
     }
 }

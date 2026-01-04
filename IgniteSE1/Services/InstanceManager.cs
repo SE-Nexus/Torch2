@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using IgniteSE1.Configs;
-using IgniteUtils.Logging;
-using IgniteUtils.Services;
+using InstanceUtils.Logging;
+using InstanceUtils.Services;
 using Microsoft.Extensions.Logging;
 using NLog;
 using Sandbox.Engine.Utils;

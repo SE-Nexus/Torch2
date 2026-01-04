@@ -1,6 +1,6 @@
-﻿using IgniteUtils.Logging;
-using IgniteUtils.Services;
-using IgniteUtils.Services.Networking;
+﻿using InstanceUtils.Logging;
+using InstanceUtils.Services;
+using InstanceUtils.Services.Networking;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using NLog.Config;
@@ -14,7 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace IgniteUtils.Services
+namespace InstanceUtils.Services
 {
     public class ConsoleManager : ServiceBase
     {

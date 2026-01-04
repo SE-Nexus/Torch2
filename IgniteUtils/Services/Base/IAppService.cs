@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IgniteUtils.Services
+namespace InstanceUtils.Services
 {
 
     //We will pull most of this stuff out into a seperate library later

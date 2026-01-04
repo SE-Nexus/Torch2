@@ -1,9 +1,9 @@
-﻿using IgniteUtils.Utils.Identification;
+﻿using InstanceUtils.Utils.Identification;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace IgniteUtils.Models.Server
+namespace InstanceUtils.Models.Server
 {
     //Interface for the config service
     public interface IConfigService

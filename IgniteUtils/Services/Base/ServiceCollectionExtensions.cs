@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IgniteUtils.Services
+namespace InstanceUtils.Services
 {
     public static class ServiceCollectionExtensions
     {

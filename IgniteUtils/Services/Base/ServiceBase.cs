@@ -1,4 +1,4 @@
-﻿using IgniteUtils.Services;
+﻿using InstanceUtils.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Torch2API.Models;
 
-namespace IgniteUtils.Services
+namespace InstanceUtils.Services
 {
     public abstract class ServiceBase : IAppService
     {
