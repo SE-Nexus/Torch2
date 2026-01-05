@@ -12,7 +12,7 @@ namespace Torch2API.Utils
     public abstract class ConfigBase<T> where T : ConfigBase<T>, new()
     {
         [YamlIgnore]
-        public string filePath;
+        public string? filePath;
 
         public void Save()
         {

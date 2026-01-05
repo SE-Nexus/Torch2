@@ -6,10 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Torch2API.Attributes;
+using Torch2API.Models.Commands;
 
 namespace InstanceUtils.Commands.TestCommand
 {
-    [CommandGroup("utils", "Simple CLI utilities")]
+    [CommandGroup("utils", "Simple CLI utilities", CommandTypeEnum.AdminOnly)]
     public class TestCommand
     {
         private GameService gameService;

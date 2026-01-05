@@ -1,25 +1,29 @@
-﻿using System;
+﻿using InstanceUtils.Services.Commands;
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.Text;
+using Torch2API.Models.Commands;
 
 namespace InstanceUtils.Commands
 {
     public class CLIContext : ICommandContext
     {
 
-        public Command Command { get; private set; }
-        public ParseResult ParseResult { get; private set; }
+        public Command CLICommand { get; private set; }
 
-        public bool IsConsoleCommand => true;
+        public CommandDescriptor Command { get; private set; }
+
+        public ParseResult ParseResult { get; private set; }
 
         public string CommandName { get; private set; }
 
+        public CommandTypeEnum CommandTypeContext => CommandTypeEnum.Console;
 
-
-        public CLIContext(Command command, ParseResult parseResult) 
+        public CLIContext(Command command, CommandDescriptor cmdDescriptor, ParseResult parseResult) 
         {
-            Command = command;
+            CLICommand = command;
+            Command = cmdDescriptor;
             ParseResult = parseResult;
             CommandName = command.Name;
         }

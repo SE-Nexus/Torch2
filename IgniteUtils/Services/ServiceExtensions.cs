@@ -22,8 +22,9 @@ namespace InstanceUtils.Services
 
             services.AddSingleton<PanelCoreService>();
             services.AddSingleton<PanelSocketClient>();
+            services.AddSingleton<CommandService>();
             services.AddHostedService<PanelBackgroundService>();
-
+            
             //Register a specific HTTP client for the web panel. This will include the necessary headers (PanelHTTPClient)
             services.AddIgniteHttpClient(TargetWebApp);
 

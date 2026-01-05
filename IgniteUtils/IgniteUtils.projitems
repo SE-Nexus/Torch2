@@ -12,6 +12,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Commands\StateCommands\ServerStateCommands.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Server\IConfigService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\AssemblyResolverService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\CommandDescriptor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\CommandGroupDescriptor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\CommandOptionDescriptor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\CommandService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\ICommandContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Networking\DelegatingHandlers\InstanceHeaderHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Networking\HttpConsoleLogClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\ServiceExtensions.cs" />
@@ -20,8 +25,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\WebPanel\PanelHTTPClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\WebPanel\PanelSocketClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\CLIContext.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\CommandLineBuilder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\ICommandContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\SnakeGame.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\TestCommand\TestCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging\ColoredConsoleLogTarget.cs" />
@@ -29,7 +32,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\Base\IAppService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Base\ServiceBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Base\ServiceCollectionExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Services\CommandLineManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\ConsoleManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\PatchService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Protos\CommandLineProtoService.cs" />

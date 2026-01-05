@@ -43,10 +43,8 @@ namespace IgniteSE1
             ConfigService.LoadConfig();
 
 
-            CommandLineManager CLI = new CommandLineManager(ConfigService.Config.ProtoServerPort);
-            ConsoleManager IgniteConsole = new ConsoleManager(AppName, CLI);
-         
-            
+            ConsoleManager IgniteConsole = new ConsoleManager(AppName, ConfigService.Config.ProtoServerPort);
+   
             // Initialize Console
             if (!await IgniteConsole.InitConsole(args))
                 return;
@@ -63,7 +61,6 @@ namespace IgniteSE1
 
                 services.AddSingletonWithBase<ConfigService, IConfigService>(ConfigService);
                 services.AddSingletonWithBase<ConsoleManager>(IgniteConsole);
-                services.AddSingletonWithBase<CommandLineManager>(CLI);
                 services.AddSingletonWithBase<SteamService>();
 
                 services.AddSingletonWithBase<GameService>();
@@ -81,9 +78,9 @@ namespace IgniteSE1
             IServiceProvider provider = host.Services;
 
 
-            CommandLineManager cmdLine = provider.GetService<CommandLineManager>();
-            cmdLine.RootCommand.Add(CommandLineBuilder.BuildFromType<StateCommands>(provider));
-            cmdLine.RootCommand.Add(CommandLineBuilder.BuildFromType<TestCommand>(provider));
+            //CommandLineManager cmdLine = provider.GetService<CommandLineManager>();
+            //cmdLine.RootCommand.Add(CommandLineBuilder.BuildFromType<StateCommands>(provider));
+            //cmdLine.RootCommand.Add(CommandLineBuilder.BuildFromType<TestCommand>(provider));
 
             //ServiceManager serviceManager = provider.GetService<ServiceManager>();
 

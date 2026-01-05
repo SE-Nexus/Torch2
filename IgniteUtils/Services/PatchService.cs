@@ -81,13 +81,13 @@ namespace InstanceUtils.Services
                                 transpiler != null ? new HarmonyMethod(transpiler) : null
                             );
 
-                            Console.WriteLine("[TorchHarmony] Patched " + targetType.FullName + "." + targetMethodName +
-                                              " with " + (method.DeclaringType != null ? method.DeclaringType.Name : "?") +
-                                              "." + method.Name);
+                            //Console.WriteLine("[TorchHarmony] Patched " + targetType.FullName + "." + targetMethodName +
+                            //                  " with " + (method.DeclaringType != null ? method.DeclaringType.Name : "?") +
+                            //                  "." + method.Name);
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine("[TorchHarmony] Failed to patch method " + method.Name + ": " + ex);
+                            //Console.WriteLine("[TorchHarmony] Failed to patch method " + method.Name + ": " + ex);
                         }
                     }
                 }

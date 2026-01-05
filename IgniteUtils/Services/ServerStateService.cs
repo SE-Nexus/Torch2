@@ -297,7 +297,7 @@ namespace InstanceUtils.Services
                     Task.Run(() => handler(this, CurrentServerStatus));
                 });
 
-            LastStatusChangeTime = DateTime.Now;
+            LastStatusChangeTime = DateTime.UtcNow;
 
 
 

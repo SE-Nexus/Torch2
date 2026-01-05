@@ -8,9 +8,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Torch2API.Models;
+using Torch2API.Models.Commands;
 
 namespace IgniteSE1.Commands
 {
+    /// <summary>
+    /// Provides server state management command implementations, including starting, stopping, and reporting the status
+    /// of the server.
+    /// </summary>
+    /// <remarks>This class extends <see cref="ServerStateCommands"/> to handle server state transitions in
+    /// response to command requests. It relies on <see cref="GameService"/> and <see cref="ServerStateService"/> to
+    /// perform operations and report status. Instances of this class are typically used in server command handling
+    /// scenarios to control server lifecycle and state reporting.</remarks>
     public class StateCommands : ServerStateCommands
     {
 
@@ -21,9 +30,6 @@ namespace IgniteSE1.Commands
         {
             this.gameService = service;
             this.serverStateService = serverState; 
-
-
-
         }
 
 

@@ -12,9 +12,9 @@ namespace IgniteSE1.Services.ProtoServices
     public class CommandLineProtoService : CommandLine.CommandLineBase
     {
         private ConsoleManager _console;
-        private CommandLineManager _cli;
+        private CommandService _cli;
 
-        public CommandLineProtoService(ConsoleManager console, CommandLineManager cli)
+        public CommandLineProtoService(ConsoleManager console, CommandService cli)
         {
             _console = console;
             _cli = cli;

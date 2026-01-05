@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 using Torch2API.Attributes;
+using Torch2API.Models.Commands;
 
 namespace InstanceUtils.Commands.StateCommands
 {
-    [CommandGroup("server", "Manage server state changes and status")]
+    [CommandGroup("server", "Manage server state changes and status", CommandTypeEnum.AdminOnly)]
     public abstract class ServerStateCommands
     {
 

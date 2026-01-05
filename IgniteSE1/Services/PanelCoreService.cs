@@ -2,6 +2,7 @@
 using IgniteSE1.Services;
 using InstanceUtils.Models.Server;
 using Sandbox.Engine.Utils;
+using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -103,12 +104,12 @@ namespace InstanceUtils.Services.WebPanel
             catch (HttpRequestException ex)
             {
                 // Panel unreachable / refused / DNS failure
-                Console.WriteLine($"Panel unreachable: {ex.Message}");
+                //AnsiConsole.WriteLine($"Panel unreachable: {ex.Message}");
             }
             catch (Exception ex)
             {
                 // Last line of defense
-                Console.WriteLine($"Unexpected SendStatus error: {ex}");
+                AnsiConsole.WriteLine($"Unexpected SendStatus error: {ex}");
             }
         }
 
@@ -119,7 +120,7 @@ namespace InstanceUtils.Services.WebPanel
 
         public Task RunWSCommand(string json)
         {
-            Console.WriteLine("Received WS Command: " + json);
+            AnsiConsole.WriteLine("Received WS Command: " + json);
             return Task.CompletedTask;
         }
     }

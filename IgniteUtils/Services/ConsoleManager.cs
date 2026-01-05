@@ -1,7 +1,10 @@
-﻿using InstanceUtils.Logging;
+﻿using Grpc.Core;
+using InstanceUtils.Logging;
 using InstanceUtils.Services;
 using InstanceUtils.Services.Networking;
+using InstanceUtils.Utils.CommandUtils;
 using Microsoft.Extensions.DependencyInjection;
+using MyGrpcApp;
 using NLog;
 using NLog.Config;
 using Spectre.Console;
@@ -20,17 +23,23 @@ namespace InstanceUtils.Services
     {
         private static Logger Logger;
         private static Mutex appMutex;
-        private CommandLineManager _cli;
+        
+        //private CommandLineManager _cli;
 
 
         public string ConsoleName { get; private set; }
         public string mutexName { get; private set; }
 
+        public static string AppArguments => Environment.CommandLine;
 
-        public ConsoleManager(string Name, CommandLineManager cli)
+        int _protoServicePort;
+
+
+        public ConsoleManager(string Name, int protoserviceport)
         {
-            _cli = cli;
+            //_cli = cli;
             ConsoleName = Name;
+            _protoServicePort = protoserviceport;
             mutexName = AppDomain.CurrentDomain.FriendlyName.Replace("\\", "_");
         }
 
@@ -55,10 +64,71 @@ namespace InstanceUtils.Services
             {
                 //Existing App Already Running. We should continue with CLI mode
                 Console.Title = $"{ConsoleName} CLI Mode";
+                await SetupCommandLineManager(args);
             }
 
-            await _cli.SetupCommandLineManager(IsServer, args);
+            //await SetupCommandLineManager(IsServer, args);
             return IsServer;
+        }
+
+        public async Task SetupCommandLineManager(string[] args)
+        {
+             await ProcessCLICommand(args);
+        }
+
+        public async Task ProcessCLICommand(string[] args)
+        {
+            if (args.Length == 0)
+                return;
+
+
+            //Check if interactive mode
+            if (args[0].Equals("--interactive", StringComparison.OrdinalIgnoreCase))
+            {
+                AnsiConsole.Write(new Panel("[bold green]Interactive mode enabled![/] [grey]Type [yellow]exit[/] to quit.[/]").Border(BoxBorder.Rounded).Header("[white on green] CLI Mode [/]"));
+
+                while (true)
+                {
+                    var input = AnsiConsole.Prompt(
+                            new TextPrompt<string>("[grey]>[/]")
+                                .PromptStyle("deepskyblue1")
+                        );
+
+                    if (string.IsNullOrEmpty(input))
+                        continue;
+
+                    if (input.Equals("exit", StringComparison.OrdinalIgnoreCase) || input.Equals("quit", StringComparison.OrdinalIgnoreCase))
+                        break;
+
+                    string[] inputArgs = input.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    await SendCLIRequest(inputArgs);
+                }
+
+                //Lets return. As the command would attempt to continue with the --interactive stuff
+                return;
+            }
+            else if (args[0].Equals("--snake", StringComparison.OrdinalIgnoreCase))
+            {
+                SnakeGame game = new SnakeGame();
+                game.Run();
+                return;
+            }
+
+
+            //Send singular command;
+            await SendCLIRequest(args);
+        }
+
+        private async Task SendCLIRequest(string[] args)
+        {
+            Channel channel = new Channel($"localhost:{_protoServicePort}", ChannelCredentials.Insecure);
+            var client = new CommandLine.CommandLineClient(channel);
+
+            var request = new CLIRequest();
+            request.Command.AddRange(args);   // ✅ this is the key line
+
+            var reply = await client.ProcessCLIAsync(request);
+            AnsiConsole.WriteLine(reply.Result);
         }
 
         public void UpdateConsoleTitle(string newTitle)
