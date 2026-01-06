@@ -158,15 +158,19 @@ else
                             </MudTooltip>
                         </MudStack>
 
-                        <div class="d-flex align-center">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
                             <MudText Typo="Typo.caption">
-                                @instance.InstanceName
+                                [<strong>Instance:</strong> @instance.InstanceName]
                             </MudText>
 
-                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-1">
-                                (@instance.TargetWorld)
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                [<strong>World:</strong> @instance.TargetWorld]
                             </MudText>
-                        </div>
+
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                [<strong>UpTime:</strong> @instance.GetFormattedGameUptime()]
+                            </MudText>
+                        </MudStack>
 
                         <MudDivider Class="my-2" />
 
@@ -193,12 +197,27 @@ else
                             View
                         </MudButton>
 
-                        <MudButton Size="Size.Small"
-                                   Variant="Variant.Text"
-                                   OnClick="@(() =>  InstanceManager.SendCommand(instance, "Server/Start"))"
-                                   Color="Color.Warning">
-                            Restart
-                        </MudButton>
+
+                        @if (instance.ServerStatus == ServerStatusEnum.Idle)
+                        {
+                            <MudButton Size="Size.Small"
+                                       Variant="Variant.Text"
+                                       OnClick="@(() => InstanceManager.SendCommand(instance, "Server/Start"))"
+                                       Color="Color.Warning">
+                                Start
+                            </MudButton>
+                        }
+
+                        @if (instance.ServerStatus == ServerStatusEnum.Running)
+                        {
+                            <MudButton Size="Size.Small"
+                                       Variant="Variant.Text"
+                                       OnClick="@(() => InstanceManager.SendCommand(instance, "Server/Stop"))"
+                                       Color="Color.Warning">
+                                Stop
+                            </MudButton>
+                        }
+
                     </MudCardActions>
 
                 </MudCard>

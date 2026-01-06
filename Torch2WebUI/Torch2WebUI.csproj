@@ -19,4 +19,11 @@
   <ItemGroup>
     <ProjectReference Include="..\Torch2API\Torch2API.csproj" />
   </ItemGroup>
+
+
+  <ItemGroup>
+    <None Update="Run-debug.bat">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

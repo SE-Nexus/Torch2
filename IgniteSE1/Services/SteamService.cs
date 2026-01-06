@@ -136,71 +136,82 @@ namespace IgniteSE1.Services
         private async Task<bool> InstallGame(int appId)
         {
 
-            bool isEmpty = !Directory.Exists(GameInstallDir) || !Directory.EnumerateFileSystemEntries(GameInstallDir).Any();
-            bool RedirectStandardOutput = true; //Set to false to see the output in the console
-
-            if (isEmpty)
-            {
-                _logger.InfoColor($"Installing server with AppID: {appId} to {GameInstallDir}", Color.Orange1);
-                Directory.CreateDirectory(GameInstallDir);
-                RedirectStandardOutput = false;
-            }
-
-            //Additional check to see if the game is already installed
-            bool NeedValidate = false;
-
-
-            //Start the process to install the game using SteamCMD
-            var processStartInfo = new ProcessStartInfo("cmd.exe")
-            {
-                Arguments = $"/c \"steamcmd +@ShutdownOnFailedCommand 1 +@NoPromptForPassword 1 +force_install_dir \"{GameInstallDir}\" +login anonymous +app_update {appId} +quit\"",
-                WorkingDirectory = SteamCMDDir,
-                RedirectStandardOutput = RedirectStandardOutput,
-                UseShellExecute = NeedValidate
-            };
-
-
-            using (var cmdProcess = new Process { StartInfo = processStartInfo })
+            try
             {
 
+                bool isEmpty = !Directory.Exists(GameInstallDir) || !Directory.EnumerateFileSystemEntries(GameInstallDir).Any();
+                bool RedirectStandardOutput = true; //Set to false to see the output in the console
 
-                cmdProcess.Start();
-
-
-                if (RedirectStandardOutput)
+                if (isEmpty)
                 {
-                    await AnsiConsole.Status()
-                        .AutoRefresh(true)
-                        .Spinner(Spinner.Known.Dots2)
-                        .SpinnerStyle(Style.Parse("yellow"))
-                        .StartAsync("Logging into steam... ", async ctx =>
-                        {
-                            var processTask = WaitForExitAsync(cmdProcess);
-                            var delayTask = Task.Delay(TimeSpan.FromSeconds(10));
+                    _logger.InfoColor($"Installing server with AppID: {appId} to {GameInstallDir}", Color.Orange1);
+                    Directory.CreateDirectory(GameInstallDir);
+                    RedirectStandardOutput = false;
+                }
 
-                            var completed = await Task.WhenAny(processTask, delayTask);
+                //Additional check to see if the game is already installed
+                bool NeedValidate = false;
 
-                            // Task to update status text after 10 seconds
-                            if (completed == delayTask)
+
+
+                //Start the process to install the game using SteamCMD
+                var processStartInfo = new ProcessStartInfo("cmd.exe")
+                {
+                    Arguments = $"/c \"steamcmd +@ShutdownOnFailedCommand 1 +@NoPromptForPassword 1 +force_install_dir \"{GameInstallDir}\" +login anonymous +app_update {appId} +quit\"",
+                    WorkingDirectory = SteamCMDDir,
+                    RedirectStandardOutput = RedirectStandardOutput,
+                    UseShellExecute = NeedValidate
+                };
+
+
+                using (var cmdProcess = new Process { StartInfo = processStartInfo })
+                {
+
+
+                    cmdProcess.Start();
+
+
+                    if (RedirectStandardOutput)
+                    {
+                        await AnsiConsole.Status()
+                            .AutoRefresh(true)
+                            .Spinner(Spinner.Known.Dots2)
+                            .SpinnerStyle(Style.Parse("yellow"))
+                            .StartAsync("Logging into steam... ", async ctx =>
                             {
-                                // 10 seconds passed, process is still running
-                                ctx.Status("Steam not responding...");
-                            }
+                                var processTask = WaitForExitAsync(cmdProcess);
+                                var delayTask = Task.Delay(TimeSpan.FromSeconds(10));
+
+                                var completed = await Task.WhenAny(processTask, delayTask);
+
+                                // Task to update status text after 10 seconds
+                                if (completed == delayTask)
+                                {
+                                    // 10 seconds passed, process is still running
+                                    ctx.Status("Steam not responding...");
+                                }
 
 
-                            // Always await the process to fully finish
-                            await processTask;
-                        });
+                                // Always await the process to fully finish
+                                await processTask;
+                            });
+                    }
+                    else
+                    {
+                        await WaitForExitAsync(cmdProcess);
+                    }
+
+                    AnsiConsole.WriteLine($"SteamCMD ExitCode: {cmdProcess.ExitCode}");
+                    return cmdProcess.ExitCode == 0;
                 }
-                else
-                {
-                    await WaitForExitAsync(cmdProcess);
-                }
-
-                AnsiConsole.WriteLine($"SteamCMD ExitCode: {cmdProcess.ExitCode}");
-                return cmdProcess.ExitCode == 0;
             }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error installing game: {ex}");
+            }
+            return false;
         }
+            
 
         public static Task WaitForExitAsync(Process process, CancellationToken cancellationToken = default)
         {

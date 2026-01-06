@@ -11,6 +11,7 @@ namespace Torch2WebUI
         {
             
             var builder = WebApplication.CreateBuilder(args);
+ 
             builder.Services.AddControllers();
 
             // Add MudBlazor services
@@ -25,8 +26,12 @@ namespace Torch2WebUI
             builder.Services.AddSingleton<InstanceSocketManager>();
             builder.Services.AddSingleton<ThemeService>();
             builder.Services.SetupSQL();
+            builder.Logging.ClearProviders();
+
+            Console.WriteLine("Starting Torch2 Web UI...");
 
             var app = builder.Build();
+       
 
             app.Map("/ws/instance", async context =>
             {
@@ -61,8 +66,16 @@ namespace Torch2WebUI
             app.MapStaticAssets();
             app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
+            Console.WriteLine("Torch2 Web UI started successfully!");
+            foreach (var url in app.Urls)
+            {
+                Console.WriteLine($"Listening on: {url}/scalar");
+            }
+
+
             app.Run();
 
+            
         }
     }
 }

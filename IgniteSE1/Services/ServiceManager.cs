@@ -7,6 +7,7 @@ using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -68,10 +69,20 @@ namespace IgniteSE1.Services
 
                     if (success)
                     {
-                        string exePath = Assembly.GetEntryAssembly().Location;
+                        string exePath = Assembly.GetEntryAssembly()!.Location;
+                        string exeDir = Path.GetDirectoryName(exePath)!;
 
-                        Process.Start(exePath);
-                        Environment.Exit(0); // clean exit, triggers finally{} blocks
+                        var psi = new ProcessStartInfo
+                        {
+                            FileName = "cmd.exe",
+                            Arguments = $"/c start \"\" \"{exePath}\"",
+                            WorkingDirectory = exeDir,
+                            UseShellExecute = true,
+                            CreateNoWindow = false
+                        };
+
+                        Process.Start(psi);
+                        Environment.Exit(0);
 
                         //_serverState.RequestServerStateChange(ServerStateCommand.Idle);
                     }
@@ -249,7 +260,16 @@ namespace IgniteSE1.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await InitAllServicesAsync();
+            try
+            {
+
+                await InitAllServicesAsync();
+
+            }catch(Exception ex)
+            {
+                Console.WriteLine(ex);
+                Console.ReadLine();
+            }
         }
     }
 }

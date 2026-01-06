@@ -64,7 +64,11 @@ namespace InstanceUtils.Services.Commands.Contexts
                     {
                         if (option.HasDefaultValue)
                         {
-                            allMethodInputArgs.Add(option.DefaultValue);
+                            allMethodInputArgs.Add(
+                                option.DefaultValue == DBNull.Value
+                                    ? GetDefault(option.OptionType)
+                                    : option.DefaultValue
+    );
                         }
                         else
                         {
@@ -79,6 +83,16 @@ namespace InstanceUtils.Services.Commands.Contexts
                 //Invoke the method
                 Command.Method.Invoke(declaringInstance, allMethodInputArgs.ToArray());
             }
+        }
+
+        private static object? GetDefault(Type type)
+        {
+            // value types → default(T)
+            if (type.IsValueType)
+                return Activator.CreateInstance(type);
+
+            // reference types → null
+            return null;
         }
     }
 }
