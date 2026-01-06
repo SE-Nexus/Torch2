@@ -14,22 +14,24 @@ namespace InstanceUtils.Commands.TestCommand
     public class TestCommand
     {
         private GameService gameService;
+        private ICommandContext ctx;
 
-        public TestCommand(GameService service) 
+        public TestCommand(GameService service, ICommandContext ctx) 
         {
             this.gameService = service;
+            this.ctx = ctx;
         }
 
 
         [Command("ping", "Pings the server")]
-        public void Start(ICommandContext ctx)
+        public void Start()
         {
             ctx.Respond("Pong");
         }
 
 
         [Command("basedir", "Stops the server")]
-        public void Stop(ICommandContext ctx)
+        public void Stop()
         {
             ctx.Respond(AppDomain.CurrentDomain.BaseDirectory);
         }

@@ -151,7 +151,7 @@ namespace Torch2WebUI.Services.InstanceServices
             // Placeholder for sending command to instance
             // Implementation depends on communication method (e.g., WebSocket, HTTP, etc.)
 
-            await _InstanceSocketManager.SendCommandAsync(instanceBase.InstanceID, "restart");
+            await _InstanceSocketManager.SendCommandAsync(instanceBase.InstanceID, command);
         }
 
     }

@@ -16,7 +16,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\CommandGroupDescriptor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\CommandOptionDescriptor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\CommandService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\ICommandContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\Contexts\CommandContextAccessor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\Contexts\ICommandContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\Contexts\WebPanelContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Networking\DelegatingHandlers\InstanceHeaderHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Networking\HttpConsoleLogClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\ServiceExtensions.cs" />
@@ -24,7 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\WebPanel\PanelBackgroundService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\WebPanel\PanelHTTPClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\WebPanel\PanelSocketClient.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\CLIContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\Contexts\CLIContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\SnakeGame.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\CommandUtils\TestCommand\TestCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging\ColoredConsoleLogTarget.cs" />

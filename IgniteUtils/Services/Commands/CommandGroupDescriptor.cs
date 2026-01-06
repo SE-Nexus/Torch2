@@ -22,9 +22,9 @@ namespace InstanceUtils.Services.Commands
 
         public CommandGroupDescriptor? Parent { get; private set; }
 
-        public List<CommandDescriptor> Commands { get; } = new List<CommandDescriptor>();
+        public Dictionary<string, CommandDescriptor> Commands { get; } = new Dictionary<string, CommandDescriptor>(StringComparer.OrdinalIgnoreCase);
 
-        public List<CommandGroupDescriptor> SubGroups { get; } = new List<CommandGroupDescriptor>();
+        public Dictionary<string, CommandGroupDescriptor> SubGroups { get; } = new Dictionary<string, CommandGroupDescriptor>(StringComparer.OrdinalIgnoreCase);
 
 
 
@@ -43,13 +43,13 @@ namespace InstanceUtils.Services.Commands
 
         public void AddCommand(CommandDescriptor command)
         {
-            Commands.Add(command);
+            Commands.Add(command.Name, command);
             command.ParentGroup = this;
         }
 
         public void AddSubGroup(CommandGroupDescriptor group)
         {
-            SubGroups.Add(group);
+            SubGroups.Add(group.Name, group);
             group.Parent = this;
         }
 
@@ -130,7 +130,7 @@ namespace InstanceUtils.Services.Commands
 
             var groupCommand = new Command(group.Name, group.Description);
 
-            foreach (var commandDescriptor in group.Commands)
+            foreach (var commandDescriptor in group.Commands.Values)
             {
                 (bool success, Command cmd) = commandDescriptor.TryBuildCLICommand(commandActionDelegate);
 

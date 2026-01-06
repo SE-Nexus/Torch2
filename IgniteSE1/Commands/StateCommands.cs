@@ -25,15 +25,17 @@ namespace IgniteSE1.Commands
 
         private GameService gameService;
         private ServerStateService serverStateService;
+        private ICommandContext ctx;
 
-        public StateCommands(GameService service, ServerStateService serverState)
+        public StateCommands(GameService service, ServerStateService serverState, ICommandContext ctx)
         {
             this.gameService = service;
             this.serverStateService = serverState; 
+            this.ctx = ctx;
         }
 
 
-        public override void Start(ICommandContext ctx)
+        public override void Start()
         {
             if (serverStateService.RequestServerStateChange(ServerStateCommand.Start))
             {
@@ -45,12 +47,12 @@ namespace IgniteSE1.Commands
             }
         }
 
-        public override void Status(ICommandContext ctx)
+        public override void Status()
         {
             ctx.Respond(serverStateService.ToString());
         }
 
-        public override void Stop(ICommandContext ctx, bool kill)
+        public override void Stop(bool kill)
         {
             if (serverStateService.RequestServerStateChange(ServerStateCommand.Stop))
             {

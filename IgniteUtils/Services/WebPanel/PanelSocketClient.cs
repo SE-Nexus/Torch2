@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Torch2API.Constants;
+using Torch2API.DTOs.WebSockets;
 
 namespace InstanceUtils.Services.WebPanel
 {
@@ -21,6 +22,8 @@ namespace InstanceUtils.Services.WebPanel
         private readonly IConfigService _ConfigService;
         private readonly IPanelCoreService _PanelCore;
         private ClientWebSocket? _socket;
+
+
 
         public PanelSocketClient(IConfigService config, IPanelCoreService panelCore)
         {
@@ -114,7 +117,23 @@ namespace InstanceUtils.Services.WebPanel
 
                     } while (!result.EndOfMessage);
 
-                    await _PanelCore.RunWSCommand(Encoding.UTF8.GetString(ms.ToArray()));
+
+                    var json = Encoding.UTF8.GetString(ms.ToArray());
+
+                    SocketMsgEnvelope envelope;
+                    try
+                    {
+                        envelope = JsonSerializer.Deserialize<SocketMsgEnvelope>(json, TorchConstants.JsonOptions)
+                            ?? throw new JsonException("Envelope was null");
+                    }
+                    catch (Exception ex)
+                    {
+                        // Bad payload — log and ignore
+                        Console.WriteLine($"Invalid WS message: {ex}");
+                        continue;
+                    }
+
+                    await _PanelCore.RunWSCommand(envelope);
                 }
             }
             catch (OperationCanceledException)

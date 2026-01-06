@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Torch2API.DTOs.WebSockets;
 
 namespace InstanceUtils.Services.WebPanel
 {
@@ -12,7 +13,7 @@ namespace InstanceUtils.Services.WebPanel
 
         public Task GetPublicIP();
 
-        public Task RunWSCommand(string json);
+        public Task RunWSCommand(SocketMsgEnvelope json);
 
     }
 }

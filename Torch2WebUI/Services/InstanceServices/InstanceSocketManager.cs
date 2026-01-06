@@ -1,7 +1,10 @@
-﻿using System.Collections.Concurrent;
+﻿using SQLitePCL;
+using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using Torch2API.Constants;
+using Torch2API.DTOs.WebSockets;
 
 namespace Torch2WebUI.Services.InstanceServices
 {
@@ -46,17 +49,24 @@ namespace Torch2WebUI.Services.InstanceServices
             }
         }
 
-        public async Task SendCommandAsync(string instanceId, string command)
+        public async Task SendCommandAsync(string instanceId, string rawcommand)
         {
-            if (_sockets.TryGetValue(instanceId, out var socket))
-            {
-                var data = Encoding.UTF8.GetBytes(command);
-                await socket.SendAsync(
-                    data,
-                    WebSocketMessageType.Text,
-                    true,
-                    CancellationToken.None);
-            }
+            if (!_sockets.TryGetValue(instanceId, out var socket))
+                return;
+
+
+            string normalized = rawcommand.Replace(' ', '.').Replace('/', '.');
+            var envelope = new SocketMsgEnvelope(normalized);
+
+
+            string json = JsonSerializer.Serialize(envelope);
+            byte[] data = Encoding.UTF8.GetBytes(json);
+
+            await socket.SendAsync(
+                new ArraySegment<byte>(data),
+                WebSocketMessageType.Text,
+                endOfMessage: true,
+                CancellationToken.None);
         }
 
     }

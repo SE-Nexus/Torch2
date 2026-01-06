@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Torch2API.DTOs.WebSockets
 {
-    public enum WebSocketMessageType
+    public enum WebSocketMsgType
     {
         Unknown = 0,
         ServerStatus = 1,

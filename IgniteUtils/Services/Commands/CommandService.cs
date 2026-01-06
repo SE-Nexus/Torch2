@@ -29,7 +29,8 @@ namespace InstanceUtils.Services
         private IServiceProvider _serviceProvider;
         public RootCommand CLIRoot { get; private set; }
 
-        public Dictionary<string, CommandGroupDescriptor> CommandGroups { get; private set; } = new Dictionary<string, CommandGroupDescriptor>();
+        //TODO: Need a way to merge commands with the same group name
+        public Dictionary<string, CommandGroupDescriptor> CommandGroups { get; private set; } = new Dictionary<string, CommandGroupDescriptor>(StringComparer.OrdinalIgnoreCase);
 
         public CommandService(IServiceProvider sProvider)
         {
@@ -60,6 +61,23 @@ namespace InstanceUtils.Services
                 CLIRoot.Add(cmd);
             }
 
+        }
+
+        /// <summary>
+        /// Executes the command-line action based on the specified parse result and returns the exit code
+        /// asynchronously.
+        /// </summary>
+        /// <param name="parseResult">The result of parsing command-line input, containing the command and arguments to execute.</param>
+        /// <param name="cts">A cancellation token that can be used to cancel the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the exit code for the
+        /// command-line action.</returns>
+        public Task<int> CLIAction(Command cli, CommandDescriptor cmd, ParseResult parseResult, CancellationToken cts)
+        {
+            //Prob need to pass in the cancellation token somewhere
+            CLIContext ctx = new CLIContext(cli, cmd, parseResult);
+            ctx.RunCommand(_serviceProvider);
+
+            return Task.FromResult(0);
         }
 
         public void DiscoverCoommands()
@@ -130,102 +148,11 @@ namespace InstanceUtils.Services
             }
         }
 
-        
-
-        public bool TryAddCommand(string command)
-        {
-            return false;
-        }
-
-        
         /// <summary>
-        /// Executes the command-line action based on the specified parse result and returns the exit code
-        /// asynchronously.
+        /// The proto service will call this to execute a CLI command
         /// </summary>
-        /// <param name="parseResult">The result of parsing command-line input, containing the command and arguments to execute.</param>
-        /// <param name="cts">A cancellation token that can be used to cancel the operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the exit code for the
-        /// command-line action.</returns>
-        public Task<int> CLIAction(Command cli, CommandDescriptor cmd, ParseResult parseResult, CancellationToken cts)
-        {
-            CLIContext ctx = new CLIContext(cli, cmd, parseResult);
-
-            List<object?> allMethodInputArgs = new List<object?>();
-
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                //Get instance of the declaring type
-                var declaringInstance = CreateInstance(cmd.DeclaringType, scope.ServiceProvider);
-
-                //Build method input args
-                var methodParams = cmd.Method.GetParameters();
-                foreach (var arg in methodParams)
-                {
-                    if (arg.ParameterType == typeof(ICommandContext))
-                    {
-                        allMethodInputArgs.Add(ctx);
-                    }
-                    else
-                    {
-                        var option = cmd.Options.FirstOrDefault(o => o.ArgName == arg.Name);
-                        if (option != null)
-                        {
-                            var value = parseResult.GetValue<object?>(option.Name);
-                            allMethodInputArgs.Add(value);
-                        }
-                        else
-                        {
-                            allMethodInputArgs.Add(null);
-                        }
-                    }
-                }
-
-                //Invoke the method
-                cmd.Method.Invoke(declaringInstance, allMethodInputArgs.ToArray());
-            }
-
-            return Task.FromResult(0);
-        }
-
-
-        private static object CreateInstance(Type type, IServiceProvider? services)
-        {
-            try
-            {
-                //No DI container? Fallback to plain reflection
-                if (services == null)
-                    return Activator.CreateInstance(type, nonPublic: true)!;
-
-
-                //just use the main provider. Maybe add scoped stuff in future
-                return ActivatorUtilities.CreateInstance(services, type);
-            }
-            catch (Exception ex)
-            {
-                // 💥 Fallback to reflection if DI creation fails
-                AnsiConsole.MarkupLineInterpolated(
-                $"[bold red][[DI]][/] Failed to create instance of [yellow]{type.Name}[/]: {ex.Message}");
-
-                if (services == null)
-                    return null;
-
-                try
-                {
-                    return Activator.CreateInstance(type, nonPublic: true)!;
-                }
-                catch (Exception innerEx)
-                {
-                    throw new InvalidOperationException(
-                        $"Unable to create instance of type {type.FullName}. " +
-                        $"DI failed and fallback instantiation also failed.",
-                        innerEx);
-                }
-            }
-        }
-
-
-
-
+        /// <param name="args"></param>
+        /// <returns></returns>
         public async Task<string> InvokeCLICommand(string[] args)
         {
             CLIRoot.Description = "Remote IgniteSE1 Command Line Interface";
@@ -239,6 +166,39 @@ namespace InstanceUtils.Services
 
             await result.InvokeAsync(confg);
             return stringWriter.ToString();
+        }
+
+
+
+        public bool TryGetCommand(string commandpath, out CommandDescriptor cmd)
+        {
+            cmd = null!;
+
+            if (string.IsNullOrWhiteSpace(commandpath))
+                return false;
+
+            var parts = commandpath
+                .Split('.');
+
+            if (parts.Length == 0)
+                return false;
+
+            // Start at root
+            if (!CommandGroups.TryGetValue(parts[0], out var currentGroup))
+                return false;
+
+            // Traverse groups until last segment
+            for (int i = 1; i < parts.Length - 1; i++)
+            {
+                if (!currentGroup.SubGroups.TryGetValue(parts[i], out var nextGroup))
+                    return false;
+
+                currentGroup = nextGroup;
+            }
+
+            // Final segment is the command
+            // Avoid using C# 8.0 index-from-end operator for compatibility
+            return currentGroup.Commands.TryGetValue(parts[parts.Length - 1], out cmd);
         }
     }
 }

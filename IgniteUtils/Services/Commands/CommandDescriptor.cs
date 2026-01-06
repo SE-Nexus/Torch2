@@ -34,7 +34,7 @@ namespace InstanceUtils.Services.Commands
 
         public CommandTypeEnum? CommandType { get; private set; }
 
-        public List<CommandOptionDescriptor> Options { get; set; } = new List<CommandOptionDescriptor>();
+        public CommandOptionDescriptor[] Options { get; set; }
 
 
 
@@ -52,6 +52,8 @@ namespace InstanceUtils.Services.Commands
             if (Method == null)
                 throw new InvalidOperationException("Method information is not set for this command descriptor.");
 
+
+            var optionList = new List<CommandOptionDescriptor>();
             var parameters = Method.GetParameters();
             foreach (var param in parameters)
             {
@@ -61,8 +63,10 @@ namespace InstanceUtils.Services.Commands
 
                 var optionType = param.ParameterType;
                 var optionDescriptor = new CommandOptionDescriptor(optAttr.Name, param.Name, optAttr.Description, optionType, param.DefaultValue);
-                Options.Add(optionDescriptor);
+                optionList.Add(optionDescriptor);
             }
+
+            Options = optionList.ToArray();
         }
 
         public (bool, Command) TryBuildCLICommand(Func<Command, CommandDescriptor, ParseResult, CancellationToken, Task<int>> CommandActionDelegeate)

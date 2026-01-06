@@ -1,6 +1,7 @@
 ﻿using IgniteSE1.Configs;
 using IgniteSE1.Services;
 using InstanceUtils.Models.Server;
+using InstanceUtils.Services.Commands.Contexts;
 using Sandbox.Engine.Utils;
 using Spectre.Console;
 using System;
@@ -12,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Torch2API.DTOs.Instances;
+using Torch2API.DTOs.WebSockets;
 
 namespace InstanceUtils.Services.WebPanel
 {
@@ -21,17 +23,22 @@ namespace InstanceUtils.Services.WebPanel
         private readonly PanelHTTPClient _webPanelClient;
         private readonly InstanceManager _instanceManager;
         private readonly ServerStateService _serverStateService;
+        private readonly CommandService _cmdService;
+        private readonly IServiceProvider _provider;
 
         public string InstancePublicIP { get; private set; } = "0.0.0.0";
 
 
 
-        public PanelCoreService(IConfigService ConfigService, PanelHTTPClient webPanelClient, InstanceManager instanceManager, ServerStateService stateservice)
+        public PanelCoreService(IConfigService ConfigService, PanelHTTPClient webPanelClient, InstanceManager instanceManager, ServerStateService stateservice, CommandService cmdService, IServiceProvider provider)
         {
             _serverStateService = stateservice;
             _instanceManager = instanceManager;
             _webPanelClient = webPanelClient;
             _ConfigService = ConfigService;
+            _cmdService = cmdService;
+            _provider = provider;
+
         }
 
         public async Task GetPublicIP()
@@ -93,7 +100,7 @@ namespace InstanceUtils.Services.WebPanel
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    Console.WriteLine(
+                    AnsiConsole.WriteLine(
                         $"Status update failed: {(int)response.StatusCode} {response.ReasonPhrase}");
                 }
             }
@@ -118,9 +125,20 @@ namespace InstanceUtils.Services.WebPanel
             await Task.CompletedTask;
         }
 
-        public Task RunWSCommand(string json)
+        public Task RunWSCommand(SocketMsgEnvelope msg)
         {
-            AnsiConsole.WriteLine("Received WS Command: " + json);
+            if(_cmdService.TryGetCommand(msg.Command, out var command))
+            {
+                AnsiConsole.WriteLine("Received WS Command: " + command.Name);
+                WebPanelContext ctx = new WebPanelContext(command, msg);
+                ctx.RunCommand(_provider);
+            }
+            else
+            {
+                AnsiConsole.WriteLine($"WS Command not found: {msg.Command}");
+            }
+
+
             return Task.CompletedTask;
         }
     }
