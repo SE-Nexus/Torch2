@@ -33,18 +33,62 @@ namespace Torch2WebUI.Services.InstanceServices
         private async Task Listen(string instanceId, WebSocket socket)
         {
             var buffer = new byte[1024];
+            bool gracefulClose = false;
 
-            while (socket.State == WebSocketState.Open)
+            try
             {
-                var result = await socket.ReceiveAsync(buffer, CancellationToken.None);
-
-                if (result.MessageType == WebSocketMessageType.Close)
+                while (socket.State == WebSocketState.Open)
                 {
-                    _sockets.TryRemove(instanceId, out _);
-                    await socket.CloseAsync(
-                        WebSocketCloseStatus.NormalClosure,
-                        "Closed",
-                        CancellationToken.None);
+                    WebSocketReceiveResult result;
+
+                    try
+                    {
+                        result = await socket.ReceiveAsync(
+                            new ArraySegment<byte>(buffer),
+                            CancellationToken.None);
+                    }
+                    catch (WebSocketException ex)
+                    {
+                        // Ungraceful termination (crash, kill, network failure)
+                        Console.WriteLine($"WebSocketException for instance {instanceId}: {ex.Message}");
+                        //LogCrash(instanceId, ex);
+                        return;
+                    }
+
+                    if (result.MessageType == WebSocketMessageType.Close)
+                    {
+                        gracefulClose = true;
+                        //LogGracefulShutdown(instanceId, result.CloseStatus);
+                        Console.WriteLine($"Instance {instanceId} closed the connection gracefully: {result.CloseStatus} - {result.CloseStatusDescription}");
+                        return;
+                    }
+
+                    // Normal message handling here
+                }
+            }
+            finally
+            {
+                _sockets.TryRemove(instanceId, out _);
+
+                try
+                {
+                    if (socket.State is WebSocketState.Open or WebSocketState.CloseReceived)
+                    {
+                        await socket.CloseAsync(
+                            WebSocketCloseStatus.NormalClosure,
+                            "Closing",
+                            CancellationToken.None);
+                    }
+                }
+                catch
+                {
+                    // Ignore shutdown failures
+                }
+
+                if (!gracefulClose)
+                {
+                    // Last chance detection
+                    //(instanceId);
                 }
             }
         }

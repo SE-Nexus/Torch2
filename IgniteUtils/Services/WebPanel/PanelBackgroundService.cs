@@ -42,10 +42,11 @@ namespace InstanceUtils.Services.WebPanel
             return;
         }
 
-        public override Task StopAsync(CancellationToken cancellationToken)
+        public override async Task StopAsync(CancellationToken cancellationToken)
         {
             _UpdateTimer?.Stop();
-            return base.StopAsync(cancellationToken);
+            await _socketClient.ShutdownAsync(cancellationToken);
+            return;
         }
 
         public static async Task<string?> GetPublicIpAsync()

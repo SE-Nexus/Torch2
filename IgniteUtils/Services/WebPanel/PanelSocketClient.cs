@@ -23,6 +23,8 @@ namespace InstanceUtils.Services.WebPanel
         private readonly IPanelCoreService _PanelCore;
         private ClientWebSocket? _socket;
 
+        private bool _IsConnected = false;
+
 
 
         public PanelSocketClient(IConfigService config, IPanelCoreService panelCore)
@@ -60,6 +62,7 @@ namespace InstanceUtils.Services.WebPanel
                 }
                 finally
                 {
+                    _IsConnected = false;
                     CleanupSocket();
                 }
 
@@ -91,6 +94,7 @@ namespace InstanceUtils.Services.WebPanel
 
             await _socket.ConnectAsync(wsUri, ct);
 
+
             _ = ListenAsync(ct); // fire-and-forget
         }
 
@@ -103,6 +107,7 @@ namespace InstanceUtils.Services.WebPanel
 
                 while (_socket?.State == WebSocketState.Open && !ct.IsCancellationRequested)
                 {
+                    _IsConnected = true;
                     using var ms = new MemoryStream();
                     WebSocketReceiveResult result;
 
@@ -146,7 +151,55 @@ namespace InstanceUtils.Services.WebPanel
             }
             finally
             {
+                _IsConnected = false;
                 _disconnected.TrySetResult(true);
+            }
+        }
+
+        public async Task ShutdownAsync(CancellationToken ct = default)
+        {
+            var socket = _socket;
+
+            if (socket == null)
+                return;
+
+            try
+            {
+                // Optional but STRONGLY recommended:
+                // Tell the panel this is intentional
+                var shutdownEnvelope = new SocketMsgEnvelope("instance.shutdown");
+
+                var json = JsonSerializer.Serialize(shutdownEnvelope, TorchConstants.JsonOptions);
+                var bytes = Encoding.UTF8.GetBytes(json);
+
+                if (socket.State == WebSocketState.Open)
+                {
+                    await socket.SendAsync(new ArraySegment<byte>(bytes),WebSocketMessageType.Text,true,ct);
+                }
+            }
+            catch
+            {
+                // Ignore — shutdown should never fail because of messaging
+            }
+
+            try
+            {
+                if (socket.State is WebSocketState.Open or WebSocketState.CloseReceived)
+                {
+                    await socket.CloseAsync(
+                        WebSocketCloseStatus.NormalClosure,
+                        "Instance shutting down",
+                        ct);
+                }
+            }
+            catch
+            {
+                // Ignore close failures
+            }
+            finally
+            {
+                _disconnected.TrySetResult(true);
+                CleanupSocket();
             }
         }
 
