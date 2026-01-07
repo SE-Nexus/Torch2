@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Torch2API.DTOs.Instances;
 using Torch2API.DTOs.WebSockets;
+using Torch2API.Models.Configs;
 
 namespace InstanceUtils.Services.WebPanel
 {
@@ -67,18 +68,19 @@ namespace InstanceUtils.Services.WebPanel
 
         public async Task SendStatus(CancellationToken ct = default)
         {
-            try
-            {
-                InstanceCfg cfg = _instanceManager.GetCurrentInstance();
+     
+                ProfileCfg cfg = _instanceManager.GetCurrentInstance();
 
                 var status = new TorchInstanceBase
                 {
+
+
                     InstanceID = _ConfigService.Identification.InstanceID.ToString(),
                     Name = _ConfigService.InstanceName,
                     MachineName = Environment.MachineName,
                     IPAddress = InstancePublicIP,
                     GamePort = cfg?.InstancePort ?? 0,
-                    InstanceName = cfg?.InstanceName ?? "Loading...",
+                    ProfileName = cfg?.InstanceName ?? "Loading...",
                     TargetWorld = cfg?.TargetWorld ?? "Loading...",
                     TorchVersion = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "v0.0.0",
                     ServerStatus = _serverStateService.CurrentServerStatus,
@@ -87,37 +89,7 @@ namespace InstanceUtils.Services.WebPanel
                     StateTime = _serverStateService.GetStateTime()
                 };
 
-                using var cts = CancellationTokenSource
-                    .CreateLinkedTokenSource(ct);
-
-                cts.CancelAfter(TimeSpan.FromSeconds(5)); // ⏱ timeout
-
-                HttpResponseMessage response =
-                    await _webPanelClient.Http.PostAsJsonAsync(
-                        "api/instance/update",
-                        status,
-                        cts.Token);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    AnsiConsole.WriteLine(
-                        $"Status update failed: {(int)response.StatusCode} {response.ReasonPhrase}");
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                // Timeout or shutdown — safe to ignore
-            }
-            catch (HttpRequestException ex)
-            {
-                // Panel unreachable / refused / DNS failure
-                //AnsiConsole.WriteLine($"Panel unreachable: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                // Last line of defense
-                AnsiConsole.WriteLine($"Unexpected SendStatus error: {ex}");
-            }
+            var success = await _webPanelClient.PostAsync("api/instance/update",status,ct);
         }
 
         public async Task RunAsync(CancellationToken ct)

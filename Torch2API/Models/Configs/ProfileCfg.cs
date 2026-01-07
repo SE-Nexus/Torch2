@@ -1,15 +1,15 @@
-﻿using InstanceUtils.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Torch2API.Utils;
 using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.BufferedDeserialization;
 
-namespace IgniteSE1.Configs
+namespace Torch2API.Models.Configs
 {
-    public class InstanceCfg : ConfigBase<InstanceCfg>
+    public class ProfileCfg : ConfigBase<ProfileCfg>
     {
         [YamlIgnore]
         public string InstanceName { get; set; } = "";
@@ -47,6 +47,27 @@ namespace IgniteSE1.Configs
 
         [YamlMember(Description = "Max Age for Game Logs in Days. 0 is Infinite")]
         public int LogsMaxAge { get; set; } = 14; // Default is 14 days
+
+
+        public void Update(ProfileCfg existing)
+        {
+            this.InstanceName = existing.InstanceName;
+            this.InstancePath = existing.InstancePath;
+            this.TargetWorld = existing.TargetWorld;
+            this.Description = existing.Description;
+            this.InstancePort = existing.InstancePort;
+            this.AutoStart = existing.AutoStart;
+            this.CheckForUpdates = existing.CheckForUpdates;
+            this.AutoUpdateGame = existing.AutoUpdateGame;
+            this.RestartOnCrash = existing.RestartOnCrash;
+            this.BranchName = existing.BranchName;
+            this.BranchPassword = existing.BranchPassword;
+            this.LogsMaxAge = existing.LogsMaxAge;
+
+
+        }
+
+
 
     }
 }

@@ -66,7 +66,7 @@ else
 
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
                             <MudText Typo="Typo.caption">
-                                [<strong>Instance:</strong> @instance.InstanceName]
+                                [<strong>Profile:</strong> @instance.ProfileName]
                             </MudText>
 
                             <MudText Typo="Typo.caption" Color="Color.Secondary">
@@ -160,7 +160,7 @@ else
 
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
                             <MudText Typo="Typo.caption">
-                                [<strong>Instance:</strong> @instance.InstanceName]
+                                [<strong>Profile:</strong> @instance.ProfileName]
                             </MudText>
 
                             <MudText Typo="Typo.caption" Color="Color.Secondary">
@@ -195,6 +195,13 @@ else
                                    Color="Color.Primary"
                                    OnClick="@(() => NavigateToInstance(instance.GetShortId()))">
                             View
+                        </MudButton>
+
+                        <MudButton Size="Size.Small"
+                                   Variant="Variant.Text"
+                                   OnClick="@(() => InstanceManager.SendCommand(instance, "Instance/List"))"
+                                   Color="Color.Warning">
+                            GetInstances
                         </MudButton>
 
 

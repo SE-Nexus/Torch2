@@ -1,52 +1,64 @@
 ﻿@using Torch2WebUI.Components.NavMenus
+@using Torch2WebUI.Models.Contexts
 @using Torch2WebUI.Services
 @inherits LayoutComponentBase
 @inject ThemeService Theme
+@inject NavigationManager Nav
 
 <MudThemeProvider Theme="@Theme.CurrentTheme" IsDarkMode="@Theme.IsDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
+<CascadingValue Value="new InstanceContext { InstanceId = InstanceId }">
+    <MudLayout>
 
-<MudLayout>
+        <!-- Same top app bar -->
+        <MudAppBar Elevation="1">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                           Color="Color.Inherit"
+                           Edge="Edge.Start"
+                           OnClick="@DrawerToggle" />
 
-    <!-- Same top app bar -->
-    <MudAppBar Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu"
-                       Color="Color.Inherit"
-                       Edge="Edge.Start"
-                       OnClick="@DrawerToggle" />
+            <MudText Typo="Typo.h5" Class="ml-3">
+                Torch2 Panel · Instances
+            </MudText>
 
-        <MudText Typo="Typo.h5" Class="ml-3">
-            Torch2 Panel · Instances
-        </MudText>
+            <MudSpacer />
 
-        <MudSpacer />
+            <MudIconButton Icon="@(DarkLightModeButtonIcon)"
+                           Color="Color.Inherit"
+                           OnClick="@DarkModeToggle" />
+        </MudAppBar>
 
-        <MudIconButton Icon="@(DarkLightModeButtonIcon)"
-                       Color="Color.Inherit"
-                       OnClick="@DarkModeToggle" />
-    </MudAppBar>
+        <!-- INSTANCE NAV DRAWER -->
+        <MudDrawer @bind-Open="_drawerOpen"
+                   ClipMode="DrawerClipMode.Always"
+                   Elevation="2">
 
-    <!-- INSTANCE NAV DRAWER -->
-    <MudDrawer @bind-Open="_drawerOpen"
-               ClipMode="DrawerClipMode.Always"
-               Elevation="2">
 
-        <InstanceNavMenu />
+            <InstanceNavMenu />
 
-    </MudDrawer>
 
-    <MudMainContent Class="pt-20 pa-8">
-        @Body
-    </MudMainContent>
 
-</MudLayout>
+        </MudDrawer>
+
+        <MudMainContent Class="pt-20 pa-8">
+            @Body
+        </MudMainContent>
+
+    </MudLayout>
+</CascadingValue>
 
 
 
 @code {
+
+    private string InstanceId =>
+     Nav.ToBaseRelativePath(Nav.Uri)
+        .Split('/', StringSplitOptions.RemoveEmptyEntries)
+        .ElementAtOrDefault(1) ?? "";
+
     private bool _drawerOpen = true;
 
     private void DrawerToggle()

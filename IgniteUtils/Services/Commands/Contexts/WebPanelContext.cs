@@ -33,6 +33,11 @@ namespace InstanceUtils.Services.Commands.Contexts
             //throw new NotImplementedException();
         }
 
+        public void RespondLine(string response)
+        {
+            //throw new NotImplementedException();
+        }
+
         public void RunCommand(IServiceProvider serviceProvider)
         {
             List<object?> allMethodInputArgs = new List<object?>();

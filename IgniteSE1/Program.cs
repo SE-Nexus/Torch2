@@ -43,7 +43,7 @@ namespace IgniteSE1
             ConfigService.LoadConfig();
 
 
-            ConsoleManager IgniteConsole = new ConsoleManager(AppName, ConfigService.Config.ProtoServerPort);
+            ConsoleManager IgniteConsole = new ConsoleManager(AppName, ConfigService);
    
             // Initialize Console
             if (!await IgniteConsole.InitConsole(args))

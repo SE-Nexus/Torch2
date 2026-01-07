@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Torch2API.Models.Configs;
 using VRage.FileSystem;
 using VRage.Game;
 using VRage.Game.ModAPI;
@@ -31,8 +32,8 @@ namespace IgniteSE1.Services
         private ConfigService _configs;
         private string _instanceDirectory;
 
-        private List<InstanceCfg> _instances = new List<InstanceCfg>();
-        private InstanceCfg _selectedInstance = null;
+        private List<ProfileCfg> _instances = new List<ProfileCfg>();
+        private ProfileCfg _selectedInstance = null;
 
 
 
@@ -95,7 +96,7 @@ namespace IgniteSE1.Services
                 {
                     try
                     {
-                        InstanceCfg instanceCfg = InstanceCfg.LoadYaml(configFilePath);
+                        ProfileCfg instanceCfg = ProfileCfg.LoadYaml(configFilePath);
                         instanceCfg.InstancePath = dir;
                         instanceCfg.InstanceName = Path.GetFileName(dir);
                         _instances.Add(instanceCfg); // Add the loaded instance configuration to the list
@@ -108,9 +109,9 @@ namespace IgniteSE1.Services
             });
         }
 
-        public (bool, string) TryCreateNewInstance(string InstanceName, out InstanceCfg cfg)
+        public (bool, string) TryCreateNewInstance(string InstanceName, out ProfileCfg cfg)
         {
-            cfg = new InstanceCfg();
+            cfg = new ProfileCfg();
 
             //Null or empty check
             if (string.IsNullOrWhiteSpace(InstanceName))
@@ -166,7 +167,7 @@ namespace IgniteSE1.Services
         }
 
 
-        public bool TryGetSelectedInstance(out InstanceCfg targetInstance)
+        public bool TryGetSelectedInstance(out ProfileCfg targetInstance)
         {
             targetInstance = null; // Initialize the target instance to null
 
@@ -188,7 +189,7 @@ namespace IgniteSE1.Services
             return targetInstance != null;
         }
 
-        public bool TryGetInstanceByName(string instanceName, out InstanceCfg cfg)
+        public bool TryGetInstanceByName(string instanceName, out ProfileCfg cfg)
         {
             // This method should return the instance configuration by name
             cfg = _instances.FirstOrDefault(instance => instance.InstanceName.Equals(instanceName, StringComparison.OrdinalIgnoreCase));
@@ -198,7 +199,7 @@ namespace IgniteSE1.Services
 
 
 
-        public InstanceCfg GetCurrentInstance()
+        public ProfileCfg GetCurrentInstance()
         {
             return _selectedInstance;
         }
@@ -237,7 +238,7 @@ namespace IgniteSE1.Services
         }
 
 
-        public List<InstanceCfg> GetAllInstances()
+        public List<ProfileCfg> GetAllInstances()
         {
             return _instances;
         }

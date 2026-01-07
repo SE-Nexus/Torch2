@@ -37,8 +37,10 @@ namespace InstanceUtils.Services.WebPanel
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _UpdateTimer.Start();
-            await _socketClient.RunAsync(stoppingToken);
             await _WebService.GetPublicIP();
+
+            //The following is blocking
+            await _socketClient.RunAsync(stoppingToken);
             return;
         }
 

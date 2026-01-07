@@ -1,14 +1,10 @@
 ﻿@page "/instances/{InstanceId}"
-@using Torch2API.DTOs.Instances
-@using Torch2API.Models
-@using Torch2WebUI.Components.Layout
-@using Torch2WebUI.Services
-@using Torch2WebUI.Services.InstanceServices
+@using Torch2WebUI.Models.Contexts
 @layout InstanceLayout
 
 
 @inject InstanceManager InstanceManager
-<PageTitle>Instance Details</PageTitle>
+<PageTitle>Instance Overview</PageTitle>
 
 
 @if (_instance is null)
@@ -54,8 +50,8 @@ else
         <MudItem xs="12" sm="6" md="4">
             <MudCard>
                 <MudCardContent>
-                    <MudText Typo="Typo.subtitle2">Instance Name</MudText>
-                    <MudText Typo="Typo.body1">@_instance.InstanceName</MudText>
+                    <MudText Typo="Typo.subtitle2">Profile Name</MudText>
+                    <MudText Typo="Typo.body1">@_instance.ProfileName</MudText>
                 </MudCardContent>
             </MudCard>
         </MudItem>
@@ -114,11 +110,17 @@ else
 @code {
     [Parameter] public string InstanceId { get; set; } = default!;
 
+    [CascadingParameter]
+    public InstanceContext Context { get; set; } = default!;
+
+
     private TorchInstanceBase? _instance;
 
     protected override void OnInitialized()
     {
-        _instance = InstanceManager.GetInstanceByID(InstanceId);
+        Console.WriteLine(Context.InstanceId);
+
+        _instance = InstanceManager.GetInstanceByID(Context.InstanceId);
         InstanceManager.OnChange += OnInstanceUpdated;
 
     }
@@ -140,7 +142,7 @@ else
 
         InvokeAsync(() =>
         {
-            _instance = InstanceManager.GetInstanceByID(InstanceId);
+            _instance = InstanceManager.GetInstanceByID(Context.InstanceId);
             StateHasChanged();
         });
     }

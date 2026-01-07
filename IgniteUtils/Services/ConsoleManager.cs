@@ -1,5 +1,7 @@
 ﻿using Grpc.Core;
+using IgniteSE1.Services;
 using InstanceUtils.Logging;
+using InstanceUtils.Models.Server;
 using InstanceUtils.Services;
 using InstanceUtils.Services.Networking;
 using InstanceUtils.Utils.CommandUtils;
@@ -23,6 +25,8 @@ namespace InstanceUtils.Services
     {
         private static Logger Logger;
         private static Mutex appMutex;
+
+        private readonly ConfigService _ConfigService;
         
         //private CommandLineManager _cli;
 
@@ -35,11 +39,12 @@ namespace InstanceUtils.Services
         int _protoServicePort;
 
 
-        public ConsoleManager(string Name, int protoserviceport)
+        public ConsoleManager(string Name, ConfigService configs)
         {
             //_cli = cli;
+            _ConfigService = configs;
             ConsoleName = Name;
-            _protoServicePort = protoserviceport;
+            _protoServicePort = _ConfigService.Config.ProtoServerPort;
             mutexName = AppDomain.CurrentDomain.FriendlyName.Replace("\\", "_");
         }
 
@@ -57,6 +62,7 @@ namespace InstanceUtils.Services
 
             if (IsServer)
             {
+                UpdateConsoleTitle($"{_ConfigService.InstanceName} - Loading");
                 // New App
                 SetupConsole();
             }

@@ -28,7 +28,7 @@ namespace Torch2API.DTOs.Instances
             this.MachineName = cfg.MachineName;
             this.IPAddress = cfg.IPAddress;
             this.GamePort = cfg.GamePort;
-            this.InstanceName = cfg.InstanceName;
+            this.ProfileName = cfg.ProfileName;
             this.TargetWorld = cfg.TargetWorld;
             this.TorchVersion = cfg.TorchVersion;
             this.ServerStatus = cfg.ServerStatus;

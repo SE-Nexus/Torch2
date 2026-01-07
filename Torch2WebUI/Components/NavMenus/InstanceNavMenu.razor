@@ -1,4 +1,5 @@
-﻿<MudNavMenu>
+﻿@using Torch2WebUI.Models.Contexts
+<MudNavMenu>
 
     <!-- Back out to global panel -->
     <MudNavLink Href="/"
@@ -15,15 +16,26 @@
         Event Viewer
     </MudNavLink>
 
-    <MudNavLink Href="configuration"
-                Icon="@Icons.Material.Filled.SettingsApplications">
-        Configuration
-    </MudNavLink>
+    <MudNavGroup Title="Configuration"
+                 Icon="@Icons.Material.Filled.SettingsApplications"
+                 Expanded="false">
 
-    <MudNavLink Href="mods"
-                Icon="@Icons.Material.Filled.Extension">
-        Mods
-    </MudNavLink>
+        <MudNavLink Href="@($"/instances/{Context.InstanceId}/profiles")"
+                    Icon="@Icons.Material.Filled.SettingsApplications">
+            Profiles
+        </MudNavLink>
+
+
+        <MudNavLink Href="mods"
+                    Icon="@Icons.Material.Filled.Extension">
+            Mods
+        </MudNavLink>
+
+    </MudNavGroup>
+
+
+
+
 
     <MudNavLink Href="chat"
                 Icon="@Icons.Material.Filled.Chat">
@@ -41,3 +53,8 @@
     </MudNavLink>
 
 </MudNavMenu>
+
+@code {
+    [CascadingParameter]
+    public InstanceContext Context { get; set; } = default!;
+}

@@ -77,6 +77,24 @@
 
 @code {
     [CascadingParameter(Name = "RightToLeft")] public bool RightToLeft { get; set; }
+
+    private Action<string>? _onChangeHandler;
+
+    protected override void OnInitialized()
+    {
+        _onChangeHandler = (s) => InvokeAsync(StateHasChanged);
+        InstanceManager.OnChange += _onChangeHandler;
+        base.OnInitialized();
+    }
+
+    public void Dispose()
+    {
+        if (_onChangeHandler is not null)
+            InstanceManager.OnChange -= _onChangeHandler;
+
+
+    }
+
 }
 
 

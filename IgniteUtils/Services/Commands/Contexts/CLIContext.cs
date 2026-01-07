@@ -40,6 +40,11 @@ namespace InstanceUtils.Services.Commands
             ParseResult.InvocationConfiguration.Output.Write(response);
         }
 
+        public void RespondLine(string response)
+        {
+            ParseResult.InvocationConfiguration.Output.WriteLine(response);
+        }
+
         public void RunCommand(IServiceProvider serviceProvider)
         {
             List<object?> allMethodInputArgs = new List<object?>();

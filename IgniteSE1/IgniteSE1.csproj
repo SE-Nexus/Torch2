@@ -283,9 +283,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\ProfileCommands.cs" />
     <Compile Include="Commands\StateCommands.cs" />
     <Compile Include="Configs\IgniteSE1Cfg.cs" />
-    <Compile Include="Configs\InstanceCfg.cs" />
     <Compile Include="Patches\KeenLogPatch.cs" />
     <Compile Include="Patches\LastSessionPatch.cs" />
     <Compile Include="Program.cs" />

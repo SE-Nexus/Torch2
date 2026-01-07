@@ -23,6 +23,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Torch2API.Models.Configs;
 using VRage;
 using VRage.Dedicated;
 using VRage.FileSystem;
@@ -241,7 +242,7 @@ namespace IgniteSE1.Services
             //After init, load game specific instance settings
             
             
-            InstanceCfg cfg = _instanceManager.GetCurrentInstance();
+            ProfileCfg cfg = _instanceManager.GetCurrentInstance();
 
 
             //This was hot shit in SE1. Why???

@@ -19,7 +19,7 @@ namespace Torch2API.DTOs.Instances
 
         public int GamePort { get; set; }
 
-        public string InstanceName { get; set; }
+        public string ProfileName { get; set; }
 
         public string TargetWorld { get; set; }
 

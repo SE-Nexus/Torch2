@@ -2,7 +2,9 @@
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
 using Torch2API.DTOs.Instances;
+using Torch2API.Models.Configs;
 using Torch2WebUI.Components.Pages;
+using Torch2WebUI.Models;
 using Torch2WebUI.Services.SQL;
 using Timer = System.Timers.Timer;
 
@@ -10,8 +12,10 @@ namespace Torch2WebUI.Services.InstanceServices
 {
     public class InstanceManager
     {
-        public ConcurrentDictionary<string, TorchInstanceBase> PendingInstances { get; private set; } = new();
-        public ConcurrentDictionary<string, TorchInstanceBase> ActiveInstances { get; private set; } = new();
+        public ConcurrentDictionary<string, TorchInstance> PendingInstances { get; private set; } = new();
+        public ConcurrentDictionary<string, TorchInstance> ActiveInstances { get; private set; } = new();
+
+    
 
         private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(5);
         private readonly Timer CleanupTimer;
@@ -50,7 +54,7 @@ namespace Torch2WebUI.Services.InstanceServices
             
         }
 
-        public void UpdateStatus(TorchInstanceBase instance)
+        public void UpdateStatus(TorchInstance instance)
         {
             if (!RegisterInstance(instance))
                 return;
@@ -70,7 +74,7 @@ namespace Torch2WebUI.Services.InstanceServices
             return;
         }
 
-        public bool RegisterInstance(TorchInstanceBase instance)
+        public bool RegisterInstance(TorchInstance instance)
         {
             if (instance == null || string.IsNullOrWhiteSpace(instance.InstanceID))
                 return false;
@@ -106,7 +110,33 @@ namespace Torch2WebUI.Services.InstanceServices
             return false;
         }
 
-        public TorchInstanceBase? GetInstanceByID(string instanceID)
+        public bool UpdateProfiles(string? instanceid, List<ProfileCfg> profileCfgs)
+        {
+            if (string.IsNullOrWhiteSpace(instanceid))
+                return false;
+
+
+            if(ActiveInstances.TryGetValue(instanceid, out var instance))
+            {
+                instance.Profiles = profileCfgs;
+                UpdateStatus(instance);
+            }
+            else if(PendingInstances.TryGetValue(instanceid, out var pendingInstance))
+            {
+                pendingInstance.Profiles = profileCfgs;
+                UpdateStatus(pendingInstance);
+            }
+            else
+            {
+                return false;
+            }
+
+
+            return true;
+
+        }
+
+        public TorchInstance? GetInstanceByID(string instanceID)
         {
             if (string.IsNullOrWhiteSpace(instanceID))
                 return null;

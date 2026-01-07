@@ -19,5 +19,7 @@ namespace Torch2API.Models.Commands
 
         void Respond(string response);
 
+        void RespondLine(string response);
+
     }
 }
