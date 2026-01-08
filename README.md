@@ -11,17 +11,17 @@ It provides a centralized control panel that lets server administrators manage m
 - **Instance Management**  
   Start, stop, restart, configure and monitor multiple Torch instances from a single web interface.
 
-- **Live Status & Metrics**  
-  View uptime, world information, performance data, and instance health in real time.
+- **Game Console**  
+  Manage instances through console-level controls, including CLI commands, environment variables, and runtime configuration. Supports Docker (Windows docker for SE1 Game)
 
 - **Web-Based Control Panel**  
   No RDP or local access required — manage your servers securely through your browser.
 
-- **Agent-Based Architecture**  
-  Lightweight agents run alongside Torch instances and communicate with the web panel.
+- **Dependency Injection & Plugin Services**  
+  Uses DI containers to manage application services, enabling plugins to register, consume, and extend functionality without tight coupling.
 
 - **Scalable & Modular**  
-  Designed to grow with your infrastructure, whether you’re running one server or many.
+  Designed to grow with your infrastructure, whether you’re running one server or many. Easily adopt new instances on the fly.
 
 - **Modern .NET Stack**  
   Built using ASP.NET and Blazor for a fast, responsive, and maintainable experience.
