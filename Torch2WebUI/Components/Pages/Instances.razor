@@ -27,7 +27,7 @@
                Color="Color.Primary"
                Label="Allow Adoption" />
 </MudStack>
-@if (!InstanceManager.PendingInstances.Any())
+@if (!InstanceManager.GetPendingInstances().Any())
 {
     <MudAlert Severity="Severity.Info" Dense="true">
         No adoptable instances.
@@ -36,7 +36,7 @@
 else
 {
     <MudGrid Spacing="6">
-        @foreach (var instance in InstanceManager.PendingInstances.Values)
+        @foreach (var instance in InstanceManager.GetPendingInstances())
         {
             <MudItem xs="12" sm="8" md="6" lg="3">
                 <MudCard Elevation="2">
@@ -133,6 +133,9 @@ else
     <MudGrid Spacing="3">
         @foreach (var instance in InstanceManager.ActiveInstances.Values)
         {
+            if (!instance.Configured)
+                continue;
+
             <MudItem xs="12" sm="6" md="4" lg="3">
                 <MudCard Elevation="2">
 
@@ -199,7 +202,7 @@ else
 
                         <MudButton Size="Size.Small"
                                    Variant="Variant.Text"
-                                   OnClick="@(() => InstanceManager.SendCommand(instance, "Instance/List"))"
+                                   OnClick="@(() => InstanceManager.SendCommand(instance, "Config/Profiles/List"))"
                                    Color="Color.Warning">
                             GetInstances
                         </MudButton>

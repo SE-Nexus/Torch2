@@ -41,6 +41,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Identification\InstanceIdentification.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Models\ProfileModels\" />
     <Folder Include="$(MSBuildThisFileDirectory)Services\Networking\DelegatingHandlers\" />
   </ItemGroup>
 </Project>

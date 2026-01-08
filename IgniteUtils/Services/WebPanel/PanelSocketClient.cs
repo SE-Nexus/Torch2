@@ -54,7 +54,7 @@ namespace InstanceUtils.Services.WebPanel
                 }
                 catch(WebSocketException ex)
                 {
-                    return;
+                    //Console.WriteLine("Couldnt Connect");
                 }
                 catch (Exception ex)
                 {
@@ -92,7 +92,9 @@ namespace InstanceUtils.Services.WebPanel
                 Path = "/ws/instance"
             }.Uri;
 
-            await _socket.ConnectAsync(wsUri, ct);
+
+            var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10)); // 10 second timeout
+            await _socket.ConnectAsync(wsUri, cancellationTokenSource.Token);
 
 
             _ = ListenAsync(ct); // fire-and-forget

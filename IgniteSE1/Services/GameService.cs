@@ -48,7 +48,7 @@ namespace IgniteSE1.Services
     {
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private ConfigService _configs;
-        private InstanceManager _instanceManager;
+        private ProfileManager _instanceManager;
         private SteamService _steamService;
         private ServerStateService _serverState;
 
@@ -65,7 +65,7 @@ namespace IgniteSE1.Services
 
 
 
-        public GameService(ConfigService configs, InstanceManager instance, SteamService steam, ServerStateService serverState) 
+        public GameService(ConfigService configs, ProfileManager instance, SteamService steam, ServerStateService serverState) 
         {
             _configs = configs;
             _instanceManager = instance;
@@ -242,34 +242,36 @@ namespace IgniteSE1.Services
             //After init, load game specific instance settings
             
             
-            ProfileCfg cfg = _instanceManager.GetCurrentInstance();
+            ProfileCfg cfg = _instanceManager.GetCurrentProfile();
 
 
             //This was hot shit in SE1. Why???
             string _contentPath = Path.Combine(_configs.Config.Directories.Game, "Content");
             string _instancePath = cfg.InstancePath;
             string _modsPath = Path.Combine(_configs.Config.Directories.ModStorage);
+            string _WorldsPath = _configs.Config.Directories.WorldsDir;
 
 
             string Game_ContentPath = UnTerminatePath(new DirectoryInfo(_contentPath).FullName);
             string Game_ShadersBasePath = Game_ContentPath;
             string Game_UserDataPath = Path.GetFullPath(_instancePath);
             string Game_ModsPath = Path.GetFullPath(_modsPath);
+            string Game_WorldsPath = Path.GetFullPath(_WorldsPath);
 
             FieldInfo m_contentPath = AccessTools.Field(typeof(MyFileSystem), "m_contentPath");
             FieldInfo m_shadersBasePath = AccessTools.Field(typeof(MyFileSystem), "m_shadersBasePath");
             FieldInfo m_userDataPath = AccessTools.Field(typeof(MyFileSystem), "m_userDataPath");
             FieldInfo m_modsPath = AccessTools.Field(typeof(MyFileSystem), "m_modsPath");
+            FieldInfo m_worldsPath = AccessTools.Field(typeof(MyFileSystem), "m_savesPath");
 
             m_contentPath.SetValue(null, Game_ContentPath);
             m_shadersBasePath.SetValue(null, Game_ShadersBasePath);
             m_userDataPath.SetValue(null, Game_UserDataPath);
             m_modsPath.SetValue(null, Game_ModsPath);
+            m_worldsPath.SetValue(null, Game_WorldsPath);
 
+            //Not sure if below is needed
             Directory.CreateDirectory(Game_ModsPath);
-            MyFileSystem.InitUserSpecific(null);
-
-
 
             IMyConfigDedicated dedicated = _instanceManager.GetServerConfigs();
             MySandboxGame.ConfigDedicated = dedicated;
@@ -351,6 +353,8 @@ namespace IgniteSE1.Services
                 _serverStartTcs.TrySetResult(false);
                 throw new InvalidOperationException("Failed to start sandbox game: see Keen log for details");
             }
+
+            
 
 
             //Blocking call

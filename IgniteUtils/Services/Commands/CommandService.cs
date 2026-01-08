@@ -104,15 +104,48 @@ namespace InstanceUtils.Services
             if (groupAttr == null)
                 throw new InvalidOperationException($"{type.Name} is missing [CommandGroup]");
 
-            //Check if we already have this command group
-            CommandGroupDescriptor cmdGroup;
-            if (!CommandGroups.TryGetValue(groupAttr.Name, out cmdGroup))
+
+            CommandGroupDescriptor? current = null;
+            var groupPath = groupAttr.Name.Split('/');
+
+            for (int i = 0; i < groupPath.Length; i++)
             {
-                cmdGroup = new CommandGroupDescriptor(groupAttr.Name, groupAttr.Description, groupAttr.CommandTypeOverride);
-                CommandGroups.Add(groupAttr.Name, cmdGroup);
+                var name = groupPath[i];
+                bool isLeaf = i == groupPath.Length - 1;
+
+                //This is the root group. It should be empty
+                if (i == 0)
+                {
+
+                    // Root group. Add if does not exist
+                    if (!CommandGroups.TryGetValue(name, out var root))
+                    {
+                        root = new CommandGroupDescriptor(name);
+                        CommandGroups.Add(name, root);
+                    }
+
+                    current = root;
+                }
+                else
+                {
+                    var existing = current!.GetSubGroup(name);
+                    if (existing == null)
+                    {
+                        existing = new CommandGroupDescriptor(name);
+                        current.AddSubGroup(existing);
+                    }
+
+                    current = existing;
+                }
+
+                // Only apply attribute metadata to the leaf node
+                if (isLeaf)
+                {
+                    current!.Description = groupAttr.Description;
+                    current.CommandTypeOverride = groupAttr.CommandTypeOverride;
+                }
+
             }
-
-
 
             /*
             //TODO: Implement group-level options if needed
@@ -144,7 +177,7 @@ namespace InstanceUtils.Services
             var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             foreach (var method in methods)
             {
-                cmdGroup.TryBuildCommand(method);
+                current.TryBuildCommand(method);
             }
         }
 

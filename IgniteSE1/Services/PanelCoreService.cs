@@ -22,7 +22,7 @@ namespace InstanceUtils.Services.WebPanel
     {
         private readonly IConfigService _ConfigService;
         private readonly PanelHTTPClient _webPanelClient;
-        private readonly InstanceManager _instanceManager;
+        private readonly ProfileManager _instanceManager;
         private readonly ServerStateService _serverStateService;
         private readonly CommandService _cmdService;
         private readonly IServiceProvider _provider;
@@ -31,7 +31,7 @@ namespace InstanceUtils.Services.WebPanel
 
 
 
-        public PanelCoreService(IConfigService ConfigService, PanelHTTPClient webPanelClient, InstanceManager instanceManager, ServerStateService stateservice, CommandService cmdService, IServiceProvider provider)
+        public PanelCoreService(IConfigService ConfigService, PanelHTTPClient webPanelClient, ProfileManager instanceManager, ServerStateService stateservice, CommandService cmdService, IServiceProvider provider)
         {
             _serverStateService = stateservice;
             _instanceManager = instanceManager;
@@ -69,7 +69,7 @@ namespace InstanceUtils.Services.WebPanel
         public async Task SendStatus(CancellationToken ct = default)
         {
      
-                ProfileCfg cfg = _instanceManager.GetCurrentInstance();
+                ProfileCfg cfg = _instanceManager.GetCurrentProfile();
 
                 var status = new TorchInstanceBase
                 {

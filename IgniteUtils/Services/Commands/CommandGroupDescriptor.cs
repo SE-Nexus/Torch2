@@ -15,9 +15,9 @@ namespace InstanceUtils.Services.Commands
     public class CommandGroupDescriptor
     {
         public string Name { get; }
-        public string Description { get; }
+        public string Description { get; set; }
 
-        public CommandTypeEnum? CommandTypeOverride { get; private set; } = null;
+        public CommandTypeEnum? CommandTypeOverride { get; set; } = null;
         public bool HasCommandTypeOverride => CommandTypeOverride.HasValue;
 
         public CommandGroupDescriptor? Parent { get; private set; }
@@ -28,7 +28,7 @@ namespace InstanceUtils.Services.Commands
 
 
 
-        public CommandGroupDescriptor(string name, string description, CommandTypeEnum? cmdType)
+        public CommandGroupDescriptor(string name, string description = "", CommandTypeEnum? cmdType = CommandTypeEnum.AdminOnly)
         {
             Name = name;
             Description = description;
@@ -51,6 +51,14 @@ namespace InstanceUtils.Services.Commands
         {
             SubGroups.Add(group.Name, group);
             group.Parent = this;
+        }
+
+        public CommandGroupDescriptor GetSubGroup(string name)
+        {
+            if(SubGroups.ContainsKey(name))
+                return SubGroups[name];
+
+            return null;
         }
 
         public bool TryBuildCommand(MethodInfo method)
@@ -139,6 +147,16 @@ namespace InstanceUtils.Services.Commands
 
                 groupCommand.Add(cmd);
             }
+
+
+            //Do sub groups
+            foreach (var item in group.SubGroups)
+            {
+                Command s = BuildCLICommand(item.Value, commandActionDelegate);
+                groupCommand.Add(s);
+            }
+
+
 
             return groupCommand;
         }

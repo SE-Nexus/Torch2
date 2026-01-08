@@ -26,8 +26,11 @@ namespace IgniteSE1.Configs
             [YamlMember(Description = "Path to Mod Storage")]
             public string ModStorage { get; set; } = "Mods";
 
-            [YamlMember(Description = "Path to Instance Storage")]
-            public string Instances { get; set; } = "Instances";
+            [YamlMember(Description = "Path to Profile Storage")]
+            public string ProfileDir { get; set; } = "Profiles";
+
+            [YamlMember(Description = "Path to Saved Worlds")]
+            public string WorldsDir { get; set; } = "Worlds";
         }
 
         #endregion

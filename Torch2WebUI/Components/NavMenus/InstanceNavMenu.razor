@@ -20,6 +20,11 @@
                  Icon="@Icons.Material.Filled.SettingsApplications"
                  Expanded="false">
 
+        <MudNavLink Href="@($"/instances/{Context.InstanceId}/worlds")"
+                    Icon="@Icons.Material.Filled.DataSaverOn">
+            Worlds
+        </MudNavLink>
+
         <MudNavLink Href="@($"/instances/{Context.InstanceId}/profiles")"
                     Icon="@Icons.Material.Filled.SettingsApplications">
             Profiles

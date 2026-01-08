@@ -12,7 +12,6 @@ namespace Torch2WebUI.Services.InstanceServices
 {
     public class InstanceManager
     {
-        public ConcurrentDictionary<string, TorchInstance> PendingInstances { get; private set; } = new();
         public ConcurrentDictionary<string, TorchInstance> ActiveInstances { get; private set; } = new();
 
     
@@ -65,11 +64,6 @@ namespace Torch2WebUI.Services.InstanceServices
                 ActiveInstances[instance.InstanceID].UpdateFromConfiguredInstance(instance);
             }
 
-            if (PendingInstances.ContainsKey(instance.InstanceID))
-            {
-                PendingInstances[instance.InstanceID].UpdateFromConfiguredInstance(instance);
-            }
-
             NotifyStateChanged(instance.InstanceID);
             return;
         }
@@ -83,11 +77,6 @@ namespace Torch2WebUI.Services.InstanceServices
             if (ActiveInstances.ContainsKey(instance.InstanceID))
                 return true;
 
-            if (PendingInstances.ContainsKey(instance.InstanceID))
-                return true;
-
-
-
             using (var scope = _scopeFactory.CreateScope())
             {
                 var _database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -98,11 +87,10 @@ namespace Torch2WebUI.Services.InstanceServices
                     return true;
                 }
             }
-                
-            
+
             if (EnableServerDiscovery)
             {
-                PendingInstances.TryAdd(instance.InstanceID, instance);
+                ActiveInstances.TryAdd(instance.InstanceID, instance);
                 NotifyStateChanged(instance.InstanceID);
                 return true;
             }
@@ -119,12 +107,7 @@ namespace Torch2WebUI.Services.InstanceServices
             if(ActiveInstances.TryGetValue(instanceid, out var instance))
             {
                 instance.Profiles = profileCfgs;
-                UpdateStatus(instance);
-            }
-            else if(PendingInstances.TryGetValue(instanceid, out var pendingInstance))
-            {
-                pendingInstance.Profiles = profileCfgs;
-                UpdateStatus(pendingInstance);
+                NotifyStateChanged(instance.InstanceID);
             }
             else
             {
@@ -136,23 +119,38 @@ namespace Torch2WebUI.Services.InstanceServices
 
         }
 
+        public bool UpdateWorlds(string? instanceid, List<WorldInfo> worlds)
+        {
+
+            if (string.IsNullOrWhiteSpace(instanceid))
+                return false;
+
+
+            if (ActiveInstances.TryGetValue(instanceid, out var instance))
+            {
+                instance.WorldInfos = worlds;
+                NotifyStateChanged(instance.InstanceID);
+            }
+            else
+            {
+                return false;
+            }
+
+
+            return true;
+
+
+        }
+
         public TorchInstance? GetInstanceByID(string instanceID)
         {
             if (string.IsNullOrWhiteSpace(instanceID))
                 return null;
 
-            // 1️⃣ Exact match (fast path)
-            if (ActiveInstances.TryGetValue(instanceID, out var active))
-                return active;
-
-            if (PendingInstances.TryGetValue(instanceID, out var pending))
-                return pending;
-
             // 2️⃣ Short ID match (last 6 chars)
             if (instanceID.Length == 6)
             {
                 var match = ActiveInstances.Values
-                    .Concat(PendingInstances.Values)
                     .Where(i => !string.IsNullOrEmpty(i.InstanceID))
                     .Where(i => i.InstanceID.Length >= 6)
                     .Where(i => i.InstanceID
@@ -164,16 +162,27 @@ namespace Torch2WebUI.Services.InstanceServices
                 if (match.Count == 1)
                     return match[0];
             }
+            else
+            {
+                // 1️⃣ Exact match (fast path)
+                if (ActiveInstances.TryGetValue(instanceID, out var active))
+                    return active;
+            }
 
             return null;
         }
 
         public void AdoptInstance(string instanceID)
         {
-            if (PendingInstances.TryRemove(instanceID, out var instance))
+            if (ActiveInstances.TryGetValue(instanceID, out var instance))
             {
-                ActiveInstances.TryAdd(instanceID, instance);
+                instance.Configured = true;
             }
+        }
+
+        public List<TorchInstance> GetPendingInstances()
+        {
+            return ActiveInstances.Values.Where(x => !x.Configured).ToList(); 
         }
 
         public async Task SendCommand(TorchInstanceBase instanceBase, string command)

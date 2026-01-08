@@ -283,7 +283,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Commands\ProfileCommands.cs" />
+    <Compile Include="Commands\Configs\ProfileCommands.cs" />
+    <Compile Include="Commands\Configs\WorldCommands.cs" />
     <Compile Include="Commands\StateCommands.cs" />
     <Compile Include="Configs\IgniteSE1Cfg.cs" />
     <Compile Include="Patches\KeenLogPatch.cs" />
@@ -291,7 +292,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\GameService.cs" />
-    <Compile Include="Services\InstanceManager.cs" />
+    <Compile Include="Services\ProfileManager.cs" />
     <Compile Include="Services\PanelCoreService.cs" />
     <Compile Include="Services\ProtoServices\GreeterService.cs" />
     <Compile Include="Services\ServiceManager.cs" />

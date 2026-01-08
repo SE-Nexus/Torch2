@@ -22,28 +22,31 @@ using VRage.Game.ModAPI;
 namespace IgniteSE1.Services
 {
     [HarmonyPatch]
-    public class InstanceManager : ServiceBase
+    public class ProfileManager : ServiceBase
     {
         private const string _instanceCfgFilename = "instancecfg.yaml";
         private const string _DedicatedCfgFilename = "SpaceEngineers-Dedicated.cfg";
-        private const string _worldSavesFolder = "Saves";
 
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private ConfigService _configs;
-        private string _instanceDirectory;
+        private string _ProfileDirectory;
 
         private List<ProfileCfg> _instances = new List<ProfileCfg>();
+        private List<WorldInfo> _worlds = new List<WorldInfo>();
         private ProfileCfg _selectedInstance = null;
 
 
 
-        public InstanceManager(ConfigService configs)
+        public ProfileManager(ConfigService configs)
         {
-            _configs = configs;
-            _instanceDirectory = _configs.Config.Directories.Instances;
+           
 
-            Directory.CreateDirectory(_instanceDirectory);
-            LoadAllInstances();
+            _configs = configs;
+            _ProfileDirectory = _configs.Config.Directories.ProfileDir;
+
+            Directory.CreateDirectory(_ProfileDirectory);
+            LoadAllProfiles();
+            LoadAllWorlds();
         }
 
         public override Task<bool> Init()
@@ -57,7 +60,7 @@ namespace IgniteSE1.Services
             {
                 _logger.Warn("No instances found. Creating a default instance...");
 
-                (bool result, string msg) = TryCreateNewInstance(_configs.Config.TargetInstance, out _selectedInstance);
+                (bool result, string msg) = TryCreateNewProfile(_configs.Config.TargetInstance, out _selectedInstance);
 
                 if (!result)
                 {
@@ -71,7 +74,7 @@ namespace IgniteSE1.Services
                 _logger.Info($"Loaded {_instances.Count} instances.");
 
                 //Check if the selected instance exists
-                if (!TryGetInstanceByName(_configs.Config.TargetInstance, out _selectedInstance))
+                if (!TryGetProfileByName(_configs.Config.TargetInstance, out _selectedInstance))
                 {
                     _logger.Warn($"Failed to load target instance {_configs.Config.TargetInstance}. Does this exist?");
                     return Task.FromResult(false);
@@ -83,13 +86,13 @@ namespace IgniteSE1.Services
         }
 
 
-        private void LoadAllInstances()
+        private void LoadAllProfiles()
         {
             //Clear existing instances
             _instances.Clear();
 
             //Get all directories in the instances folder
-            Directory.GetDirectories(_instanceDirectory).ToList().ForEach(dir =>
+            Directory.GetDirectories(_ProfileDirectory).ToList().ForEach(dir =>
             {
                 string configFilePath = Path.Combine(dir, _instanceCfgFilename);
                 if (File.Exists(configFilePath))
@@ -109,7 +112,25 @@ namespace IgniteSE1.Services
             });
         }
 
-        public (bool, string) TryCreateNewInstance(string InstanceName, out ProfileCfg cfg)
+        public void LoadAllWorlds()
+        {
+            _worlds.Clear();
+            foreach (var worldPath in Directory.GetDirectories(_configs.Config.Directories.WorldsDir))
+            {
+                var di = new DirectoryInfo(worldPath);
+
+                WorldInfo worldInfo = new WorldInfo
+                {
+                    Name = di.Name,
+                    CreatedUtc = di.CreationTime,
+                    LastUpdatedUtc = di.LastWriteTimeUtc
+                };
+
+                _worlds.Add(worldInfo);
+            }
+        }
+
+        public (bool, string) TryCreateNewProfile(string InstanceName, out ProfileCfg cfg)
         {
             cfg = new ProfileCfg();
 
@@ -128,17 +149,16 @@ namespace IgniteSE1.Services
                 return (false, "Invalid Instance Name");
 
             // Check if the instance name already exists
-            (string fullPath, string NeName) = GetUniqueFolder(_instanceDirectory, cleaned);
+            (string fullPath, string NeName) = GetUniqueFolder(_ProfileDirectory, cleaned);
 
 
             try
             {
                 Directory.CreateDirectory(fullPath);
-                Directory.CreateDirectory(Path.Combine(fullPath, _worldSavesFolder)); // Create Saves directory
 
                 cfg.filePath = Path.Combine(fullPath, _instanceCfgFilename); // Set the file path for the instance configuration
                 cfg.InstanceName = NeName;
-                cfg.InstancePath = Path.Combine(_instanceDirectory, InstanceName); // Set the instance path in the config
+                cfg.InstancePath = Path.Combine(_ProfileDirectory, InstanceName); // Set the instance path in the config
                 cfg.Save(); // Save the configuration to the file
 
                 _instances.Add(cfg); // Add the new instance configuration to the list
@@ -167,7 +187,7 @@ namespace IgniteSE1.Services
         }
 
 
-        public bool TryGetSelectedInstance(out ProfileCfg targetInstance)
+        public bool TryGetSelectedProfile(out ProfileCfg targetInstance)
         {
             targetInstance = null; // Initialize the target instance to null
 
@@ -183,13 +203,13 @@ namespace IgniteSE1.Services
                 return false;
             }
 
-            if (!TryGetInstanceByName(instanceName, out targetInstance))
+            if (!TryGetProfileByName(instanceName, out targetInstance))
                 _logger.Warn($"Target Instance {instanceName} does not exist. Please select another or create a new one.");
 
             return targetInstance != null;
         }
 
-        public bool TryGetInstanceByName(string instanceName, out ProfileCfg cfg)
+        public bool TryGetProfileByName(string instanceName, out ProfileCfg cfg)
         {
             // This method should return the instance configuration by name
             cfg = _instances.FirstOrDefault(instance => instance.InstanceName.Equals(instanceName, StringComparison.OrdinalIgnoreCase));
@@ -199,7 +219,7 @@ namespace IgniteSE1.Services
 
 
 
-        public ProfileCfg GetCurrentInstance()
+        public ProfileCfg GetCurrentProfile()
         {
             return _selectedInstance;
         }
@@ -219,9 +239,8 @@ namespace IgniteSE1.Services
                 gameconfig.Save();
             }
 
-
             gameconfig.WorldName = _selectedInstance.TargetWorld;
-            gameconfig.LoadWorld = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _selectedInstance.InstancePath, _worldSavesFolder, _selectedInstance.TargetWorld);
+            gameconfig.LoadWorld = Path.Combine(Path.GetFullPath(_configs.Config.Directories.WorldsDir), _selectedInstance.TargetWorld);
 
 
             if (_selectedInstance == null)
@@ -241,6 +260,11 @@ namespace IgniteSE1.Services
         public List<ProfileCfg> GetAllInstances()
         {
             return _instances;
+        }
+
+        public List<WorldInfo> GetAllWorlds()
+        {
+            return _worlds; 
         }
 
     }

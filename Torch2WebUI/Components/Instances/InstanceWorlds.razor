@@ -1,0 +1,188 @@
+﻿@page "/instances/{InstanceId}/worlds"
+@using Torch2API.Models.Configs
+@using Torch2WebUI.Models
+@layout InstanceLayout
+
+@inject InstanceManager InstanceManager
+<PageTitle>Instance Worlds</PageTitle>
+@if (_instance is null || _instance.WorldInfos.Count == 0)
+{
+    <MudProgressCircular Indeterminate />
+    return;
+}
+
+
+
+<MudPaper Class="pa-4">
+
+    <MudStack Row AlignItems="AlignItems.Center" JustifyContent="space-between">
+        <MudText Typo="Typo.h5">Worlds</MudText>
+
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="OpenCreateWorldDialog">
+            New World
+        </MudButton>
+    </MudStack>
+
+    <MudDivider Class="my-3" />
+
+    <MudTable T="WorldInfo" Items="@_instance.WorldInfos">
+        <HeaderContent>
+            <MudTh>World</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Profiles</MudTh>
+            <MudTh>Created</MudTh>
+            <MudTh>Last Modified</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd>
+                <MudText>@context.Name</MudText>
+            </MudTd>
+
+            <MudTd>
+                @if (context.Name == _instance.TargetWorld)
+                {
+                    <MudChip T="string" Color="Color.Success" Variant="Variant.Filled">
+                        Active
+                    </MudChip>
+                }
+                else
+                {
+                    <MudChip T="string" Variant="Variant.Outlined">
+                        Inactive
+                    </MudChip>
+                }
+            </MudTd>
+
+            <MudTd>
+                @{
+                    var profilesUsingWorld = _instance.Profiles
+                    .Where(p => p.TargetWorld == context.Name)
+                    .ToList();
+                }
+
+                @if (profilesUsingWorld.Count == 0)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        None
+                    </MudText>
+                }
+                else
+                {
+                    <MudStack Row Spacing="1" Wrap="Wrap.Wrap">
+                        @foreach (var profile in profilesUsingWorld)
+                        {
+                            <MudChip T="string"
+                                     Size="Size.Small"
+                                     Variant="Variant.Outlined"
+                                     Color="Color.Info">
+                                @profile.InstanceName
+                            </MudChip>
+                        }
+                    </MudStack>
+                }
+            </MudTd>
+
+
+            <MudTd>
+                <MudText Typo="Typo.caption">
+                    @context.CreatedUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+                </MudText>
+            </MudTd>
+
+            <MudTd>
+                <MudText Typo="Typo.caption">
+                    @context.LastUpdatedUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+                </MudText>
+            </MudTd>
+
+            <MudTd Align="Align.Right">
+                <MudButton Variant="Variant.Text"
+                           Color="Color.Error"
+                           Disabled="@(context.Name == _instance.TargetWorld)"
+                           StartIcon="@Icons.Material.Filled.Delete"
+                           OnClick="() => DeleteWorld(context.Name)">
+                    Delete
+                </MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+
+</MudPaper>
+
+
+@code {
+
+    [Parameter] public string InstanceId { get; set; } = default!;
+    private TorchInstance? _instance;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _instance = InstanceManager.GetInstanceByID(InstanceId);
+        InstanceManager.OnChange += OnInstanceUpdated;
+
+        await InstanceManager.SendCommand(_instance, "Config/Worlds/List");
+        await InstanceManager.SendCommand(_instance, "Config/Profiles/List");
+    }
+
+    private void OnInstanceUpdated(string updatedId)
+    {
+        if (updatedId != _instance.InstanceID)
+            return;
+
+        InvokeAsync(() =>
+        {
+            _instance = InstanceManager.GetInstanceByID(InstanceId);
+            StateHasChanged();
+        });
+    }
+
+    private void OpenCreateWorldDialog()
+    {
+        if (_instance is null)
+            return;
+
+        /*DialogService.Show<CreateWorldDialog>(
+            "Create New World",
+            new DialogParameters
+            {
+                ["Instance"] = _instance
+            });
+
+        */
+    }
+
+
+    private async Task DeleteWorld(string worldName)
+    {
+        if (_instance is null)
+            return;
+
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = $"Delete world '{worldName}'? This cannot be undone."
+        };
+
+        /*
+
+        var dialog = DialogService.Show<ConfirmDialog>("Confirm Delete", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await InstanceManager.SendCommand(
+                _instance,
+                "Config/Worlds/Delete",
+                new { WorldName = worldName });
+        }
+
+        */
+
+    }
+
+
+}

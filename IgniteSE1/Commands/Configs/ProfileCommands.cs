@@ -11,14 +11,14 @@ using Torch2API.Models.Commands;
 
 namespace IgniteSE1.Commands
 {
-    [CommandGroup("profiles", "Commands to manage the Instance Profiles", CommandTypeEnum.AdminOnly)]
+    [CommandGroup("config/profiles", "Commands to manage the Instance Profiles", CommandTypeEnum.AdminOnly)]
     public class ProfileCommands
     {
         private ICommandContext ctx;
-        private InstanceManager _InstanceManager;
+        private ProfileManager _InstanceManager;
         private PanelHTTPClient _PanelClient;
 
-        public ProfileCommands(ICommandContext ctxICommandContext, InstanceManager iManager, PanelHTTPClient webPanelClient)
+        public ProfileCommands(ICommandContext ctxICommandContext, ProfileManager iManager, PanelHTTPClient webPanelClient)
         {
             this.ctx = ctxICommandContext;
             _InstanceManager = iManager;

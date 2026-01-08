@@ -63,6 +63,16 @@ namespace Torch2WebUI.APIControllers.Status
         }
 
 
+        [HttpPost("allworlds")]
+        public IActionResult GetAllWorlds([FromBody] List<WorldInfo> allWorlds, [FromServices] InstanceManager InstanceService)
+        {
+            var headers = HttpContext.Request.Headers;
+            string? instanceid = headers[TorchConstants.InstanceIdHeader].FirstOrDefault();
+            InstanceService.UpdateWorlds(instanceid, allWorlds);
+            return Ok();
+        }
+
+
 
     }
 }

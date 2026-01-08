@@ -39,6 +39,7 @@
     <!-- 🔀 MAIN CONTENT -->
     <MudGrid>
 
+
         <!-- 📜 LEFT: PROFILE LIST -->
         <MudItem xs="12" md="4" lg="3">
             <MudPaper Class="pa-2" Style="height: 70vh; overflow-y: auto;">
@@ -62,106 +63,111 @@
             </MudPaper>
         </MudItem>
 
-        <!-- 📄 RIGHT: PROFILE DETAILS -->
-        <MudItem xs="12" md="8" lg="9">
-            <MudPaper Class="pa-4" Style="min-height: 70vh;">
-                @if (_selectedProfile == null)
-                {
-                    <MudText Color="Color.Secondary">
-                        Select a profile to view details
-                    </MudText>
-                }
-                else
-                {
 
-                    
-
-                    
-                    <MudStack Spacing="2" >
-                        <MudText Typo="Typo.h5">
-                            @_selectedProfile.InstanceName
+        @if (_selectedProfile != null)
+        {
+            <!-- 📄 RIGHT: PROFILE DETAILS -->
+            <MudItem xs="12" md="8" lg="9">
+                <MudPaper Class="pa-4" Style="min-height: 70vh;">
+                    @if (_selectedProfile == null)
+                    {
+                        <MudText Color="Color.Secondary">
+                            Select a profile to view details
                         </MudText>
-
-                        <MudDivider />
-
-                        <!-- TEXT -->
-                        <MudTextField @bind-Value="_selectedProfile.Description"
-                                      Label="Description"
-                                      Variant="Variant.Outlined"
-                                      FullWidth />
-
-                        <MudTextField @bind-Value="_selectedProfile.TargetWorld"
-                                      Label="Target World"
-                                      Variant="Variant.Outlined"
-                                      FullWidth />
-
-                        <!-- NUMERIC -->
-                        <MudNumericField T="ushort"
-                                         @bind-Value="_selectedProfile.InstancePort"
-                                         Label="Port"
-                                         Variant="Variant.Outlined"
-                                         Min="1"
-                                         Max="65535" />
-
-                        <MudNumericField T="int"
-                                         @bind-Value="_selectedProfile.LogsMaxAge"
-                                         Label="Logs Max Age (days)"
-                                         Variant="Variant.Outlined"
-                                         Min="0" />
-
-                        <!-- SWITCHES -->
-                        <MudSwitch T="bool"
-                            
-                            @bind-Checked="_selectedProfile.AutoStart"
-                                   Color="Color.Primary">
-                            Auto Start
-                        </MudSwitch>
-
-                        <MudSwitch T="bool" @bind-value="_selectedProfile.CheckForUpdates"
-                                   Color="Color.Primary">
-                            Check for Updates
-                        </MudSwitch>
-
-                        <MudSwitch T="bool" @bind-value="_selectedProfile.AutoUpdateGame"
-                                   Color="Color.Primary">
-                            Auto Update Game
-                        </MudSwitch>
-
-                        <MudSwitch T="bool"
-                                   @bind-value="_selectedProfile.RestartOnCrash"
-                                   Color="Color.Primary">
-                            Restart on Crash
-                        </MudSwitch>
-
-                        <!-- BRANCH -->
-                        <MudTextField @bind-Value="_selectedProfile.BranchName"
-                                      Label="Game Branch"
-                                      Variant="Variant.Outlined" />
-
-                        <MudTextField @bind-Value="_selectedProfile.BranchPassword"
-                                      Label="Branch Password"
-                                      Variant="Variant.Outlined"
-                                      InputType="InputType.Password" />
+                    }
+                    else
+                    {
 
 
 
-                        <MudDivider />
 
-                        <!-- ⚙️ ACTIONS -->
-                        <MudStack Row Spacing="2">
-                            <MudButton Color="Color.Primary" Variant="Variant.Filled">
-                                Load Profile
-                            </MudButton>
+                        <MudStack Spacing="2">
+                            <MudText Typo="Typo.h5">
+                                @_selectedProfile.InstanceName
+                            </MudText>
 
-                            <MudButton Color="Color.Error" Variant="Variant.Outlined">
-                                Delete
-                            </MudButton>
+                            <MudDivider />
+
+                            <!-- TEXT -->
+                            <MudTextField @bind-Value="_selectedProfile.Description"
+                                          Label="Description"
+                                          Variant="Variant.Outlined"
+                                          FullWidth />
+
+                            <MudTextField @bind-Value="_selectedProfile.TargetWorld"
+                                          Label="Target World"
+                                          Variant="Variant.Outlined"
+                                          FullWidth />
+
+                            <!-- NUMERIC -->
+                            <MudNumericField T="ushort"
+                                             @bind-Value="_selectedProfile.InstancePort"
+                                             Label="Port"
+                                             Variant="Variant.Outlined"
+                                             Min="1"
+                                             Max="65535" />
+
+                            <MudNumericField T="int"
+                                             @bind-Value="_selectedProfile.LogsMaxAge"
+                                             Label="Logs Max Age (days)"
+                                             Variant="Variant.Outlined"
+                                             Min="0" />
+
+                            <!-- SWITCHES -->
+                            <MudSwitch T="bool"
+                                       @bind-Checked="_selectedProfile.AutoStart"
+                                       Color="Color.Primary">
+                                Auto Start
+                            </MudSwitch>
+
+                            <MudSwitch T="bool" @bind-value="_selectedProfile.CheckForUpdates"
+                                       Color="Color.Primary">
+                                Check for Updates
+                            </MudSwitch>
+
+                            <MudSwitch T="bool" @bind-value="_selectedProfile.AutoUpdateGame"
+                                       Color="Color.Primary">
+                                Auto Update Game
+                            </MudSwitch>
+
+                            <MudSwitch T="bool"
+                                       @bind-value="_selectedProfile.RestartOnCrash"
+                                       Color="Color.Primary">
+                                Restart on Crash
+                            </MudSwitch>
+
+                            <!-- BRANCH -->
+                            <MudTextField @bind-Value="_selectedProfile.BranchName"
+                                          Label="Game Branch"
+                                          Variant="Variant.Outlined" />
+
+                            <MudTextField @bind-Value="_selectedProfile.BranchPassword"
+                                          Label="Branch Password"
+                                          Variant="Variant.Outlined"
+                                          InputType="InputType.Password" />
+
+
+
+                            <MudDivider />
+
+                            <!-- ⚙️ ACTIONS -->
+                            <MudStack Row Spacing="2">
+                                <MudButton Color="Color.Primary" Variant="Variant.Filled">
+                                    Load Profile
+                                </MudButton>
+
+                                <MudButton Color="Color.Error" Variant="Variant.Outlined">
+                                    Delete
+                                </MudButton>
+                            </MudStack>
                         </MudStack>
-                    </MudStack>
-                   
-                }
-            </MudPaper>
-        </MudItem>
+
+                    }
+                </MudPaper>
+            </MudItem>
+        }
+
+
 
     </MudGrid>
 
@@ -177,7 +183,7 @@
 
 
     private MudForm? _form;
-    private ProfileCfg _selectedProfile = new ProfileCfg();
+    private ProfileCfg _selectedProfile;
 
 
     private TorchInstance? _instance;
@@ -187,7 +193,7 @@
         _instance = InstanceManager.GetInstanceByID(InstanceId);
         InstanceManager.OnChange += OnInstanceUpdated;
 
-        await InstanceManager.SendCommand(_instance, "Profiles/List");
+        await InstanceManager.SendCommand(_instance, "Config/Profiles/List");
     }
 
     private void OnInstanceUpdated(string updatedId)
