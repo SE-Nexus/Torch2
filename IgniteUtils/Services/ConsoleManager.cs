@@ -27,12 +27,16 @@ namespace InstanceUtils.Services
         private static Mutex appMutex;
 
         private readonly ConfigService _ConfigService;
+
+        private readonly Stack<string> _PreviousCommands;
         
         //private CommandLineManager _cli;
 
 
         public string ConsoleName { get; private set; }
         public string mutexName { get; private set; }
+
+
 
         public static string AppArguments => Environment.CommandLine;
 
@@ -105,6 +109,12 @@ namespace InstanceUtils.Services
 
                     if (input.Equals("exit", StringComparison.OrdinalIgnoreCase) || input.Equals("quit", StringComparison.OrdinalIgnoreCase))
                         break;
+
+
+                    //Store previous commands
+                    _PreviousCommands.Push(input);
+                    
+                    
 
                     string[] inputArgs = input.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     await SendCLIRequest(inputArgs);
