@@ -10,6 +10,10 @@ namespace Torch2WebUI.Models
 
         public List<ProfileCfg> Profiles { get; set; } = new();
 
+        //Saved worlds
         public List<WorldInfo> WorldInfos { get; set; } = new();
+
+        //World templates
+        public List<WorldInfo> CustomWorlds { get; set; } = new();
     }
 }

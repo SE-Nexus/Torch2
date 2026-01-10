@@ -4,6 +4,8 @@
 @layout InstanceLayout
 
 @inject InstanceManager InstanceManager
+@inject IDialogService DialogService
+
 <PageTitle>Instance Worlds</PageTitle>
 @if (_instance is null || _instance.WorldInfos.Count == 0)
 {
@@ -125,6 +127,7 @@
         _instance = InstanceManager.GetInstanceByID(InstanceId);
         InstanceManager.OnChange += OnInstanceUpdated;
 
+
         await InstanceManager.SendCommand(_instance, "Config/Worlds/List");
         await InstanceManager.SendCommand(_instance, "Config/Profiles/List");
     }
@@ -141,19 +144,24 @@
         });
     }
 
-    private void OpenCreateWorldDialog()
+    private Task OpenCreateWorldDialog()
     {
         if (_instance is null)
-            return;
+            return Task.CompletedTask;
 
-        /*DialogService.Show<CreateWorldDialog>(
+        return DialogService.ShowAsync<CreateWorldDialog>(
             "Create New World",
             new DialogParameters
             {
                 ["Instance"] = _instance
-            });
+            }, new DialogOptions
+            {
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true
+                
+            } );
 
-        */
+        
     }
 
 

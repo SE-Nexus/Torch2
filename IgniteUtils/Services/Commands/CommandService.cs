@@ -23,7 +23,7 @@ namespace InstanceUtils.Services
     /// <remarks>Inherit from this class to implement long-running command processing logic that runs in the
     /// background. The service is started automatically when the host starts and stopped when the host shuts down.
     /// Override the ExecuteAsync method to define the command execution behavior.</remarks>
-    public class CommandService
+    public class CommandService : ServiceBase
     {
 
         private IServiceProvider _serviceProvider;
@@ -35,16 +35,18 @@ namespace InstanceUtils.Services
         public CommandService(IServiceProvider sProvider)
         {
             _serviceProvider = sProvider;
-
-            Init();
         }
 
-        public void Init()
+
+        public override async Task<bool> Init()
         {
             CommandGroups.Clear();
             DiscoverCoommands();
             BuildCLICommands();
+
+            return true;
         }
+
 
         public void BuildCLICommands()
         {

@@ -4,6 +4,7 @@ using InstanceUtils.Logging;
 using InstanceUtils.Services;
 using Microsoft.Extensions.Logging;
 using NLog;
+using Sandbox.Engine.Networking;
 using Sandbox.Engine.Utils;
 using Spectre.Console;
 using System;
@@ -187,6 +188,7 @@ namespace IgniteSE1.Services
         }
 
 
+
         public bool TryGetSelectedProfile(out ProfileCfg targetInstance)
         {
             targetInstance = null; // Initialize the target instance to null
@@ -217,6 +219,55 @@ namespace IgniteSE1.Services
         }
 
 
+        public bool TryCreateWorld(string worldname, string templatepath, out string reason)
+        {
+            reason = "";
+
+            try
+            {
+                string dir = Path.Combine(_configs.Config.Directories.WorldsDir, worldname.Trim());
+                if (Directory.Exists(dir))
+                {
+                    reason = $"World {worldname} already Exists. Please try a different name";
+                    return false;
+                }
+
+                Directory.CreateDirectory(dir);
+
+                var checkpoint = MyLocalCache.LoadCheckpoint(templatepath, out _);
+                if (checkpoint == null)
+                {
+                    reason = $"Failed to load template checkpoint at {templatepath}";
+                    return false;
+                }
+
+
+                //Copy everything from template over to the new world folder
+                foreach (var file in Directory.EnumerateFiles(templatepath, "*", SearchOption.AllDirectories))
+                {
+                    // Trash code to work around inconsistent path formats.
+                    var fileRelPath = file.Replace($"{templatepath.TrimEnd('\\')}\\", "");
+                    var destPath = Path.Combine(dir, fileRelPath);
+                    File.Copy(file, destPath);
+                }
+
+                //Default to public online
+                checkpoint.OnlineMode = MyOnlineModeEnum.PUBLIC;
+                checkpoint.SessionName = worldname;
+
+                if (!MyLocalCache.SaveCheckpoint(checkpoint, dir))
+                {
+                    reason = $"Failed to save new world checkpoint";
+                    return false;
+                }
+
+                return true;
+            }catch(Exception ex)
+            {
+                _logger.Fatal(ex);
+                return false;
+            }
+        }
 
 
         public ProfileCfg GetCurrentProfile()

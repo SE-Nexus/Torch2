@@ -20,12 +20,11 @@ namespace InstanceUtils.Services
             services.AddSingletonWithBase<PatchService>();
             services.AddSingletonWithBase<ServerStateService>();
             services.AddSingletonWithBase<AssemblyResolverService>();
-           
+            services.AddSingletonWithBase<CommandService>();
 
 
             services.AddSingleton<PanelCoreService>();
             services.AddSingleton<PanelSocketClient>();
-            services.AddSingleton<CommandService>();
             services.AddScoped<CommandContextAccessor>();
             services.AddScoped<ICommandContext>(sp => sp.GetRequiredService<CommandContextAccessor>().context);
             services.AddHostedService<PanelBackgroundService>();

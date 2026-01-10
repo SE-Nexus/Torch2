@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using System.Text.Json;
 using Torch2API.Constants;
 using Torch2API.DTOs.Instances;
 using Torch2API.DTOs.Logs;
@@ -69,6 +70,16 @@ namespace Torch2WebUI.APIControllers.Status
             var headers = HttpContext.Request.Headers;
             string? instanceid = headers[TorchConstants.InstanceIdHeader].FirstOrDefault();
             InstanceService.UpdateWorlds(instanceid, allWorlds);
+            return Ok();
+        }
+
+
+        [HttpPost("customworlds")]
+        public IActionResult GetAllCustomWorlds([FromBody] List<WorldInfo> allWorlds, [FromServices] InstanceManager InstanceService)
+        {
+            var headers = HttpContext.Request.Headers;
+            string? instanceid = headers[TorchConstants.InstanceIdHeader].FirstOrDefault();
+            InstanceService.UpdateWorlds(instanceid, allWorlds, true);
             return Ok();
         }
 

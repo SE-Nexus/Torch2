@@ -1,0 +1,156 @@
+﻿@using MudBlazor
+@using Torch2API.Models.Configs
+@using Torch2WebUI.Models
+@inject IDialogService DialogService
+@inject InstanceManager InstanceManager
+
+<MudDialog>
+
+    <DialogContent>
+        @if (Instance?.CustomWorlds == null || Instance.CustomWorlds.Count == 0)
+        {
+            <MudText Color="Color.Secondary">
+                No world templates available.
+            </MudText>
+        }
+        else
+        {
+            <MudGrid>
+                <!-- Template list -->
+                <MudItem xs="12" md="5">
+                    <MudPaper Class="pa-2">
+                        <MudList T="WorldInfo" Dense="true">
+                            @foreach (var template in Instance.CustomWorlds)
+                            {
+                                <MudListItem
+                                    Selected="@(template == Selected)"
+                                    OnClick="@(() => Select(template))">
+
+                                    <MudText>
+                                        @template.Name
+                                    </MudText>
+                                </MudListItem>
+                            }
+                        </MudList>
+                    </MudPaper>
+                </MudItem>
+
+                <!-- Template details -->
+                <MudItem xs="12" md="7">
+                    @if (Selected is null)
+                    {
+                        <MudText Color="Color.Secondary">
+                            Select a template to view details
+                        </MudText>
+                    }
+                    else
+                    {
+                        <MudPaper Class="pa-3">
+                            <MudText Typo="Typo.h6">
+                                @Selected.Name
+                            </MudText>
+
+                            <MudDivider Class="my-2" />
+
+                            @if (!string.IsNullOrWhiteSpace(Selected.Description))
+                            {
+                                <MudText>@Selected.Description</MudText>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(Selected.Briefing))
+                            {
+                                <MudText Typo="Typo.caption" Class="mt-2">
+                                    @Selected.Briefing
+                                </MudText>
+                            }
+
+                            <MudDivider Class="my-2" />
+
+                            <MudChipSet T="string">
+                                @if (Selected.HasPlanets)
+                                {
+                                    <MudChip Color="Color.Success">Planets</MudChip>
+                                }
+                                @if (Selected.IsCampaign)
+                                {
+                                    <MudChip Color="Color.Info">Campaign</MudChip>
+                                }
+                                @if (Selected.IsCorrupted)
+                                {
+                                    <MudChip Color="Color.Error">Corrupted</MudChip>
+                                }
+                            </MudChipSet>
+
+                            <MudTooltip Text="@Selected.SessionDirectoryPath">
+                                <MudIcon Icon="@Icons.Material.Filled.Folder"
+                                         Size="Size.Small"
+                                         Color="Color.Default" />
+                            </MudTooltip>
+                        </MudPaper>
+                    }
+                </MudItem>
+            </MudGrid>
+        }
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Color="Color.Primary"
+                   Disabled="@(Selected is null)"
+                   OnClick="Create">
+            Create World
+        </MudButton>
+
+        <MudButton OnClick="Cancel">
+            Cancel
+        </MudButton>
+    </DialogActions>
+
+</MudDialog>
+
+@code {
+    [Parameter]
+    public TorchInstance? Instance { get; set; }
+
+    private WorldInfo? Selected;
+
+    private string _worldName = string.Empty;
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        InstanceManager.OnChange += OnInstanceUpdated;
+        await InstanceManager.SendCommand(Instance, "Config/Worlds/Custom");
+        return;
+    }
+
+    async Task Create()
+    {
+      
+       
+        MudDialog.Close(DialogResult.Ok(_worldName));
+    }
+
+    private void OnInstanceUpdated(string updatedId)
+    {
+        if (updatedId != Instance.InstanceID)
+            return;
+
+        InvokeAsync(() =>
+        {
+            //InstanceManager.GetInstanceByID(_instance.InstanceID);
+            StateHasChanged();
+        });
+    }
+
+    void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    void Select(WorldInfo template)
+    {
+        Selected = template;
+    }
+}

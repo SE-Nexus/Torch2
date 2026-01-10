@@ -1,6 +1,8 @@
 ﻿using InstanceUtils.Services.Commands;
 using InstanceUtils.Services.Commands.Contexts;
 using Microsoft.Extensions.DependencyInjection;
+using NLog;
+using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -14,7 +16,7 @@ namespace InstanceUtils.Services.Commands
     public class CLIContext : ICommandContext
     {
         public CommandTypeEnum CommandTypeContext => CommandTypeEnum.Console;
-
+        private Logger _logger = LogManager.GetCurrentClassLogger();
 
         public Command CLICommand { get; private set; }
 
@@ -77,7 +79,15 @@ namespace InstanceUtils.Services.Commands
                 }
 
                 //Invoke the method
-                Command.Method.Invoke(declaringInstance, allMethodInputArgs.ToArray());
+                try
+                {
+                    Command.Method.Invoke(declaringInstance, allMethodInputArgs.ToArray());
+
+                }
+                catch (Exception ex)
+                {
+                    _logger.Fatal(ex);
+                } 
             }
         }
     }

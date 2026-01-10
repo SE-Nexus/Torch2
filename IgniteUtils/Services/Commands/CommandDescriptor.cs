@@ -96,11 +96,26 @@ namespace InstanceUtils.Services.Commands
 
                 foreach (var cmdoption in Options)
                 {
+
+                    /*
                     var optionType = typeof(Option<>).MakeGenericType(cmdoption.OptionType);
                     var option = (Option)Activator.CreateInstance(optionType, new[] { cmdoption.Name });
                     option.Description = cmdoption.Description;
-
                     cmd.Options.Add(option);
+                    */
+
+                    var optionType = typeof(Argument<>).MakeGenericType(cmdoption.OptionType);
+                    var option = (Argument)Activator.CreateInstance(optionType, new[] { cmdoption.Name });
+                    option.Description = cmdoption.Description;
+
+                    option.HasDefaultValue = true;
+                  
+
+                    cmd.Arguments.Add(option);
+
+                    //Argument<string> s = new Argument(cmdoption.Name)
+
+
                 }
 
                 return (true, cmd);

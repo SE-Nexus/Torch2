@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
+using System.Diagnostics.Eventing.Reader;
 using Torch2API.DTOs.Instances;
 using Torch2API.Models.Configs;
 using Torch2WebUI.Components.Pages;
@@ -119,7 +120,7 @@ namespace Torch2WebUI.Services.InstanceServices
 
         }
 
-        public bool UpdateWorlds(string? instanceid, List<WorldInfo> worlds)
+        public bool UpdateWorlds(string? instanceid, List<WorldInfo> worlds, bool isCustomWorlds = false)
         {
 
             if (string.IsNullOrWhiteSpace(instanceid))
@@ -128,7 +129,16 @@ namespace Torch2WebUI.Services.InstanceServices
 
             if (ActiveInstances.TryGetValue(instanceid, out var instance))
             {
-                instance.WorldInfos = worlds;
+                if (isCustomWorlds)
+                {
+                    instance.CustomWorlds = worlds;
+                }
+                else
+                {
+                    instance.WorldInfos = worlds;
+                }
+
+                 
                 NotifyStateChanged(instance.InstanceID);
             }
             else
@@ -138,8 +148,6 @@ namespace Torch2WebUI.Services.InstanceServices
 
 
             return true;
-
-
         }
 
         public TorchInstance? GetInstanceByID(string instanceID)

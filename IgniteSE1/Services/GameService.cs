@@ -28,6 +28,7 @@ using VRage;
 using VRage.Dedicated;
 using VRage.FileSystem;
 using VRage.Game;
+using VRage.Game.Localization;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilder;
 using VRage.Game.SessionComponents;
@@ -71,8 +72,6 @@ namespace IgniteSE1.Services
             _instanceManager = instance;
             _steamService = steam;
             _serverState = serverState;
-
-           
            
             DedicatedServer64 = Path.Combine(_steamService.GameInstallDir, "DedicatedServer64");
         }
@@ -279,6 +278,8 @@ namespace IgniteSE1.Services
 
             MySandboxGame.Config = new MyConfig(MyPerServerSettings.GameDSName + ".cfg");
             MySandboxGame.Config.Load();
+
+            MyLanguage.Instance.Init();
 
 
             SetupLogs();
