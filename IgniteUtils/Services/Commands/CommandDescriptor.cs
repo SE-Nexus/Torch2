@@ -108,7 +108,7 @@ namespace InstanceUtils.Services.Commands
                     var option = (Argument)Activator.CreateInstance(optionType, new[] { cmdoption.Name });
                     option.Description = cmdoption.Description;
 
-                    option.HasDefaultValue = true;
+                    //option.HasDefaultValue = true;
                   
 
                     cmd.Arguments.Add(option);
