@@ -86,6 +86,13 @@
                                          Size="Size.Small"
                                          Color="Color.Default" />
                             </MudTooltip>
+
+                            <MudDivider Class="my-3" />
+
+                            <MudTextField @bind-Value="_worldName"
+                                          Label="World name"
+                                          Variant="Variant.Outlined"
+                                          Immediate="true" />
                         </MudPaper>
                     }
                 </MudItem>
@@ -95,7 +102,7 @@
 
     <DialogActions>
         <MudButton Color="Color.Primary"
-                   Disabled="@(Selected is null)"
+                   Disabled="@(!CanCreate)"
                    OnClick="Create">
             Create World
         </MudButton>
@@ -115,42 +122,48 @@
 
     private string _worldName = string.Empty;
 
+    private bool CanCreate =>
+        Selected is not null &&
+        !string.IsNullOrWhiteSpace(_worldName);
+
     [CascadingParameter]
-    private IMudDialogInstance MudDialog { get; set; }
+    private IMudDialogInstance MudDialog { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
         InstanceManager.OnChange += OnInstanceUpdated;
         await InstanceManager.SendCommand(Instance, "Config/Worlds/Custom");
-        return;
-    }
-
-    async Task Create()
-    {
-      
-       
-        MudDialog.Close(DialogResult.Ok(_worldName));
     }
 
     private void OnInstanceUpdated(string updatedId)
     {
-        if (updatedId != Instance.InstanceID)
+        if (Instance is null || updatedId != Instance.InstanceID)
             return;
 
-        InvokeAsync(() =>
-        {
-            //InstanceManager.GetInstanceByID(_instance.InstanceID);
-            StateHasChanged();
-        });
+        InvokeAsync(StateHasChanged);
     }
 
-    void Cancel()
+    private void Create()
+    {
+        if (Selected is null)
+            return;
+
+        var payload = new CreateWorldDialogResult(
+            TemplateName: Selected.Name,
+            WorldName: _worldName.Trim());
+
+        MudDialog.Close(DialogResult.Ok(payload));
+    }
+
+    private void Cancel()
     {
         MudDialog.Cancel();
     }
 
-    void Select(WorldInfo template)
+    private void Select(WorldInfo template)
     {
         Selected = template;
     }
+
+    public sealed record CreateWorldDialogResult(string TemplateName, string WorldName);
 }

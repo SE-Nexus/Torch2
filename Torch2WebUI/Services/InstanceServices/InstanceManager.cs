@@ -15,8 +15,6 @@ namespace Torch2WebUI.Services.InstanceServices
     {
         public ConcurrentDictionary<string, TorchInstance> ActiveInstances { get; private set; } = new();
 
-    
-
         private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(5);
         private readonly Timer CleanupTimer;
         private readonly IServiceScopeFactory _scopeFactory;
@@ -29,11 +27,9 @@ namespace Torch2WebUI.Services.InstanceServices
         //Do not need to notify the page when its a bind
         public bool EnableServerDiscovery { get; set; } = false;
 
-
-
-        public InstanceManager(IServiceScopeFactory scopeFactory, IMemoryCache cache, InstanceSocketManager socketmanager) 
+        public InstanceManager(IServiceScopeFactory scopeFactory, IMemoryCache cache, InstanceSocketManager socketmanager)
         {
-            _InstanceSocketManager = socketmanager; 
+            _InstanceSocketManager = socketmanager;
             _cache = cache;
             _scopeFactory = scopeFactory;
             CleanupTimer = new Timer(_timeout.Add(TimeSpan.FromSeconds(2)));
@@ -51,7 +47,6 @@ namespace Torch2WebUI.Services.InstanceServices
 
         private void CleanupInstances()
         {
-            
         }
 
         public void UpdateStatus(TorchInstance instance)
@@ -104,8 +99,7 @@ namespace Torch2WebUI.Services.InstanceServices
             if (string.IsNullOrWhiteSpace(instanceid))
                 return false;
 
-
-            if(ActiveInstances.TryGetValue(instanceid, out var instance))
+            if (ActiveInstances.TryGetValue(instanceid, out var instance))
             {
                 instance.Profiles = profileCfgs;
                 NotifyStateChanged(instance.InstanceID);
@@ -115,17 +109,13 @@ namespace Torch2WebUI.Services.InstanceServices
                 return false;
             }
 
-
             return true;
-
         }
 
         public bool UpdateWorlds(string? instanceid, List<WorldInfo> worlds, bool isCustomWorlds = false)
         {
-
             if (string.IsNullOrWhiteSpace(instanceid))
                 return false;
-
 
             if (ActiveInstances.TryGetValue(instanceid, out var instance))
             {
@@ -138,14 +128,12 @@ namespace Torch2WebUI.Services.InstanceServices
                     instance.WorldInfos = worlds;
                 }
 
-                 
                 NotifyStateChanged(instance.InstanceID);
             }
             else
             {
                 return false;
             }
-
 
             return true;
         }
@@ -190,16 +178,17 @@ namespace Torch2WebUI.Services.InstanceServices
 
         public List<TorchInstance> GetPendingInstances()
         {
-            return ActiveInstances.Values.Where(x => !x.Configured).ToList(); 
+            return ActiveInstances.Values.Where(x => !x.Configured).ToList();
         }
 
-        public async Task SendCommand(TorchInstanceBase instanceBase, string command)
+        public Task SendCommand(TorchInstanceBase instanceBase, string command)
         {
-            // Placeholder for sending command to instance
-            // Implementation depends on communication method (e.g., WebSocket, HTTP, etc.)
-
-            await _InstanceSocketManager.SendCommandAsync(instanceBase.InstanceID, command);
+            return _InstanceSocketManager.SendCommandAsync(instanceBase.InstanceID, command, new { });
         }
 
+        public Task SendCommand(TorchInstanceBase instanceBase, string command, object args)
+        {
+            return _InstanceSocketManager.SendCommandAsync(instanceBase.InstanceID, command, args);
+        }
     }
 }

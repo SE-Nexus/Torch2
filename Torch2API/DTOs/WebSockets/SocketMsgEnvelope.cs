@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Text.Json;
 
 namespace Torch2API.DTOs.WebSockets
 {
-    public class SocketMsgEnvelope
+    public sealed class SocketMsgEnvelope
     {
         public string Command { get; set; }
 
@@ -13,18 +11,13 @@ namespace Torch2API.DTOs.WebSockets
 
         public string? UserID { get; set; }
 
-        //data
-        public JsonElement[] Payload { get; set; } = Array.Empty<JsonElement>();
+        // Named arguments object: { "worldname": "...", "template": "..." }
+        public JsonElement Args { get; set; }
 
-
-        public SocketMsgEnvelope(string Command)
+        public SocketMsgEnvelope(string command)
         {
-            this.Command = Command;
-
+            Command = command;
+            Args = default;
         }
-
-
-
-
     }
 }

@@ -13,8 +13,6 @@
     return;
 }
 
-
-
 <MudPaper Class="pa-4">
 
     <MudStack Row AlignItems="AlignItems.Center" JustifyContent="space-between">
@@ -89,7 +87,6 @@
                 }
             </MudTd>
 
-
             <MudTd>
                 <MudText Typo="Typo.caption">
                     @context.CreatedUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
@@ -116,7 +113,6 @@
 
 </MudPaper>
 
-
 @code {
 
     [Parameter] public string InstanceId { get; set; } = default!;
@@ -126,7 +122,6 @@
     {
         _instance = InstanceManager.GetInstanceByID(InstanceId);
         InstanceManager.OnChange += OnInstanceUpdated;
-
 
         await InstanceManager.SendCommand(_instance, "Config/Worlds/List");
         await InstanceManager.SendCommand(_instance, "Config/Profiles/List");
@@ -144,26 +139,39 @@
         });
     }
 
-    private Task OpenCreateWorldDialog()
+    private async Task OpenCreateWorldDialog()
     {
         if (_instance is null)
-            return Task.CompletedTask;
+            return;
 
-        return DialogService.ShowAsync<CreateWorldDialog>(
+        var dialogRef = await DialogService.ShowAsync<CreateWorldDialog>(
             "Create New World",
             new DialogParameters
             {
                 ["Instance"] = _instance
-            }, new DialogOptions
+            },
+            new DialogOptions
             {
                 MaxWidth = MaxWidth.Medium,
                 FullWidth = true
-                
-            } );
+            });
 
-        
+        var result = await dialogRef.Result;
+        if (result.Canceled || result.Data is null)
+            return;
+
+        if (result.Data is not CreateWorldDialog.CreateWorldDialogResult payload)
+            return;
+
+        await InstanceManager.SendCommand(
+            _instance,
+            "Config/Worlds/Create",
+            new
+            {
+                worldname = payload.WorldName,
+                template = payload.TemplateName
+            });
     }
-
 
     private async Task DeleteWorld(string worldName)
     {
@@ -176,7 +184,6 @@
         };
 
         /*
-
         var dialog = DialogService.Show<ConfirmDialog>("Confirm Delete", parameters);
         var result = await dialog.Result;
 
@@ -187,10 +194,6 @@
                 "Config/Worlds/Delete",
                 new { WorldName = worldName });
         }
-
         */
-
     }
-
-
 }

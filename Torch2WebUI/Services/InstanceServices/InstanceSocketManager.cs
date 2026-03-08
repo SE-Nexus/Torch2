@@ -14,7 +14,6 @@ namespace Torch2WebUI.Services.InstanceServices
 
         public async Task HandleConnectionAsync(HttpContext context, WebSocket socket)
         {
-            // instance identifies itself
             if (!context.Request.Headers.TryGetValue(TorchConstants.InstanceIdHeader, out var instanceId))
             {
                 await socket.CloseAsync(
@@ -49,21 +48,16 @@ namespace Torch2WebUI.Services.InstanceServices
                     }
                     catch (WebSocketException ex)
                     {
-                        // Ungraceful termination (crash, kill, network failure)
                         Console.WriteLine($"WebSocketException for instance {instanceId}: {ex.Message}");
-                        //LogCrash(instanceId, ex);
                         return;
                     }
 
                     if (result.MessageType == WebSocketMessageType.Close)
                     {
                         gracefulClose = true;
-                        //LogGracefulShutdown(instanceId, result.CloseStatus);
                         Console.WriteLine($"Instance {instanceId} closed the connection gracefully: {result.CloseStatus} - {result.CloseStatusDescription}");
                         return;
                     }
-
-                    // Normal message handling here
                 }
             }
             finally
@@ -80,30 +74,26 @@ namespace Torch2WebUI.Services.InstanceServices
                             CancellationToken.None);
                     }
                 }
-                catch
-                {
-                    // Ignore shutdown failures
-                }
+                catch { }
 
                 if (!gracefulClose)
                 {
-                    // Last chance detection
-                    //(instanceId);
                 }
             }
         }
 
-        public async Task SendCommandAsync(string instanceId, string rawcommand)
+        public async Task SendCommandAsync(string instanceId, string rawcommand, object args)
         {
             if (!_sockets.TryGetValue(instanceId, out var socket))
                 return;
 
-
             string normalized = rawcommand.Replace(' ', '.').Replace('/', '.');
-            var envelope = new SocketMsgEnvelope(normalized);
+            var envelope = new SocketMsgEnvelope(normalized)
+            {
+                Args = JsonSerializer.SerializeToElement(args, TorchConstants.JsonOptions)
+            };
 
-
-            string json = JsonSerializer.Serialize(envelope);
+            string json = JsonSerializer.Serialize(envelope, TorchConstants.JsonOptions);
             byte[] data = Encoding.UTF8.GetBytes(json);
 
             await socket.SendAsync(
@@ -112,6 +102,5 @@ namespace Torch2WebUI.Services.InstanceServices
                 endOfMessage: true,
                 CancellationToken.None);
         }
-
     }
 }
