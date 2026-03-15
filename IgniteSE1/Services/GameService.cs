@@ -272,14 +272,7 @@ namespace IgniteSE1.Services
             //Not sure if below is needed
             Directory.CreateDirectory(Game_ModsPath);
 
-            IMyConfigDedicated dedicated = _instanceManager.GetServerConfigs();
-            MySandboxGame.ConfigDedicated = dedicated;
-            MySandboxGame.ConfigDedicated.ConsoleCompatibility = true;
-
-            MySandboxGame.Config = new MyConfig(MyPerServerSettings.GameDSName + ".cfg");
-            MySandboxGame.Config.Load();
-
-            MyLanguage.Instance.Init();
+            
 
 
             SetupLogs();
@@ -309,6 +302,16 @@ namespace IgniteSE1.Services
             _serverStartTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             _serverStoppingTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             _serverStoppedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            IMyConfigDedicated dedicated = _instanceManager.GetServerConfigs();
+            MySandboxGame.ConfigDedicated = dedicated;
+            MySandboxGame.ConfigDedicated.ConsoleCompatibility = true;
+
+            MySandboxGame.Config = new MyConfig(MyPerServerSettings.GameDSName + ".cfg");
+            MySandboxGame.Config.Load();
+
+            MyLanguage.Instance.Init();
+
 
             GameThread = new Thread(StartServer);
             GameThread.IsBackground = true;

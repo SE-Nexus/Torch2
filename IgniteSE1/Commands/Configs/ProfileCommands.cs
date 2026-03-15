@@ -168,6 +168,29 @@ namespace IgniteSE1.Commands
             }
         }
 
+        [Command("load", "Sets the specified profile as the configured/active profile")]
+        public async Task Load([Option("--name", "Profile name")] string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                ctx.RespondLine("A profile name is required.");
+                return;
+            }
+
+            if (!_InstanceManager.TryLoadProfile(name, out var reason))
+            {
+                ctx.RespondLine($"Failed to load profile: {reason}");
+                return;
+            }
+
+            ctx.RespondLine($"Successfully loaded profile '{name}'.");
+
+            if (ctx is WebPanelContext)
+            {
+                await _PanelClient.PostAsync(WebAPIConstants.AllProfiles, _InstanceManager.GetAllInstances());
+            }
+        }
+
 
 
     }

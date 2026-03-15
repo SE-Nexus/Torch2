@@ -19,6 +19,7 @@ using Torch2API.Models.Configs;
 using VRage.FileSystem;
 using VRage.Game;
 using VRage.Game.ModAPI;
+using static VRage.Dedicated.Configurator.SelectInstanceForm;
 
 namespace IgniteSE1.Services
 {
@@ -44,7 +45,7 @@ namespace IgniteSE1.Services
 
         public ProfileManager(ConfigService configs)
         {
-           
+
 
             _configs = configs;
             _ProfileDirectory = _configs.Config.Directories.ProfileDir;
@@ -225,6 +226,54 @@ namespace IgniteSE1.Services
             return cfg != null;
         }
 
+        /// <summary>
+        /// Loads the profile named <paramref name="instanceName"/> and persists it as the configured TargetInstance.
+        /// Returns false with a reason on failure.
+        /// </summary>
+        public bool TryLoadProfile(string instanceName, out string reason)
+        {
+            reason = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(instanceName))
+            {
+                reason = "Instance name is required.";
+                return false;
+            }
+
+            if (!TryGetProfileByName(instanceName, out var profile))
+            {
+                reason = $"Profile '{instanceName}' not found.";
+                return false;
+            }
+
+
+            try
+            {
+                _selectedInstance = profile;
+                // Persist as the configured target so other systems pick it up
+                _configs.Config.TargetInstance = profile.InstanceName;
+                try
+                {
+                    _configs.Config.Save();
+                }
+                catch (Exception ex)
+                {
+                    // Non-fatal: log and continue (profile loaded in memory)
+                    _logger.Warn(ex, $"Failed to persist TargetInstance setting to config: {ex.Message}");
+                }
+
+                ProfilesChanged?.Invoke(_instances);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                reason = ex.Message;
+                _logger.Error(ex, $"Failed to load profile '{instanceName}'");
+                return false;
+            }
+        }
+
+
 
         public bool TryCreateWorld(string worldname, string templatepath, out string reason)
         {
@@ -281,7 +330,8 @@ namespace IgniteSE1.Services
                 WorldsChanged.Invoke(_worlds); // Invoke the WorldsChanged event to notify subscribers of the change
 
                 return true;
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.Fatal(ex);
                 return false;
@@ -343,9 +393,15 @@ namespace IgniteSE1.Services
             return _selectedInstance;
         }
 
-        public IMyConfigDedicated GetServerConfigs()
+        public IMyConfigDedicated GetServerConfigs(ProfileCfg? targetInstance = null)
         {
-            var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _selectedInstance.InstancePath, _DedicatedCfgFilename);
+            if (targetInstance == null)
+            {
+                targetInstance = GetCurrentProfile();
+            }
+                
+
+            var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, targetInstance.InstancePath, _DedicatedCfgFilename);
             var gameconfig = new MyConfigDedicated<MyObjectBuilder_SessionSettings>(configPath);
 
             /// Load or create the config file
@@ -358,12 +414,9 @@ namespace IgniteSE1.Services
                 gameconfig.Save();
             }
 
-            gameconfig.WorldName = _selectedInstance.TargetWorld;
-            gameconfig.LoadWorld = Path.Combine(Path.GetFullPath(_configs.Config.Directories.WorldsDir), _selectedInstance.TargetWorld);
+            gameconfig.WorldName = targetInstance.TargetWorld;
+            gameconfig.LoadWorld = Path.Combine(Path.GetFullPath(_configs.Config.Directories.WorldsDir), targetInstance.TargetWorld);
 
-
-            if (_selectedInstance == null)
-                return null;
 
             return gameconfig;
         }
@@ -383,7 +436,7 @@ namespace IgniteSE1.Services
 
         public List<WorldInfo> GetAllWorlds()
         {
-            return _worlds; 
+            return _worlds;
         }
 
         /// <summary>

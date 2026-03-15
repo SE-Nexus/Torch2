@@ -116,7 +116,7 @@ namespace InstanceUtils.Services.WebPanel
         {
             if(_cmdService.TryGetCommand(msg.Command, out var command))
             {
-                AnsiConsole.WriteLine("Received WS Command: " + command.Name);
+                AnsiConsole.WriteLine("Received WS Command: " + msg.Command);
                 WebPanelContext ctx = new WebPanelContext(command, msg);
                 ctx.RunCommand(_provider);
             }
