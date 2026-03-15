@@ -298,6 +298,7 @@
     <Compile Include="Services\ServiceManager.cs" />
     <Compile Include="Services\SteamService.cs" />
     <Compile Include="Services\ConfigService.cs" />
+    <Compile Include="Utilities\GameSettings\DedicatedServerCfgUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".dockerignore">
@@ -329,9 +330,7 @@
     <Protobuf Include="Protos\greet.proto" GrpcServices="Both" />
     <Protobuf Include="Protos\CLI.proto" GrpcServices="Both" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Utilities\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\Torch2API\Torch2API.csproj">
       <Project>{69a879f4-f46f-4b13-ae1d-410a2ee199ce}</Project>

@@ -14,26 +14,26 @@
     return;
 }
 
-<MudPaper Class="pa-4">
+<MudStack Spacing="3">
+    <MudPaper Elevation="1" Class="pa-4">
+        <MudStack Row StretchItems="StretchItems.Start">
+            <MudText Typo="Typo.h5">Saved Worlds</MudText>
 
-    <MudStack Row AlignItems="AlignItems.Center" JustifyContent="space-between">
-        <MudText Typo="Typo.h5">Worlds</MudText>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="OpenCreateWorldDialog">
+                New World
+            </MudButton>
+        </MudStack>
+    </MudPaper>
 
-        <MudButton Variant="Variant.Filled"
-                   Color="Color.Primary"
-                   StartIcon="@Icons.Material.Filled.Add"
-                   OnClick="OpenCreateWorldDialog">
-            New World
-        </MudButton>
-    </MudStack>
 
-    <MudDivider Class="my-3" />
-
-    <MudTable T="WorldInfo" Items="@_instance.WorldInfos">
+    <MudTable T="WorldInfo" Items="@_instance.WorldInfos" Elevation="1" Class="pa-4">
         <HeaderContent>
             <MudTh>World</MudTh>
             <MudTh>Status</MudTh>
-            <MudTh>Profiles</MudTh>
+            <MudTh>Used in Profiles</MudTh>
             <MudTh>Created</MudTh>
             <MudTh>Last Modified</MudTh>
             <MudTh></MudTh>
@@ -112,7 +112,14 @@
         </RowTemplate>
     </MudTable>
 
-</MudPaper>
+
+</MudStack>
+
+
+
+
+
+    
 
 @code {
 

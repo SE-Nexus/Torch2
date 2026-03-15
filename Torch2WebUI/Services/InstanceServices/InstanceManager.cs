@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics.Eventing.Reader;
 using Torch2API.DTOs.Instances;
 using Torch2API.Models.Configs;
+using Torch2API.Models.Schema;
 using Torch2WebUI.Components.Pages;
 using Torch2WebUI.Models;
 using Torch2WebUI.Services.SQL;
@@ -136,6 +137,21 @@ namespace Torch2WebUI.Services.InstanceServices
             }
 
             return true;
+        }
+
+        public bool UpdateDedicatedSchema(string? instanceid, List<SettingDefinition> schema)
+        {
+            if (string.IsNullOrWhiteSpace(instanceid))
+                return false;
+
+            if (ActiveInstances.TryGetValue(instanceid, out var instance))
+            {
+                instance.DedicatedSchema = schema;
+                NotifyStateChanged(instance.InstanceID);
+                return true;
+            }
+
+            return false;
         }
 
         public TorchInstance? GetInstanceByID(string instanceID)

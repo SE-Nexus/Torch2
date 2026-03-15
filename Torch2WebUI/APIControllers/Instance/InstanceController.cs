@@ -5,6 +5,7 @@ using Torch2API.Constants;
 using Torch2API.DTOs.Instances;
 using Torch2API.DTOs.Logs;
 using Torch2API.Models.Configs;
+using Torch2API.Models.Schema;
 using Torch2WebUI.Models;
 using Torch2WebUI.Services.InstanceServices;
 
@@ -83,6 +84,13 @@ namespace Torch2WebUI.APIControllers.Status
         }
 
 
-
+        [HttpPost(WebAPIConstants.DedicatedSchema)]
+        public IActionResult DedicatedSchema([FromBody] List<SettingDefinition> schema, [FromServices] InstanceManager InstanceService)
+        {
+            var headers = HttpContext.Request.Headers;
+            string? instanceid = headers[TorchConstants.InstanceIdHeader].FirstOrDefault();
+            InstanceService.UpdateDedicatedSchema(instanceid, schema);
+            return Ok();
+        }
     }
 }

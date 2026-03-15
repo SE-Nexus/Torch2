@@ -92,6 +92,8 @@ namespace IgniteSE1.Services
         }
 
 
+        #region Profiles
+
         private void LoadAllProfiles()
         {
             //Clear existing instances
@@ -116,24 +118,6 @@ namespace IgniteSE1.Services
                     }
                 }
             });
-        }
-
-        public void LoadAllWorlds()
-        {
-            _worlds.Clear();
-            foreach (var worldPath in Directory.GetDirectories(_configs.Config.Directories.WorldsDir))
-            {
-                var di = new DirectoryInfo(worldPath);
-
-                WorldInfo worldInfo = new WorldInfo
-                {
-                    Name = di.Name,
-                    CreatedUtc = di.CreationTime,
-                    LastUpdatedUtc = di.LastWriteTimeUtc
-                };
-
-                _worlds.Add(worldInfo);
-            }
         }
 
         public (bool, string) TryCreateNewProfile(string InstanceName, out ProfileCfg cfg)
@@ -169,6 +153,8 @@ namespace IgniteSE1.Services
 
                 _instances.Add(cfg); // Add the new instance configuration to the list
 
+                //Generate game configs on new profile
+                GetServerConfigs(cfg);
 
                 ProfilesChanged?.Invoke(_instances); // Invoke the ProfilesChanged event to notify subscribers of the change
                 return (true, "Instance Created Successfully");
@@ -178,24 +164,6 @@ namespace IgniteSE1.Services
                 return (false, ex.ToString());
             }
         }
-
-        public static (string, string) GetUniqueFolder(string basePath, string folderName)
-        {
-            string fullPath = Path.Combine(basePath, folderName);
-            string newName = folderName;
-            int count = 1;
-
-            while (Directory.Exists(fullPath))
-            {
-                newName = $"{folderName}-{count}";
-                fullPath = Path.Combine(basePath, newName);
-                count++;
-            }
-
-            return (fullPath, newName);
-        }
-
-
 
         public bool TryGetSelectedProfile(out ProfileCfg targetInstance)
         {
@@ -271,172 +239,6 @@ namespace IgniteSE1.Services
                 _logger.Error(ex, $"Failed to load profile '{instanceName}'");
                 return false;
             }
-        }
-
-
-
-        public bool TryCreateWorld(string worldname, string templatepath, out string reason)
-        {
-            reason = "";
-
-            try
-            {
-                string dir = Path.Combine(_configs.Config.Directories.WorldsDir, worldname.Trim());
-                if (Directory.Exists(dir))
-                {
-                    reason = $"World {worldname} already Exists. Please try a different name";
-                    return false;
-                }
-
-                var di = Directory.CreateDirectory(dir);
-
-                var checkpoint = MyLocalCache.LoadCheckpoint(templatepath, out _);
-                if (checkpoint == null)
-                {
-                    reason = $"Failed to load template checkpoint at {templatepath}";
-                    return false;
-                }
-
-
-                //Copy everything from template over to the new world folder
-                foreach (var file in Directory.EnumerateFiles(templatepath, "*", SearchOption.AllDirectories))
-                {
-                    // Trash code to work around inconsistent path formats.
-                    var fileRelPath = file.Replace($"{templatepath.TrimEnd('\\')}\\", "");
-                    var destPath = Path.Combine(dir, fileRelPath);
-                    File.Copy(file, destPath);
-                }
-
-                //Default to public online
-                checkpoint.OnlineMode = MyOnlineModeEnum.PUBLIC;
-                checkpoint.SessionName = worldname;
-
-                if (!MyLocalCache.SaveCheckpoint(checkpoint, dir))
-                {
-                    reason = $"Failed to save new world checkpoint";
-                    return false;
-                }
-
-                //Add the updated world to the active worlds
-                WorldInfo worldInfo = new WorldInfo
-                {
-                    Name = di.Name,
-                    CreatedUtc = di.CreationTime,
-                    LastUpdatedUtc = di.LastWriteTimeUtc
-                };
-                _worlds.Add(worldInfo);
-
-
-                WorldsChanged.Invoke(_worlds); // Invoke the WorldsChanged event to notify subscribers of the change
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.Fatal(ex);
-                return false;
-            }
-        }
-
-
-        public bool TryDeleteWorld(string worldname, out string reason)
-        {
-            reason = "";
-
-            try
-            {
-                if (string.IsNullOrWhiteSpace(worldname))
-                {
-                    reason = "World name is required.";
-                    return false;
-                }
-
-                // Find the world in the in-memory list
-                var world = _worlds.FirstOrDefault(w => string.Equals(w.Name, worldname, StringComparison.OrdinalIgnoreCase));
-                if (world == null)
-                {
-                    reason = $"World '{worldname}' does not exist.";
-                    return false;
-                }
-
-                // Build the world directory path
-                string dir = Path.Combine(_configs.Config.Directories.WorldsDir, worldname);
-
-                if (!Directory.Exists(dir))
-                {
-                    reason = $"World directory '{dir}' does not exist.";
-                    return false;
-                }
-
-                // Delete the directory and all contents
-                Directory.Delete(dir, true);
-
-                // Remove from in-memory list
-                _worlds.Remove(world);
-
-                // Notify subscribers
-                WorldsChanged?.Invoke(_worlds);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                reason = $"Failed to delete world '{worldname}': {ex.Message}";
-                _logger.Error(ex, reason);
-                return false;
-            }
-        }
-
-
-        public ProfileCfg GetCurrentProfile()
-        {
-            return _selectedInstance;
-        }
-
-        public IMyConfigDedicated GetServerConfigs(ProfileCfg? targetInstance = null)
-        {
-            if (targetInstance == null)
-            {
-                targetInstance = GetCurrentProfile();
-            }
-                
-
-            var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, targetInstance.InstancePath, _DedicatedCfgFilename);
-            var gameconfig = new MyConfigDedicated<MyObjectBuilder_SessionSettings>(configPath);
-
-            /// Load or create the config file
-            if (File.Exists(configPath))
-            {
-                gameconfig.Load();
-            }
-            else
-            {
-                gameconfig.Save();
-            }
-
-            gameconfig.WorldName = targetInstance.TargetWorld;
-            gameconfig.LoadWorld = Path.Combine(Path.GetFullPath(_configs.Config.Directories.WorldsDir), targetInstance.TargetWorld);
-
-
-            return gameconfig;
-        }
-
-
-        [HarmonyPatch(typeof(MyFileSystem), "Init")]
-        private static void InitFileSystem_Prefix(string contentPath, string userData, string modDirName = "Mods", string shadersBasePath = null, string modsCachePath = null)
-        {
-            //Console.WriteLine($"[Harmony] MyFileSystem.Init called with contentPath: {contentPath}, userData: {userData}");
-        }
-
-
-        public List<ProfileCfg> GetAllInstances()
-        {
-            return _instances;
-        }
-
-        public List<WorldInfo> GetAllWorlds()
-        {
-            return _worlds;
         }
 
         /// <summary>
@@ -568,6 +370,215 @@ namespace IgniteSE1.Services
                 _logger.Error(ex, reason);
                 return false;
             }
+        }
+
+        public ProfileCfg GetCurrentProfile()
+        {
+            return _selectedInstance;
+        }
+
+        #endregion
+
+
+        #region Worlds
+        public void LoadAllWorlds()
+        {
+            _worlds.Clear();
+            foreach (var worldPath in Directory.GetDirectories(_configs.Config.Directories.WorldsDir))
+            {
+                var di = new DirectoryInfo(worldPath);
+
+                WorldInfo worldInfo = new WorldInfo
+                {
+                    Name = di.Name,
+                    CreatedUtc = di.CreationTime,
+                    LastUpdatedUtc = di.LastWriteTimeUtc
+                };
+
+                _worlds.Add(worldInfo);
+            }
+        }
+
+        public bool TryCreateWorld(string worldname, string templatepath, out string reason)
+        {
+            reason = "";
+
+            try
+            {
+                string dir = Path.Combine(_configs.Config.Directories.WorldsDir, worldname.Trim());
+                if (Directory.Exists(dir))
+                {
+                    reason = $"World {worldname} already Exists. Please try a different name";
+                    return false;
+                }
+
+                var di = Directory.CreateDirectory(dir);
+
+                var checkpoint = MyLocalCache.LoadCheckpoint(templatepath, out _);
+                if (checkpoint == null)
+                {
+                    reason = $"Failed to load template checkpoint at {templatepath}";
+                    return false;
+                }
+
+
+                //Copy everything from template over to the new world folder
+                foreach (var file in Directory.EnumerateFiles(templatepath, "*", SearchOption.AllDirectories))
+                {
+                    // Trash code to work around inconsistent path formats.
+                    var fileRelPath = file.Replace($"{templatepath.TrimEnd('\\')}\\", "");
+                    var destPath = Path.Combine(dir, fileRelPath);
+                    File.Copy(file, destPath);
+                }
+
+                //Default to public online
+                checkpoint.OnlineMode = MyOnlineModeEnum.PUBLIC;
+                checkpoint.SessionName = worldname;
+
+                if (!MyLocalCache.SaveCheckpoint(checkpoint, dir))
+                {
+                    reason = $"Failed to save new world checkpoint";
+                    return false;
+                }
+
+                //Add the updated world to the active worlds
+                WorldInfo worldInfo = new WorldInfo
+                {
+                    Name = di.Name,
+                    CreatedUtc = di.CreationTime,
+                    LastUpdatedUtc = di.LastWriteTimeUtc
+                };
+                _worlds.Add(worldInfo);
+
+
+                WorldsChanged.Invoke(_worlds); // Invoke the WorldsChanged event to notify subscribers of the change
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.Fatal(ex);
+                return false;
+            }
+        }
+
+        public bool TryDeleteWorld(string worldname, out string reason)
+        {
+            reason = "";
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(worldname))
+                {
+                    reason = "World name is required.";
+                    return false;
+                }
+
+                // Find the world in the in-memory list
+                var world = _worlds.FirstOrDefault(w => string.Equals(w.Name, worldname, StringComparison.OrdinalIgnoreCase));
+                if (world == null)
+                {
+                    reason = $"World '{worldname}' does not exist.";
+                    return false;
+                }
+
+                // Build the world directory path
+                string dir = Path.Combine(_configs.Config.Directories.WorldsDir, worldname);
+
+                if (!Directory.Exists(dir))
+                {
+                    reason = $"World directory '{dir}' does not exist.";
+                    return false;
+                }
+
+                // Delete the directory and all contents
+                Directory.Delete(dir, true);
+
+                // Remove from in-memory list
+                _worlds.Remove(world);
+
+                // Notify subscribers
+                WorldsChanged?.Invoke(_worlds);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                reason = $"Failed to delete world '{worldname}': {ex.Message}";
+                _logger.Error(ex, reason);
+                return false;
+            }
+        }
+
+        #endregion
+
+
+
+
+
+
+        public static (string, string) GetUniqueFolder(string basePath, string folderName)
+        {
+            string fullPath = Path.Combine(basePath, folderName);
+            string newName = folderName;
+            int count = 1;
+
+            while (Directory.Exists(fullPath))
+            {
+                newName = $"{folderName}-{count}";
+                fullPath = Path.Combine(basePath, newName);
+                count++;
+            }
+
+            return (fullPath, newName);
+        }
+
+
+        public IMyConfigDedicated GetServerConfigs(ProfileCfg? targetInstance = null)
+        {
+            if (targetInstance == null)
+            {
+                targetInstance = GetCurrentProfile();
+            }
+                
+
+            var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, targetInstance.InstancePath, _DedicatedCfgFilename);
+            var gameconfig = new MyConfigDedicated<MyObjectBuilder_SessionSettings>(configPath);
+            gameconfig.SessionSettings = null; //Since the game actually doesnt even use these and the ignore last session doesnt work haha
+
+            /// Load or create the config file
+            if (File.Exists(configPath))
+            {
+                gameconfig.Load();
+            }
+            else
+            {
+                gameconfig.Save();
+            }
+
+            gameconfig.WorldName = targetInstance.TargetWorld;
+            gameconfig.LoadWorld = Path.Combine(Path.GetFullPath(_configs.Config.Directories.WorldsDir), targetInstance.TargetWorld);
+
+
+            return gameconfig;
+        }
+
+
+        [HarmonyPatch(typeof(MyFileSystem), "Init")]
+        private static void InitFileSystem_Prefix(string contentPath, string userData, string modDirName = "Mods", string shadersBasePath = null, string modsCachePath = null)
+        {
+            //Console.WriteLine($"[Harmony] MyFileSystem.Init called with contentPath: {contentPath}, userData: {userData}");
+        }
+
+
+        public List<ProfileCfg> GetAllInstances()
+        {
+            return _instances;
+        }
+
+        public List<WorldInfo> GetAllWorlds()
+        {
+            return _worlds;
         }
 
     }
