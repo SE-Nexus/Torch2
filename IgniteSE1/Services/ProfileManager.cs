@@ -36,6 +36,10 @@ namespace IgniteSE1.Services
         private List<WorldInfo> _worlds = new List<WorldInfo>();
         private ProfileCfg _selectedInstance = null;
 
+        //Changed Events
+        public event Action<List<WorldInfo>>? WorldsChanged;
+        public event Action<List<ProfileCfg>>? ProfilesChanged;
+
 
 
         public ProfileManager(ConfigService configs)
@@ -163,6 +167,9 @@ namespace IgniteSE1.Services
                 cfg.Save(); // Save the configuration to the file
 
                 _instances.Add(cfg); // Add the new instance configuration to the list
+
+
+                ProfilesChanged.Invoke(_instances); // Invoke the ProfilesChanged event to notify subscribers of the change
                 return (true, "Instance Created Successfully");
             }
             catch (Exception ex)
@@ -232,7 +239,7 @@ namespace IgniteSE1.Services
                     return false;
                 }
 
-                Directory.CreateDirectory(dir);
+                var di = Directory.CreateDirectory(dir);
 
                 var checkpoint = MyLocalCache.LoadCheckpoint(templatepath, out _);
                 if (checkpoint == null)
@@ -260,6 +267,18 @@ namespace IgniteSE1.Services
                     reason = $"Failed to save new world checkpoint";
                     return false;
                 }
+
+                //Add the updated world to the active worlds
+                WorldInfo worldInfo = new WorldInfo
+                {
+                    Name = di.Name,
+                    CreatedUtc = di.CreationTime,
+                    LastUpdatedUtc = di.LastWriteTimeUtc
+                };
+                _worlds.Add(worldInfo);
+
+
+                WorldsChanged.Invoke(_worlds); // Invoke the WorldsChanged event to notify subscribers of the change
 
                 return true;
             }catch(Exception ex)

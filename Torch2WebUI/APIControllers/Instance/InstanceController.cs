@@ -11,7 +11,6 @@ using Torch2WebUI.Services.InstanceServices;
 namespace Torch2WebUI.APIControllers.Status
 {
     [ApiController]
-    [Route("api/instance")]
     public class InstanceController : ControllerBase
     {
         /// <summary>
@@ -20,7 +19,7 @@ namespace Torch2WebUI.APIControllers.Status
         /// <param name="status"></param>
         /// <param name="InstanceService"></param>
         /// <returns></returns>
-        [HttpPost("Update")]
+        [HttpPost(WebAPIConstants.Update)]
         public IActionResult GetStatus([FromBody] TorchInstance status, [FromServices] InstanceManager InstanceService)
         {
             
@@ -38,7 +37,7 @@ namespace Torch2WebUI.APIControllers.Status
         /// <param name="status"></param>
         /// <param name="InstanceService"></param>
         /// <returns></returns>
-        [HttpPost("Regsiter")]
+        [HttpPost(WebAPIConstants.Register)]
         public IActionResult RegisterInstance([FromBody] TorchInstance status, [FromServices] InstanceManager InstanceService)
         {
             InstanceService.RegisterInstance(status);
@@ -54,7 +53,7 @@ namespace Torch2WebUI.APIControllers.Status
         /// <param name="allinstances">A list of instance configuration objects received from the request body. Represents the set of instances to
         /// be processed.</param>
         /// <returns>An <see cref="IActionResult"/> that indicates the result of the operation.</returns>
-        [HttpPost("allprofiles")]
+        [HttpPost(WebAPIConstants.AllProfiles)]
         public IActionResult GetAllConfiguredProfiles([FromBody] List<ProfileCfg> allinstances, [FromServices] InstanceManager InstanceService)
         {
             var headers = HttpContext.Request.Headers;
@@ -64,7 +63,7 @@ namespace Torch2WebUI.APIControllers.Status
         }
 
 
-        [HttpPost("allworlds")]
+        [HttpPost(WebAPIConstants.AllWorlds)]
         public IActionResult GetAllWorlds([FromBody] List<WorldInfo> allWorlds, [FromServices] InstanceManager InstanceService)
         {
             var headers = HttpContext.Request.Headers;
@@ -74,7 +73,7 @@ namespace Torch2WebUI.APIControllers.Status
         }
 
 
-        [HttpPost("customworlds")]
+        [HttpPost(WebAPIConstants.CustomWorlds)]
         public IActionResult GetAllCustomWorlds([FromBody] List<WorldInfo> allWorlds, [FromServices] InstanceManager InstanceService)
         {
             var headers = HttpContext.Request.Headers;

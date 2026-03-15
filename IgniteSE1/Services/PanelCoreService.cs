@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Torch2API.Constants;
 using Torch2API.DTOs.Instances;
 using Torch2API.DTOs.WebSockets;
 using Torch2API.Models.Configs;
@@ -40,6 +41,20 @@ namespace InstanceUtils.Services.WebPanel
             _cmdService = cmdService;
             _provider = provider;
 
+            _instanceManager.ProfilesChanged += _instanceManager_ProfilesChanged;
+            _instanceManager.WorldsChanged += _instanceManager_WorldsChanged;
+
+        }
+
+        private async void _instanceManager_WorldsChanged(List<WorldInfo> obj)
+        {
+            //No matter who runs this command, we need to alert the panel. Should this be here or in the create world?
+            await _webPanelClient.PostAsync(WebAPIConstants.AllWorlds, obj);
+        }
+
+        private async void _instanceManager_ProfilesChanged(List<ProfileCfg> obj)
+        {
+            await _webPanelClient.PostAsync(WebAPIConstants.AllProfiles, obj);
         }
 
         public async Task GetPublicIP()
@@ -89,7 +104,7 @@ namespace InstanceUtils.Services.WebPanel
                     StateTime = _serverStateService.GetStateTime()
                 };
 
-            var success = await _webPanelClient.PostAsync("api/instance/update",status,ct);
+            var success = await _webPanelClient.PostAsync(WebAPIConstants.Update, status,ct);
         }
 
         public async Task RunAsync(CancellationToken ct)

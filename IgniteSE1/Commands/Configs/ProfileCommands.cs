@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Torch2API.Attributes;
+using Torch2API.Constants;
 using Torch2API.Models.Commands;
 
 namespace IgniteSE1.Commands
@@ -33,7 +34,7 @@ namespace IgniteSE1.Commands
 
             if(ctx is WebPanelContext)
             {
-                await _PanelClient.PostAsync("api/instance/allprofiles", _InstanceManager.GetAllInstances());
+                await _PanelClient.PostAsync(WebAPIConstants.AllProfiles, _InstanceManager.GetAllInstances());
                 return;
             }
 

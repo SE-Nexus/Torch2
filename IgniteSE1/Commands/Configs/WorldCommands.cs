@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Torch2API.Attributes;
+using Torch2API.Constants;
 using Torch2API.Models.Commands;
 using Torch2API.Models.Configs;
 using VRage;
@@ -46,7 +47,7 @@ namespace IgniteSE1.Commands.Configs
 
             if (ctx is WebPanelContext)
             {
-                await _PanelClient.PostAsync("api/instance/allworlds", instances);
+                await _PanelClient.PostAsync(WebAPIConstants.AllWorlds, instances);
                 return;
             }
 
@@ -91,7 +92,7 @@ namespace IgniteSE1.Commands.Configs
                 }
 
 
-                await _PanelClient.PostAsync("api/instance/customworlds", worldInfos);
+                await _PanelClient.PostAsync(WebAPIConstants.CustomWorlds, worldInfos);
                 return;
             }
 
@@ -102,6 +103,8 @@ namespace IgniteSE1.Commands.Configs
             }
 
         }
+
+
 
 
         [Command("create", "Creates a new world. Optionally uses specific premade name")]
@@ -141,6 +144,10 @@ namespace IgniteSE1.Commands.Configs
             {
                 ctx.RespondLine($"$Successfully created new world {worldname}");
             }
+
+           
+
+
 
         }
 
