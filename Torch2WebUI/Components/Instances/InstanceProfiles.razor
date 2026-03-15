@@ -1,9 +1,12 @@
 ﻿@page "/instances/{InstanceId}/profiles"
 @using Torch2API.Models.Configs
 @using Torch2WebUI.Models
+@using MudBlazor
 @layout InstanceLayout
 
 @inject InstanceManager InstanceManager
+@inject IDialogService DialogService
+
 <PageTitle>Instance Profiles</PageTitle>
 
 @if (_instance is null)
@@ -20,7 +23,7 @@
     <MudPaper Elevation="1" Class="pa-4">
         <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
             <MudText Typo="Typo.h5">
-                @_instance.ProfileName
+                Active Profile: @_instance.ProfileName
             </MudText>
 
             <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined">
@@ -33,6 +36,7 @@
                 <MudIcon Icon="@Icons.Material.Filled.Fingerprint"
                          Color="Color.Secondary" />
             </MudTooltip>
+
         </MudStack>
     </MudPaper>
 
@@ -41,33 +45,87 @@
 
 
         <!-- 📜 LEFT: PROFILE LIST -->
-        <MudItem xs="12" md="4" lg="3">
-            <MudPaper Class="pa-2" Style="height: 70vh; overflow-y: auto;">
-                <MudList T="ProfileCfg" Dense="true">
-                    @foreach (var profile in _instance.Profiles)
-                    {
-                        <MudListItem Clickable="true"
-                                     Selected="@(profile == _selectedProfile)"
-                                     OnClick="@(() => SelectProfile(profile))">
-                            <MudStack>
-                                <MudText Typo="Typo.subtitle2">
-                                    @profile.InstanceName
-                                </MudText>
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                    @profile.TargetWorld
-                                </MudText>
-                            </MudStack>
-                        </MudListItem>
-                    }
-                </MudList>
-            </MudPaper>
+        <MudItem xs="12" md="5" lg="3">
+            <MudStack>
+                <MudPaper Class="pa-2" Style="overflow-y: auto;">
+
+                    <MudStack Row StretchItems="StretchItems.All">
+                        <!-- New & Delete at top -->
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   OnClick="CreateProfileAsync">
+                            New
+                        </MudButton>
+
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Error"
+                                   StartIcon="@Icons.Material.Filled.Delete"
+                                   Disabled="@(_selectedProfile == null)"
+                                   OnClick="DeleteSelectedProfileAsync">
+                            Delete
+                        </MudButton>
+                    </MudStack>
+                </MudPaper>
+
+                <MudPaper Class="pa-2" Style="overflow-y: auto;">
+                    <MudList T="ProfileCfg" Dense="true">
+                        @foreach (var profile in _instance.Profiles)
+                        {
+                            <MudListItem Clickable="true" Selected="@(profile == _selectedProfile)" OnClick="@(() => SelectProfile(profile))" Class="pa-2">
+
+                                <MudStack Row>
+
+                                    <MudStack AlignItems="AlignItems.Center" Spacing="1">
+                                        <MudAvatar Size="Size.Medium" Color="Color.Primary">
+                                            @((!string.IsNullOrWhiteSpace(profile.InstanceName) ? profile.InstanceName.Substring(0, 1).ToUpper() : "?"))
+                                        </MudAvatar>
+
+
+                                        @if (profile.AutoStart)
+                                        {
+                                            <MudChip Size="Size.Small" Color="Color.Success" Variant="Variant.Filled">Auto</MudChip>
+                                        }
+                                    </MudStack>
+
+
+
+                                    <MudStack Justify="Justify.FlexStart" Spacing="0">
+
+                                        <MudStack Row StretchItems="StretchItems.Start">
+                                            <MudText Typo="Typo.h6" Class="mb-0">
+                                                @profile.InstanceName
+                                            </MudText>
+
+                                            <MudChip Size="Size.Small" Variant="Variant.Outlined">@($"Port: {profile.InstancePort}")</MudChip>
+                                        </MudStack>
+
+
+
+                                        <MudText Typo="Typo.body2">
+                                            @profile.Description
+                                        </MudText>
+
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-0">
+                                            @profile.TargetWorld
+                                        </MudText>
+                                    </MudStack>
+                                </MudStack>
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudPaper>
+            </MudStack>
+
+
+            
         </MudItem>
 
 
         @if (_selectedProfile != null)
         {
             <!-- 📄 RIGHT: PROFILE DETAILS -->
-            <MudItem xs="12" md="8" lg="9">
+            <MudItem xs="12" md="7" lg="9">
                 <MudPaper Class="pa-4" Style="min-height: 70vh;">
                     @if (_selectedProfile == null)
                     {
@@ -77,16 +135,18 @@
                     }
                     else
                     {
-
-
-
-
                         <MudStack Spacing="2">
                             <MudText Typo="Typo.h5">
-                                @_selectedProfile.InstanceName
+                                Profile Details
                             </MudText>
 
                             <MudDivider />
+
+                            <!-- Editable Name -->
+                            <MudTextField @bind-Value="_selectedProfile.InstanceName"
+                                          Label="Name"
+                                          Variant="Variant.Outlined"
+                                          FullWidth />
 
                             <!-- TEXT -->
                             <MudTextField @bind-Value="_selectedProfile.Description"
@@ -115,7 +175,7 @@
 
                             <!-- SWITCHES -->
                             <MudSwitch T="bool"
-                                       @bind-Checked="_selectedProfile.AutoStart"
+                                       @bind-value="_selectedProfile.AutoStart"
                                        Color="Color.Primary">
                                 Auto Start
                             </MudSwitch>
@@ -151,12 +211,16 @@
                             <MudDivider />
 
                             <!-- ⚙️ ACTIONS -->
-                            <MudStack Row Spacing="2">
-                                <MudButton Color="Color.Primary" Variant="Variant.Filled">
+                            <MudStack Row StretchItems="StretchItems.All">
+                                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="LoadProfileAsync">
                                     Load Profile
                                 </MudButton>
 
-                                <MudButton Color="Color.Error" Variant="Variant.Outlined">
+                                <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="UpdateSelectedProfileAsync" Disabled="@(_selectedProfile == null)">
+                                    Update
+                                </MudButton>
+
+                                <MudButton Color="Color.Error" Variant="Variant.Outlined" OnClick="DeleteSelectedProfileAsync">
                                     Delete
                                 </MudButton>
                             </MudStack>
@@ -183,7 +247,8 @@
 
 
     private MudForm? _form;
-    private ProfileCfg _selectedProfile;
+    private ProfileCfg? _selectedProfile;
+    private string? _originalProfileName;
 
 
     private TorchInstance? _instance;
@@ -192,6 +257,8 @@
     {
         _instance = InstanceManager.GetInstanceByID(InstanceId);
         InstanceManager.OnChange += OnInstanceUpdated;
+
+        _selectedProfile = _instance.Profiles.FirstOrDefault();
 
         await InstanceManager.SendCommand(_instance, "Config/Profiles/List");
     }
@@ -211,7 +278,104 @@
     private void SelectProfile(ProfileCfg profile)
     {
         _selectedProfile = profile;
+        _originalProfileName = profile.InstanceName;
         StateHasChanged();
+    }
+
+    private async Task CreateProfileAsync()
+    {
+        if (_instance is null)
+            return;
+
+        var options = new DialogParameters
+        {
+            ["Label"] = "Profile Name",
+            ["Value"] = string.Empty,
+            ["Title"] = "Create Profile",
+            ["ConfirmText"] = "Create",
+            ["CancelText"] = "Cancel"
+        };
+
+        var dialogRef = await DialogService.ShowAsync<Torch2WebUI.Components.Dialogs.InputDialog>("Create Profile", options, new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+        var result = await dialogRef.Result;
+        if (result.Canceled || result.Data is null)
+            return;
+
+        if (result.Data is string name && !string.IsNullOrWhiteSpace(name))
+        {
+            await InstanceManager.SendCommand(_instance, "Config/Profiles/Create", new { name = name.Trim() });
+            await InstanceManager.SendCommand(_instance, "Config/Profiles/List");
+        }
+    }
+
+    // New: single confirm method that accepts an optional ProfileCfg.
+    // Call without parameter to delete the selected profile, or pass a profile for item-level delete.
+    private async Task ConfirmDeleteProfile(ProfileCfg? profile = null)
+    {
+        var target = profile ?? _selectedProfile;
+        if (_instance is null || target is null)
+            return;
+
+        var dialogParams = new DialogParameters
+        {
+            ["Message"] = $"Delete profile '{target.InstanceName}'? This cannot be undone.",
+            ["Args"] = target.InstanceName,
+            ["ConfirmText"] = "Delete",
+            ["CancelText"] = "Cancel",
+            ["ShowCancel"] = true,
+            ["ButtonIcon"] = Icons.Material.Filled.Delete
+        };
+
+        var dialogRef = await DialogService.ShowAsync<Torch2WebUI.Components.Dialogs.ConfirmDialog>($"Delete Profile '{target.InstanceName}'?", dialogParams);
+        var result = await dialogRef.Result;
+
+        if (!result.Canceled && result.Data is string confirmedName)
+        {
+            await InstanceManager.SendCommand(_instance, "Config/Profiles/Delete", new { name = confirmedName });
+            if (_selectedProfile != null && string.Equals(_selectedProfile.InstanceName, confirmedName, StringComparison.OrdinalIgnoreCase))
+            {
+                _selectedProfile = null;
+                _originalProfileName = null;
+            }
+            await InstanceManager.SendCommand(_instance, "Config/Profiles/List");
+        }
+    }
+
+    // kept for backward compatibility with previous wiring; delegates to ConfirmDeleteProfile()
+    private Task DeleteSelectedProfileAsync() => ConfirmDeleteProfile();
+
+    private async Task UpdateSelectedProfileAsync()
+    {
+        if (_instance is null || _selectedProfile is null)
+            return;
+
+        // Use the original name as the existing identifier (in case the user renamed the InstanceName)
+        var payload = new
+        {
+            name = _originalProfileName ?? _selectedProfile.InstanceName,
+            newname = _selectedProfile.InstanceName,
+            targetworld = _selectedProfile.TargetWorld,
+            description = _selectedProfile.Description,
+            port = _selectedProfile.InstancePort,
+            autostart = _selectedProfile.AutoStart,
+            checkupdates = _selectedProfile.CheckForUpdates,
+            autoupdategame = _selectedProfile.AutoUpdateGame,
+            restartoncrash = _selectedProfile.RestartOnCrash,
+            branch = _selectedProfile.BranchName,
+            branchpwd = _selectedProfile.BranchPassword,
+            logsmaxage = _selectedProfile.LogsMaxAge
+        };
+
+        await InstanceManager.SendCommand(_instance, "Config/Profiles/Update", payload);
+
+        // refresh list
+        await InstanceManager.SendCommand(_instance, "Config/Profiles/List");
+    }
+
+    private Task LoadProfileAsync()
+    {
+        // TODO: implement "load" behavior if needed (start instance or apply settings).
+        return Task.CompletedTask;
     }
 
     public void Dispose()

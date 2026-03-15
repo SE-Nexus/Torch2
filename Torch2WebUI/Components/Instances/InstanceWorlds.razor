@@ -1,5 +1,6 @@
 ﻿@page "/instances/{InstanceId}/worlds"
 @using Torch2API.Models.Configs
+@using Torch2WebUI.Components.Dialogs
 @using Torch2WebUI.Models
 @layout InstanceLayout
 
@@ -178,22 +179,29 @@
         if (_instance is null)
             return;
 
-        var parameters = new DialogParameters
+        var dialogParams = new DialogParameters
         {
-            ["ContentText"] = $"Delete world '{worldName}'? This cannot be undone."
+
+            ["Message"] = $"Deleting world '{worldName}' cannot be undone.",
+            //["SubTitle"] = "MuSubTitle",
+            //["Args"] = worldName,
+            ["ConfirmText"] = "Delete",
+            ["CancelText"] = "Cancel",
+            ["ShowCancel"] = true,
+            ["ButtonIcon"] = Icons.Material.Filled.Delete
         };
 
-        /*
-        var dialog = DialogService.Show<ConfirmDialog>("Confirm Delete", parameters);
-        var result = await dialog.Result;
+        var options = new DialogOptions { CloseOnEscapeKey = true };
 
-        if (!result.Canceled)
+        var dialogRef = await DialogService.ShowAsync<ConfirmDialog>($"Delete World '{worldName}'?", dialogParams, options);
+        var result = await dialogRef.Result;
+
+        if (!result.Canceled && result.Data is string confirmedWorldName)
         {
             await InstanceManager.SendCommand(
                 _instance,
                 "Config/Worlds/Delete",
-                new { WorldName = worldName });
+                new { worldname = confirmedWorldName });
         }
-        */
     }
 }

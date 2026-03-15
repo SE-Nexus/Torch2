@@ -1,0 +1,38 @@
+@using MudBlazor
+@inject IDialogService DialogService
+
+<MudDialog MaxWidth="MaxWidth.Small" FullWidth="true">
+    <DialogContent>
+        @if (!string.IsNullOrWhiteSpace(Title))
+        {
+            <MudText Typo="Typo.h6" Class="mb-2">@Title</MudText>
+        }
+        <MudTextField @bind-Value="_value" Label="@Label" Variant="Variant.Outlined" FullWidth="true" />
+    </DialogContent>
+    <DialogActions>
+        <MudStack Row JustifyContent="flex-end" Spacing="1" Class="pa-2">
+            <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="Cancel">@CancelText</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Confirm">@ConfirmText</MudButton>
+        </MudStack>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public string Label { get; set; } = "Value";
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string ConfirmText { get; set; } = "Ok";
+    [Parameter] public string CancelText { get; set; } = "Cancel";
+
+    private string _value = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        _value = Value ?? string.Empty;
+    }
+
+    private void Confirm() => MudDialog.Close(DialogResult.Ok(_value));
+    private void Cancel() => MudDialog.Cancel();
+}

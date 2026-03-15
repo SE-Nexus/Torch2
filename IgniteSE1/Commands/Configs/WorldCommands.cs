@@ -144,17 +144,25 @@ namespace IgniteSE1.Commands.Configs
             {
                 ctx.RespondLine($"$Successfully created new world {worldname}");
             }
-
-           
-
-
-
         }
 
-        [Command("delete", "Deletes the specified world")]
-        public async Task GetCustomScenarios()
-        {
 
+        [Command("delete", "Deletes the specified world")]
+        public async Task DeleteWorld([Option("--worldname", "Name of the world to delete")] string worldname)
+        {
+            if (string.IsNullOrWhiteSpace(worldname))
+            {
+                ctx.RespondLine("A world name is required.");
+                return;
+            }
+
+            if (!_InstanceManager.TryDeleteWorld(worldname, out string reason))
+            {
+                ctx.RespondLine(reason);
+                return;
+            }
+
+            ctx.RespondLine($"Successfully deleted world '{worldname}'.");
         }
 
 

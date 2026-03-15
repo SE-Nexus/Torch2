@@ -44,6 +44,7 @@ namespace Torch2API.Utils
 
             var yaml = File.ReadAllText(filePath);
             T ob = deserializer.Deserialize<T>(yaml);
+            ob.filePath = filePath;
             EnviromentVarLoader.Load(ob);
             return ob;
         }

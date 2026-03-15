@@ -169,7 +169,7 @@ namespace IgniteSE1.Services
                 _instances.Add(cfg); // Add the new instance configuration to the list
 
 
-                ProfilesChanged.Invoke(_instances); // Invoke the ProfilesChanged event to notify subscribers of the change
+                ProfilesChanged?.Invoke(_instances); // Invoke the ProfilesChanged event to notify subscribers of the change
                 return (true, "Instance Created Successfully");
             }
             catch (Exception ex)
@@ -289,6 +289,55 @@ namespace IgniteSE1.Services
         }
 
 
+        public bool TryDeleteWorld(string worldname, out string reason)
+        {
+            reason = "";
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(worldname))
+                {
+                    reason = "World name is required.";
+                    return false;
+                }
+
+                // Find the world in the in-memory list
+                var world = _worlds.FirstOrDefault(w => string.Equals(w.Name, worldname, StringComparison.OrdinalIgnoreCase));
+                if (world == null)
+                {
+                    reason = $"World '{worldname}' does not exist.";
+                    return false;
+                }
+
+                // Build the world directory path
+                string dir = Path.Combine(_configs.Config.Directories.WorldsDir, worldname);
+
+                if (!Directory.Exists(dir))
+                {
+                    reason = $"World directory '{dir}' does not exist.";
+                    return false;
+                }
+
+                // Delete the directory and all contents
+                Directory.Delete(dir, true);
+
+                // Remove from in-memory list
+                _worlds.Remove(world);
+
+                // Notify subscribers
+                WorldsChanged?.Invoke(_worlds);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                reason = $"Failed to delete world '{worldname}': {ex.Message}";
+                _logger.Error(ex, reason);
+                return false;
+            }
+        }
+
+
         public ProfileCfg GetCurrentProfile()
         {
             return _selectedInstance;
@@ -335,6 +384,137 @@ namespace IgniteSE1.Services
         public List<WorldInfo> GetAllWorlds()
         {
             return _worlds; 
+        }
+
+        /// <summary>
+        /// Attempts to apply an update to a profile with the specified instance name using the provided action.
+        /// </summary>
+        /// <remarks>If the profile's instance name is changed, this method attempts to update the
+        /// corresponding directory name. If a profile with the new name already exists, the update is not applied and
+        /// this method returns false. Any errors encountered during the update are captured in the reason
+        /// parameter.</remarks>
+        /// <param name="instanceName">The name of the profile instance to update. Cannot be null, empty, or whitespace.</param>
+        /// <param name="apply">An action that applies modifications to the profile. The profile object is passed to this action for
+        /// mutation.</param>
+        /// <param name="reason">When this method returns, contains the reason for a failure if the update could not be applied; otherwise,
+        /// an empty string.</param>
+        /// <returns>true if the profile update succeeded; otherwise, false.</returns>
+        public bool TryApplyProfileUpdate(string instanceName, Action<ProfileCfg> apply, out string reason)
+        {
+            reason = string.Empty;
+            if (string.IsNullOrWhiteSpace(instanceName))
+            {
+                reason = "Instance name is required.";
+                return false;
+            }
+
+            if (!TryGetProfileByName(instanceName, out var profile))
+            {
+                reason = $"Profile '{instanceName}' not found.";
+                return false;
+            }
+
+            string originalName = profile.InstanceName;
+
+            try
+            {
+                // Let caller mutate the profile object
+                apply(profile);
+
+                // Handle renaming of profile folder if InstanceName changed
+                if (!string.Equals(originalName, profile.InstanceName, StringComparison.OrdinalIgnoreCase))
+                {
+                    var oldDir = Path.Combine(_ProfileDirectory, originalName);
+                    var newDir = Path.Combine(_ProfileDirectory, profile.InstanceName);
+
+                    if (Directory.Exists(newDir))
+                    {
+                        reason = $"A profile with the name '{profile.InstanceName}' already exists.";
+                        // revert change
+                        profile.InstanceName = originalName;
+                        return false;
+                    }
+
+                    if (Directory.Exists(oldDir))
+                    {
+                        Directory.Move(oldDir, newDir);
+                    }
+                    else
+                    {
+                        // If the old directory doesn't exist, create the new directory so file can be saved
+                        Directory.CreateDirectory(newDir);
+                    }
+
+                    profile.InstancePath = newDir;
+                    profile.filePath = Path.Combine(newDir, _instanceCfgFilename);
+                }
+
+                // Persist the updated profile
+                profile.Save();
+
+                // Notify subscribers
+                ProfilesChanged?.Invoke(_instances);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                reason = ex.Message;
+                _logger.Error(ex, $"Failed to update profile '{instanceName}'");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Attempts to delete the profile identified by the specified instance name.
+        /// </summary>
+        /// <remarks>If the profile cannot be found or the deletion fails, the reason for failure is
+        /// provided in the out parameter. This method does not throw exceptions for user-correctable errors; instead,
+        /// it returns false with an appropriate message.</remarks>
+        /// <param name="instanceName">The name of the profile instance to delete. Cannot be null, empty, or whitespace.</param>
+        /// <param name="reason">When this method returns, contains the reason for failure if the profile could not be deleted; otherwise,
+        /// contains an empty string.</param>
+        /// <returns>true if the profile was successfully deleted; otherwise, false.</returns>
+        public bool TryDeleteProfile(string instanceName, out string reason)
+        {
+            reason = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(instanceName))
+            {
+                reason = "Instance name is required.";
+                return false;
+            }
+
+            if (!TryGetProfileByName(instanceName, out var profile))
+            {
+                reason = $"Profile '{instanceName}' not found.";
+                return false;
+            }
+
+            try
+            {
+                string dir = profile.InstancePath;
+                if (string.IsNullOrWhiteSpace(dir))
+                {
+                    dir = Path.Combine(_ProfileDirectory, profile.InstanceName);
+                }
+
+                if (Directory.Exists(dir))
+                {
+                    Directory.Delete(dir, true);
+                }
+
+                _instances.Remove(profile);
+                ProfilesChanged?.Invoke(_instances);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                reason = $"Failed to delete profile '{instanceName}': {ex.Message}";
+                _logger.Error(ex, reason);
+                return false;
+            }
         }
 
     }

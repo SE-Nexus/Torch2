@@ -1,0 +1,121 @@
+﻿@using MudBlazor
+@using System.Text.Json
+@inject IDialogService DialogService
+
+<MudDialog Class="blur dialog-background" TitleClass="blur dialog-background-title" ContentClass="dialog-background-surface py-10" ActionsClass="dialog-background-surface">
+    <DialogContent>
+
+        <!-- Main Message -->
+        <MudText Typo="Typo.body1" Class="mb-2">
+            @Message
+        </MudText>
+
+        @if (!string.IsNullOrWhiteSpace(SubTitle))
+        {
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                @SubTitle
+            </MudText>
+        }
+
+        @if (Args is not null)
+        {
+            <MudPaper Elevation="0"
+                      Class="pa-3 mt-2"
+                      Style="border:1px solid var(--mud-palette-divider); background:var(--mud-palette-background-grey);">
+
+                <MudText Typo="Typo.subtitle2" Class="mb-2">
+                    Details
+                </MudText>
+
+                <MudText Typo="Typo.caption" Class="mono">
+                    @_jsonPreview
+                </MudText>
+
+            </MudPaper>
+        }
+
+    </DialogContent>
+    <DialogActions>
+        <MudStack Row JustifyContent="flex-end" Spacing="1" Class="pa-2">
+            @if (ShowCancel)
+            {
+                <MudButton Variant="Variant.Outlined" OnClick="Cancel" Color="Color.Default">
+                    @CancelText
+                </MudButton>
+            }
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Error"
+                       StartIcon="@ButtonIcon"
+                       OnClick="Confirm">
+                @ConfirmText
+            </MudButton>
+        </MudStack>
+    </DialogActions>
+</MudDialog>
+
+
+<style>
+    .blur {
+        backdrop-filter: blur(10px);
+    }
+
+    .dialog-background {
+        background-color: transparent;
+    }
+
+    .dialog-background-title {
+        background: rgba(var(--mud-palette-info-rgb), 0.5);
+        color: var(--mud-palette-white);
+    }
+
+    .dialog-background-surface {
+        background: rgba(var(--mud-palette-surface-rgb), 0.75);
+    }
+</style>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public string? SubTitle { get; set; }
+    [Parameter] public string Message { get; set; } = "Are you sure?";
+    [Parameter] public object? Args { get; set; }
+    [Parameter] public string ConfirmText { get; set; } = "Delete";
+    [Parameter] public string CancelText { get; set; } = "Cancel";
+    [Parameter] public bool ShowCancel { get; set; } = true;
+
+    // New: allow callers to specify the start icon for the confirm button.
+    [Parameter] public string? ButtonIcon { get; set; } = Icons.Material.Filled.Delete;
+
+    private string _jsonPreview = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+
+        if (Args is not null)
+        {
+            try
+            {
+                var opts = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+                _jsonPreview = JsonSerializer.Serialize(Args, opts);
+            }
+            catch
+            {
+                _jsonPreview = Args.ToString() ?? string.Empty;
+            }
+        }
+        else
+        {
+            _jsonPreview = string.Empty;
+        }
+    }
+
+    private void Confirm() => MudDialog.Close(DialogResult.Ok(Args));
+    private void Cancel() => MudDialog.Cancel();
+
+   
+}
