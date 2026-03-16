@@ -35,6 +35,8 @@ namespace InstanceUtils.Services.Commands.Contexts
 
                 var declaringInstance = ServiceExtensions.CreateInstance(Command.DeclaringType, scope.ServiceProvider);
 
+                
+
                 if (socketmsg.Args.ValueKind is not JsonValueKind.Object)
                     throw new InvalidOperationException($"WS command '{socketmsg.Command}' missing args object.");
 

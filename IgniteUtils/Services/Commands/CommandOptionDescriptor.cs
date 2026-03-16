@@ -22,6 +22,8 @@ namespace InstanceUtils.Services.Commands
             DefaultValue = defaultValue;
         }
 
-        public bool HasDefaultValue => DefaultValue != null;
+        // Consider DBNull.Value as "no default". If DefaultValue is null that means
+        // the parameter had an explicit default of null and should be treated as having a default.
+        public bool HasDefaultValue => DefaultValue != DBNull.Value;
     }
 }

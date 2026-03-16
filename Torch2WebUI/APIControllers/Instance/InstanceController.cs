@@ -8,6 +8,7 @@ using Torch2API.Models.Configs;
 using Torch2API.Models.Schema;
 using Torch2WebUI.Models;
 using Torch2WebUI.Services.InstanceServices;
+using Torch2API.Models.SE1;
 
 namespace Torch2WebUI.APIControllers.Status
 {
@@ -21,7 +22,7 @@ namespace Torch2WebUI.APIControllers.Status
         /// <param name="InstanceService"></param>
         /// <returns></returns>
         [HttpPost(WebAPIConstants.Update)]
-        public IActionResult GetStatus([FromBody] TorchInstance status, [FromServices] InstanceManager InstanceService)
+        public IActionResult GetStatus([FromBody] TorchInstanceBase status, [FromServices] InstanceManager InstanceService)
         {
             
             InstanceService.UpdateStatus(status);
@@ -39,7 +40,7 @@ namespace Torch2WebUI.APIControllers.Status
         /// <param name="InstanceService"></param>
         /// <returns></returns>
         [HttpPost(WebAPIConstants.Register)]
-        public IActionResult RegisterInstance([FromBody] TorchInstance status, [FromServices] InstanceManager InstanceService)
+        public IActionResult RegisterInstance([FromBody] TorchInstanceBase status, [FromServices] InstanceManager InstanceService)
         {
             InstanceService.RegisterInstance(status);
             // Example handling
@@ -47,6 +48,7 @@ namespace Torch2WebUI.APIControllers.Status
             return Ok();
             
         }
+
 
         /// <summary>
         /// Handles a POST request to retrieve all configured instance objects provided in the request body.
@@ -84,12 +86,13 @@ namespace Torch2WebUI.APIControllers.Status
         }
 
 
+        // Updated: accept full ConfigDedicatedSE1 objects from instances/panel
         [HttpPost(WebAPIConstants.DedicatedSchema)]
-        public IActionResult DedicatedSchema([FromBody] List<SettingDefinition> schema, [FromServices] InstanceManager InstanceService)
+        public IActionResult DedicatedSchema([FromBody] ConfigDedicatedSE1 config, [FromServices] InstanceManager InstanceService)
         {
             var headers = HttpContext.Request.Headers;
             string? instanceid = headers[TorchConstants.InstanceIdHeader].FirstOrDefault();
-            InstanceService.UpdateDedicatedSchema(instanceid, schema);
+            InstanceService.UpdateDedicatedConfig(instanceid, config);
             return Ok();
         }
     }

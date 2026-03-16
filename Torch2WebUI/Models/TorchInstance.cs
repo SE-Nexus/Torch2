@@ -2,6 +2,7 @@
 using Torch2API.DTOs.Instances;
 using Torch2API.Models.Configs;
 using Torch2API.Models.Schema;
+using Torch2API.Models.SE1;
 
 namespace Torch2WebUI.Models
 {
@@ -18,7 +19,8 @@ namespace Torch2WebUI.Models
         //Game custom worlds (Premade) that are saved and recognized by the instance. This is used to display the available custom worlds in the UI
         public List<WorldInfo> CustomWorlds { get; set; } = new();
 
-        //The schema for the dedicated config. This is used to generate the config UI and validate config changes
-        public List<SettingDefinition> DedicatedSchema { get; set; } = new();
+
+        // The concrete dedicated config DTO (new): used to receive/send full config objects
+        public ConfigDedicatedSE1 DedicatedConfig { get; set; } = new();
     }
 }

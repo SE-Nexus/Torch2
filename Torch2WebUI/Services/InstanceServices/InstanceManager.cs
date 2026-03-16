@@ -9,6 +9,7 @@ using Torch2WebUI.Components.Pages;
 using Torch2WebUI.Models;
 using Torch2WebUI.Services.SQL;
 using Timer = System.Timers.Timer;
+using Torch2API.Models.SE1;
 
 namespace Torch2WebUI.Services.InstanceServices
 {
@@ -50,7 +51,7 @@ namespace Torch2WebUI.Services.InstanceServices
         {
         }
 
-        public void UpdateStatus(TorchInstance instance)
+        public void UpdateStatus(TorchInstanceBase instance)
         {
             if (!RegisterInstance(instance))
                 return;
@@ -65,7 +66,7 @@ namespace Torch2WebUI.Services.InstanceServices
             return;
         }
 
-        public bool RegisterInstance(TorchInstance instance)
+        public bool RegisterInstance(TorchInstanceBase instance)
         {
             if (instance == null || string.IsNullOrWhiteSpace(instance.InstanceID))
                 return false;
@@ -79,7 +80,11 @@ namespace Torch2WebUI.Services.InstanceServices
                 var _database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 if (_database.ConfiguredInstances.Any(i => i.InstanceID == instance.InstanceID))
                 {
-                    ActiveInstances.TryAdd(instance.InstanceID, instance);
+
+                    TorchInstance inst = new TorchInstance();
+                    inst.UpdateFromConfiguredInstance(instance);
+
+                    ActiveInstances.TryAdd(instance.InstanceID, inst);
                     NotifyStateChanged(instance.InstanceID);
                     return true;
                 }
@@ -87,7 +92,10 @@ namespace Torch2WebUI.Services.InstanceServices
 
             if (EnableServerDiscovery)
             {
-                ActiveInstances.TryAdd(instance.InstanceID, instance);
+                TorchInstance inst = new TorchInstance();
+                inst.UpdateFromConfiguredInstance(instance);
+
+                ActiveInstances.TryAdd(instance.InstanceID, inst);
                 NotifyStateChanged(instance.InstanceID);
                 return true;
             }
@@ -139,14 +147,15 @@ namespace Torch2WebUI.Services.InstanceServices
             return true;
         }
 
-        public bool UpdateDedicatedSchema(string? instanceid, List<SettingDefinition> schema)
+        // New: accept the full config DTO and store it on the instance model
+        public bool UpdateDedicatedConfig(string? instanceid, ConfigDedicatedSE1 config)
         {
-            if (string.IsNullOrWhiteSpace(instanceid))
+            if (string.IsNullOrWhiteSpace(instanceid) || config == null)
                 return false;
 
             if (ActiveInstances.TryGetValue(instanceid, out var instance))
             {
-                instance.DedicatedSchema = schema;
+                instance.DedicatedConfig = config;
                 NotifyStateChanged(instance.InstanceID);
                 return true;
             }

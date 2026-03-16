@@ -28,7 +28,8 @@ namespace InstanceUtils.Services
 
         private readonly ConfigService _ConfigService;
 
-        private readonly Stack<string> _PreviousCommands;
+        // replaced Stack with history List to support indexed navigation (Up/Down)
+        private readonly List<string> _History;
         
         //private CommandLineManager _cli;
 
@@ -50,6 +51,9 @@ namespace InstanceUtils.Services
             ConsoleName = Name;
             _protoServicePort = _ConfigService.Config.ProtoServerPort;
             mutexName = AppDomain.CurrentDomain.FriendlyName.Replace("\\", "_");
+
+            // Initialize history
+            _History = new List<string>();
         }
 
 
@@ -99,10 +103,8 @@ namespace InstanceUtils.Services
 
                 while (true)
                 {
-                    var input = AnsiConsole.Prompt(
-                            new TextPrompt<string>("[grey]>[/]")
-                                .PromptStyle("deepskyblue1")
-                        );
+                    // use history-aware reader (supports Up/Down)
+                    var input = ReadLineWithHistory("> ");
 
                     if (string.IsNullOrEmpty(input))
                         continue;
@@ -111,13 +113,20 @@ namespace InstanceUtils.Services
                         break;
 
 
-                    //Store previous commands
-                    _PreviousCommands.Push(input);
-                    
-                    
+                    // store previous commands (append)
+                    _History.Add(input);
 
                     string[] inputArgs = input.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    await SendCLIRequest(inputArgs);
+
+                    try
+                    {
+                        await SendCLIRequest(inputArgs);
+                    }
+                    catch (Exception ex)
+                    {
+                        // avoid killing interactive mode on a single-bad command
+                        AnsiConsole.MarkupLine($"[red]Command failed:[/] {ex.Message}");
+                    }
                 }
 
                 //Lets return. As the command would attempt to continue with the --interactive stuff
@@ -197,6 +206,95 @@ namespace InstanceUtils.Services
             //LogManager.ReconfigExistingLoggers();
 
             return Task.FromResult(true);
+        }
+
+        // history-aware console reader: supports Up/Down to navigate previous commands, Backspace, Escape (clear), basic editing.
+        private string ReadLineWithHistory(string prompt)
+        {
+            var buffer = new StringBuilder();
+            int historyIndex = _History.Count; // one past the end
+            void Render()
+            {
+                try
+                {
+                    // Build full line and clear then write
+                    var line = prompt + buffer.ToString();
+                    int width = Console.WindowWidth;
+                    Console.Write("\r" + new string(' ', Math.Max(0, width - 1)) + "\r");
+                    Console.Write(line);
+                }
+                catch
+                {
+                    // Fallback if Console.WindowWidth isn't available
+                    Console.Write("\r" + prompt + buffer.ToString());
+                }
+            }
+
+            Console.Write(prompt);
+            while (true)
+            {
+                var key = Console.ReadKey(intercept: true);
+
+                if (key.Key == ConsoleKey.Enter)
+                {
+                    Console.WriteLine();
+                    return buffer.ToString();
+                }
+
+                if (key.Key == ConsoleKey.Backspace)
+                {
+                    if (buffer.Length > 0)
+                    {
+                        buffer.Remove(buffer.Length - 1, 1);
+                        Render();
+                    }
+                    continue;
+                }
+
+                if (key.Key == ConsoleKey.Escape)
+                {
+                    buffer.Clear();
+                    Render();
+                    continue;
+                }
+
+                if (key.Key == ConsoleKey.UpArrow)
+                {
+                    if (_History.Count > 0 && historyIndex > 0)
+                    {
+                        historyIndex--;
+                        buffer.Clear();
+                        buffer.Append(_History[historyIndex]);
+                        Render();
+                    }
+                    continue;
+                }
+
+                if (key.Key == ConsoleKey.DownArrow)
+                {
+                    if (historyIndex < _History.Count - 1)
+                    {
+                        historyIndex++;
+                        buffer.Clear();
+                        buffer.Append(_History[historyIndex]);
+                    }
+                    else
+                    {
+                        historyIndex = _History.Count;
+                        buffer.Clear();
+                    }
+                    Render();
+                    continue;
+                }
+
+                // Basic character input
+                var c = key.KeyChar;
+                if (!char.IsControl(c))
+                {
+                    buffer.Append(c);
+                    Console.Write(c);
+                }
+            }
         }
     }
 }

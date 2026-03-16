@@ -23,6 +23,6 @@ namespace Torch2API.Constants
         public const string CustomWorlds = InstanceBase + "/customworlds";
         public const string AllProfiles = InstanceBase + "/allprofiles";
         public const string DedicatedSchema = InstanceBase + "/dedicatedschema";
-        public const string Register = InstanceBase + "/Regsiter";
+        public const string Register = InstanceBase + "/regsiter";
     }
 }

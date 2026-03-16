@@ -298,7 +298,7 @@
     <Compile Include="Services\ServiceManager.cs" />
     <Compile Include="Services\SteamService.cs" />
     <Compile Include="Services\ConfigService.cs" />
-    <Compile Include="Utilities\GameSettings\DedicatedServerCfgUtils.cs" />
+    <Compile Include="Utilities\ModelTransfers\ConfigModelTransfer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".dockerignore">

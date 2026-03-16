@@ -1,7 +1,11 @@
 ﻿@page "/instances/{InstanceId}/profiles"
+@using System.Reflection
+@using System.ComponentModel
 @using Torch2API.Models.Configs
+@using Torch2API.Models.SE1
 @using Torch2WebUI.Models
 @using MudBlazor
+@using System.Text.Json
 @layout InstanceLayout
 
 @inject InstanceManager InstanceManager
@@ -127,106 +131,51 @@
             <!-- 📄 RIGHT: PROFILE DETAILS -->
             <MudItem xs="12" md="7" lg="9">
                 <MudPaper Class="pa-4" Style="min-height: 70vh;">
-                    @if (_selectedProfile == null)
-                    {
-                        <MudText Color="Color.Secondary">
-                            Select a profile to view details
-                        </MudText>
-                    }
-                    else
-                    {
-                        <MudStack Spacing="2">
-                            <MudText Typo="Typo.h5">
-                                @_selectedProfile.InstanceName Profile Details
-                            </MudText>
+                    <MudTabs>
+                        <MudTabPanel Text="Profile">
+                            <MudStack Spacing="2">
+                                <MudText Typo="Typo.h5">@_selectedProfile.InstanceName Profile Details</MudText>
+                                <MudDivider />
 
-                            <MudDivider />
+                                <!-- existing profile fields (unchanged) -->
+                                <MudTextField @bind-Value="_selectedProfile.InstanceName" Label="Name" Variant="Variant.Outlined" FullWidth />
+                                <MudTextField @bind-Value="_selectedProfile.Description" Label="Description" Variant="Variant.Outlined" FullWidth />
+                                <MudTextField @bind-Value="_selectedProfile.TargetWorld" Label="Target World" Variant="Variant.Outlined" FullWidth />
+                                <MudNumericField T="ushort" @bind-Value="_selectedProfile.InstancePort" Label="Port" Variant="Variant.Outlined" Min="1" Max="65535" />
+                                <MudNumericField T="int" @bind-Value="_selectedProfile.LogsMaxAge" Label="Logs Max Age (days)" Variant="Variant.Outlined" Min="0" />
 
-                            <!-- Editable Name -->
-                            <MudTextField @bind-Value="_selectedProfile.InstanceName"
-                                          Label="Name"
-                                          Variant="Variant.Outlined"
-                                          FullWidth />
+                                <MudSwitch T="bool" @bind-Checked="_selectedProfile.AutoStart" Color="Color.Primary">Auto Start</MudSwitch>
+                                <MudSwitch T="bool" @bind-Checked="_selectedProfile.CheckForUpdates" Color="Color.Primary">Check for Updates</MudSwitch>
+                                <MudSwitch T="bool" @bind-Checked="_selectedProfile.AutoUpdateGame" Color="Color.Primary">Auto Update Game</MudSwitch>
+                                <MudSwitch T="bool" @bind-Checked="_selectedProfile.RestartOnCrash" Color="Color.Primary">Restart on Crash</MudSwitch  >
 
-                            <!-- TEXT -->
-                            <MudTextField @bind-Value="_selectedProfile.Description"
-                                          Label="Description"
-                                          Variant="Variant.Outlined"
-                                          FullWidth />
+                                <MudTextField @bind-Value="_selectedProfile.BranchName" Label="Game Branch" Variant="Variant.Outlined" />
+                                <MudTextField @bind-Value="_selectedProfile.BranchPassword" Label="Branch Password" Variant="Variant.Outlined" InputType="InputType.Password" />
 
-                            <MudTextField @bind-Value="_selectedProfile.TargetWorld"
-                                          Label="Target World"
-                                          Variant="Variant.Outlined"
-                                          FullWidth />
+                                <MudDivider />
 
-                            <!-- NUMERIC -->
-                            <MudNumericField T="ushort"
-                                             @bind-Value="_selectedProfile.InstancePort"
-                                             Label="Port"
-                                             Variant="Variant.Outlined"
-                                             Min="1"
-                                             Max="65535" />
-
-                            <MudNumericField T="int"
-                                             @bind-Value="_selectedProfile.LogsMaxAge"
-                                             Label="Logs Max Age (days)"
-                                             Variant="Variant.Outlined"
-                                             Min="0" />
-
-                            <!-- SWITCHES -->
-                            <MudSwitch T="bool"
-                                       @bind-value="_selectedProfile.AutoStart"
-                                       Color="Color.Primary">
-                                Auto Start
-                            </MudSwitch>
-
-                            <MudSwitch T="bool" @bind-value="_selectedProfile.CheckForUpdates"
-                                       Color="Color.Primary">
-                                Check for Updates
-                            </MudSwitch>
-
-                            <MudSwitch T="bool" @bind-value="_selectedProfile.AutoUpdateGame"
-                                       Color="Color.Primary">
-                                Auto Update Game
-                            </MudSwitch>
-
-                            <MudSwitch T="bool"
-                                       @bind-value="_selectedProfile.RestartOnCrash"
-                                       Color="Color.Primary">
-                                Restart on Crash
-                            </MudSwitch>
-
-                            <!-- BRANCH -->
-                            <MudTextField @bind-Value="_selectedProfile.BranchName"
-                                          Label="Game Branch"
-                                          Variant="Variant.Outlined" />
-
-                            <MudTextField @bind-Value="_selectedProfile.BranchPassword"
-                                          Label="Branch Password"
-                                          Variant="Variant.Outlined"
-                                          InputType="InputType.Password" />
-
-
-
-                            <MudDivider />
-
-                            <!-- ⚙️ ACTIONS -->
-                            <MudStack Row StretchItems="StretchItems.All">
-                                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="LoadProfileAsync">
-                                    Load Profile
-                                </MudButton>
-
-                                <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="UpdateSelectedProfileAsync" Disabled="@(_selectedProfile == null)">
-                                    Update
-                                </MudButton>
-
-                                <MudButton Color="Color.Error" Variant="Variant.Outlined" OnClick="DeleteSelectedProfileAsync">
-                                    Delete
-                                </MudButton>
+                                <MudStack Row StretchItems="StretchItems.All">
+                                    <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="LoadProfileAsync">Load Profile</MudButton>
+                                    <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="UpdateSelectedProfileAsync" Disabled="@(_selectedProfile == null)">Update</MudButton>
+                                    <MudButton Color="Color.Error" Variant="Variant.Outlined" OnClick="DeleteSelectedProfileAsync">Delete</MudButton>
+                                </MudStack>
                             </MudStack>
-                        </MudStack>
+                        </MudTabPanel>
 
-                    }
+                        <MudTabPanel Text="Schema">
+                            @if (_dedicatedConfig == null)
+                            {
+                                <MudText Color="Color.Secondary">No schema available. It may not have been requested yet.</MudText>
+                            }
+                            else
+                            {
+                                <!-- AsteroidAmount (int) -->
+                                <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.AsteroidAmount))">
+                                    <MudNumericField T="int" Label="@nameof(_dedicatedConfig.AsteroidAmount)" @bind-Value="_dedicatedConfig.AsteroidAmount" Variant="Variant.Outlined" Min="0" />
+                                </MudTooltip>
+                            }
+                        </MudTabPanel>
+                    </MudTabs>
                 </MudPaper>
             </MudItem>
         }
@@ -250,7 +199,7 @@
     private ProfileCfg? _selectedProfile;
     private string? _originalProfileName;
 
-
+    private ConfigDedicatedSE1? _dedicatedConfig => _instance?.DedicatedConfig;
     private TorchInstance? _instance;
 
     protected override async Task OnInitializedAsync()
@@ -258,9 +207,11 @@
         _instance = InstanceManager.GetInstanceByID(InstanceId);
         InstanceManager.OnChange += OnInstanceUpdated;
 
-        _selectedProfile = _instance.Profiles.FirstOrDefault();
+        _selectedProfile = _instance?.Profiles.FirstOrDefault();
 
         await InstanceManager.SendCommand(_instance, "Config/Profiles/List");
+        // request dedicated schema from the instance
+        await InstanceManager.SendCommand(_instance, "Config/Profiles/dedicatedcfg");
     }
 
     private void OnInstanceUpdated(string updatedId)
@@ -389,4 +340,17 @@
         InstanceManager.OnChange -= OnInstanceUpdated;
     }
 
+
+    // Helper: get DescriptionAttribute string for a property
+    private static string GetDescription(string propName)
+    {
+        var prop = typeof(ConfigDedicatedSE1).GetProperty(propName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+        var attr = prop?.GetCustomAttribute<DescriptionAttribute>();
+        return attr?.Description ?? string.Empty;
+    }
+
+    
+
+        
+    }
 }
