@@ -63,22 +63,22 @@ namespace Torch2API.Models.SE1
         public bool RestartSave { get; set; }
 
         [Description("Gets or sets name of steam version branch")]
-        public string AutoUpdateSteamBranch { get; set; }
+        public string? AutoUpdateSteamBranch { get; set; }
 
         [Description("Gets or sets password of steam version branch")]
-        public string AutoUpdateBranchPassword { get; set; }
+        public string? AutoUpdateBranchPassword { get; set; }
 
         [Description("Gets or sets server description")]
-        public string ServerDescription { get; set; }
+        public string? ServerDescription { get; set; }
 
         [Description("Gets or sets server password hash. You need save and restart server to apply changes")]
-        public string ServerPasswordHash { get; set; }
+        public string? ServerPasswordHash { get; set; }
 
         [Description("Gets or sets server password salt. You need save and restart server to apply changes")]
-        public string ServerPasswordSalt { get; set; }
+        public string? ServerPasswordSalt { get; set; }
 
         [Description("Gets or sets server plugins. List contains file paths to dlls. You need save and restart server to apply changes")]
-        public List<string> Plugins { get; set; }
+        public List<string>? Plugins { get; set; }
 
         [Description("Gets or sets if game should automatically add dependency mods in mods list. You need save and restart server to apply changes")]
         public bool AutodetectDependencies { get; set; }

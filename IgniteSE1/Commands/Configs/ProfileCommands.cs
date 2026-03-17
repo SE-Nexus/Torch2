@@ -203,7 +203,8 @@ namespace IgniteSE1.Commands
             [Option("set", "Setting name to set (optional)")] string set = null,
             [Option("value", "Value to assign to the setting (required when --set provided)")] string value = null,
             [Option("model", "JSON string of full ConfigDedicatedSE1 or '@path' to file (optional)")] string model = null,
-            [Option("list", "If set, print all valid ConfigDedicatedSE1 setting names and exit")] bool list = false)
+            [Option("list", "If set, print all valid ConfigDedicatedSE1 setting names and exit")] bool list = false,
+            [Option("profile", "Profile name to load dedicated config from (optional)")] string profile = null)
         {
             // If list requested, ensure no other inputs conflict and print the available setting names
             if (list)
@@ -235,8 +236,26 @@ namespace IgniteSE1.Commands
             }
 
 
+          
+            // Load the runtime IMyConfigDedicated for either the provided profile or the current profile
+            var runtimeCfg = default(object);
+            if (!string.IsNullOrWhiteSpace(profile))
+            {
+                if (!_InstanceManager.TryGetProfileByName(profile, out var profileCfg))
+                {
+                    ctx.RespondLine($"Profile '{profile}' not found.");
+                    return;
+                }
+
+                runtimeCfg = _InstanceManager.GetServerConfigs(profileCfg);
+            }
+            else
+            {
+                runtimeCfg = _InstanceManager.GetServerConfigs();
+            }
+
             // If a full model JSON was provided, parse it
-            ConfigDedicatedSE1 modelObj = ConfigModelTransfer.GetDedicatedConfig(_InstanceManager.GetServerConfigs()); ;
+            ConfigDedicatedSE1 modelObj = ConfigModelTransfer.GetDedicatedConfig((dynamic)runtimeCfg);
             if (!string.IsNullOrWhiteSpace(model))
             {
                 //File path support: if model starts with @ treat the rest as file path and try to read JSON from it
@@ -342,8 +361,9 @@ namespace IgniteSE1.Commands
 
             // If web panel context, post either the provided full model or the constructed DTO
             await _PanelClient.PostAsync(WebAPIConstants.DedicatedSchema, modelObj);
-           
-            var cfgDedicated = _InstanceManager.GetServerConfigs();
+
+            // Apply the model back into the runtime dedicated config we previously retrieved
+            var cfgDedicated = (dynamic)runtimeCfg ?? _InstanceManager.GetServerConfigs();
             ConfigModelTransfer.SetDedicatedConfig(cfgDedicated, modelObj);
             cfgDedicated.Save();
         }

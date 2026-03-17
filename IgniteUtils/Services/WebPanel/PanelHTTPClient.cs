@@ -32,7 +32,26 @@ namespace InstanceUtils.Services.WebPanel
                     payload,
                     cts.Token);
 
-                return response.IsSuccessStatusCode;
+                if (!response.IsSuccessStatusCode)
+                {
+                    string body;
+                    try
+                    {
+                        // Read the error body to see problem details from the server
+                        body = await response.Content.ReadAsStringAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        body = $"<failed to read response body: {ex.Message}>";
+                    }
+
+                    // Minimal logging so the calling process (and the debugger/console) can see the server error
+                    Console.WriteLine($"PanelHTTPClient POST {path} returned {(int)response.StatusCode} {response.ReasonPhrase}. Body: {body}");
+
+                    return false;
+                }
+
+                return true;
             }
             catch (OperationCanceledException)
             {

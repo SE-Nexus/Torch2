@@ -1,6 +1,7 @@
 ﻿@page "/instances/{InstanceId}/profiles"
 @using System.Reflection
 @using System.ComponentModel
+@using System.Linq
 @using Torch2API.Models.Configs
 @using Torch2API.Models.SE1
 @using Torch2WebUI.Models
@@ -122,7 +123,7 @@
             </MudStack>
 
 
-            
+
         </MudItem>
 
 
@@ -130,12 +131,14 @@
         {
             <!-- 📄 RIGHT: PROFILE DETAILS -->
             <MudItem xs="12" md="7" lg="9">
+               
+                
                 <MudPaper Class="pa-4" Style="min-height: 70vh;">
+                    <MudText Typo="Typo.h5">@_selectedProfile.InstanceName Profile Details</MudText>
+                    <MudDivider />
                     <MudTabs>
-                        <MudTabPanel Text="Profile">
+                        <MudTabPanel Text="Torch Cfg">
                             <MudStack Spacing="2">
-                                <MudText Typo="Typo.h5">@_selectedProfile.InstanceName Profile Details</MudText>
-                                <MudDivider />
 
                                 <!-- existing profile fields (unchanged) -->
                                 <MudTextField @bind-Value="_selectedProfile.InstanceName" Label="Name" Variant="Variant.Outlined" FullWidth />
@@ -147,7 +150,7 @@
                                 <MudSwitch T="bool" @bind-Checked="_selectedProfile.AutoStart" Color="Color.Primary">Auto Start</MudSwitch>
                                 <MudSwitch T="bool" @bind-Checked="_selectedProfile.CheckForUpdates" Color="Color.Primary">Check for Updates</MudSwitch>
                                 <MudSwitch T="bool" @bind-Checked="_selectedProfile.AutoUpdateGame" Color="Color.Primary">Auto Update Game</MudSwitch>
-                                <MudSwitch T="bool" @bind-Checked="_selectedProfile.RestartOnCrash" Color="Color.Primary">Restart on Crash</MudSwitch  >
+                                <MudSwitch T="bool" @bind-Checked="_selectedProfile.RestartOnCrash" Color="Color.Primary">Restart on Crash</MudSwitch>
 
                                 <MudTextField @bind-Value="_selectedProfile.BranchName" Label="Game Branch" Variant="Variant.Outlined" />
                                 <MudTextField @bind-Value="_selectedProfile.BranchPassword" Label="Branch Password" Variant="Variant.Outlined" InputType="InputType.Password" />
@@ -162,17 +165,198 @@
                             </MudStack>
                         </MudTabPanel>
 
-                        <MudTabPanel Text="Schema">
+                        <MudTabPanel Text="Dedicated Cfg">
                             @if (_dedicatedConfig == null)
                             {
                                 <MudText Color="Color.Secondary">No schema available. It may not have been requested yet.</MudText>
                             }
                             else
                             {
-                                <!-- AsteroidAmount (int) -->
-                                <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.AsteroidAmount))">
-                                    <MudNumericField T="int" Label="@nameof(_dedicatedConfig.AsteroidAmount)" @bind-Value="_dedicatedConfig.AsteroidAmount" Variant="Variant.Outlined" Min="0" />
-                                </MudTooltip>
+                                <MudStack Spacing="2">
+                                    <!-- Administrators (List<string>) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.Administrators))">
+                                        <MudTextField T="string"
+                                                      Label="@nameof(_dedicatedConfig.Administrators)"
+                                                      @bind-Value="AdministratorsText"
+                                                      Variant="Variant.Outlined"
+                                                      Lines="5"
+                                                      FullWidth="true" />
+                                    </MudTooltip>
+
+                                    <!-- AsteroidAmount (int) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.AsteroidAmount))">
+                                        <MudNumericField T="int" Label="@nameof(_dedicatedConfig.AsteroidAmount)" @bind-Value="_dedicatedConfig.AsteroidAmount" Variant="Variant.Outlined" Min="0" />
+                                    </MudTooltip>
+
+                                    <!-- Banned (List<ulong>) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.Banned))">
+                                        <MudTextField T="string"
+                                                      Label="@nameof(_dedicatedConfig.Banned)"
+                                                      @bind-Value="BannedText"
+                                                      Variant="Variant.Outlined"
+                                                      Lines="5"
+                                                      FullWidth="true" />
+                                    </MudTooltip>
+
+                                    <!-- Reserved (List<ulong>) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.Reserved))">
+                                        <MudTextField T="string"
+                                                      Label="@nameof(_dedicatedConfig.Reserved)"
+                                                      @bind-Value="ReservedText"
+                                                      Variant="Variant.Outlined"
+                                                      Lines="5"
+                                                      FullWidth="true" />
+                                    </MudTooltip>
+
+                                    <!-- GroupID (ulong) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.GroupID))">
+                                        <MudNumericField T="ulong" Label="@nameof(_dedicatedConfig.GroupID)" @bind-Value="_dedicatedConfig.GroupID" Variant="Variant.Outlined" Min="0" />
+                                    </MudTooltip>
+
+                                    <!-- IgnoreLastSession (bool) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.IgnoreLastSession))">
+                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.IgnoreLastSession" Color="Color.Primary">@nameof(_dedicatedConfig.IgnoreLastSession)</MudSwitch>
+                                    </MudTooltip>
+
+                                    <!-- IP (string) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.IP))">
+                                        <MudTextField T="string" Label="@nameof(_dedicatedConfig.IP)" @bind-Value="_dedicatedConfig.IP" Variant="Variant.Outlined" />
+                                    </MudTooltip>
+
+                                    <!-- LoadWorld (string) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.LoadWorld))">
+                                        <MudTextField T="string" Label="@nameof(_dedicatedConfig.LoadWorld)" @bind-Value="_dedicatedConfig.LoadWorld" Variant="Variant.Outlined" />
+                                    </MudTooltip>
+
+                                    <!-- CrossPlatform (bool) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.CrossPlatform))">
+                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.CrossPlatform" Color="Color.Primary">@nameof(_dedicatedConfig.CrossPlatform)</MudSwitch>
+                                    </MudTooltip>
+
+                                    <!-- PauseGameWhenEmpty (bool) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.PauseGameWhenEmpty))">
+                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.PauseGameWhenEmpty" Color="Color.Primary">@nameof(_dedicatedConfig.PauseGameWhenEmpty)</MudSwitch>
+                                    </MudTooltip>
+
+                                    <!-- MessageOfTheDay (string) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.MessageOfTheDay))">
+                                        <MudTextField T="string" Label="@nameof(_dedicatedConfig.MessageOfTheDay)" @bind-Value="_dedicatedConfig.MessageOfTheDay" Variant="Variant.Outlined" />
+                                    </MudTooltip>
+
+                                    <!-- MessageOfTheDayUrl (string) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.MessageOfTheDayUrl))">
+                                        <MudTextField T="string" Label="@nameof(_dedicatedConfig.MessageOfTheDayUrl)" @bind-Value="_dedicatedConfig.MessageOfTheDayUrl" Variant="Variant.Outlined" />
+                                    </MudTooltip>
+
+                                    <!-- AutoRestartEnabled (bool) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.AutoRestartEnabled))">
+                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.AutoRestartEnabled" Color="Color.Primary">@nameof(_dedicatedConfig.AutoRestartEnabled)</MudSwitch>
+                                    </MudTooltip>
+
+                                    <!-- AutoRestatTimeInMin (int) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.AutoRestatTimeInMin))">
+                                        <MudNumericField T="int" Label="@nameof(_dedicatedConfig.AutoRestatTimeInMin)" @bind-Value="_dedicatedConfig.AutoRestatTimeInMin" Variant="Variant.Outlined" Min="0" />
+                                    </MudTooltip>
+
+                                    <!-- AutoUpdateEnabled (bool) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.AutoUpdateEnabled))">
+                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.AutoUpdateEnabled" Color="Color.Primary">@nameof(_dedicatedConfig.AutoUpdateEnabled)</MudSwitch>
+                                    </MudTooltip>
+
+                                    <!-- AutoUpdateCheckIntervalInMin (int) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.AutoUpdateCheckIntervalInMin))">
+                                        <MudNumericField T="int" Label="@nameof(_dedicatedConfig.AutoUpdateCheckIntervalInMin)" @bind-Value="_dedicatedConfig.AutoUpdateCheckIntervalInMin" Variant="Variant.Outlined" Min="0" />
+                                    </MudTooltip>
+
+                                    <!-- AutoUpdateRestartDelayInMin (int) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.AutoUpdateRestartDelayInMin))">
+                                        <MudNumericField T="int" Label="@nameof(_dedicatedConfig.AutoUpdateRestartDelayInMin)" @bind-Value="_dedicatedConfig.AutoUpdateRestartDelayInMin" Variant="Variant.Outlined" Min="0" />
+                                    </MudTooltip>
+
+                                    <!-- RestartSave (bool) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.RestartSave))">
+                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.RestartSave" Color="Color.Primary">@nameof(_dedicatedConfig.RestartSave)</MudSwitch>
+                                    </MudTooltip>
+
+                                    <!-- AutoUpdateSteamBranch (string) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.AutoUpdateSteamBranch))">
+                                        <MudTextField T="string" Label="@nameof(_dedicatedConfig.AutoUpdateSteamBranch)" @bind-Value="_dedicatedConfig.AutoUpdateSteamBranch" Variant="Variant.Outlined" />
+                                    </MudTooltip>
+
+                                    <!-- AutoUpdateBranchPassword (string) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.AutoUpdateBranchPassword))">
+                                        <MudTextField T="string" Label="@nameof(_dedicatedConfig.AutoUpdateBranchPassword)" @bind-Value="_dedicatedConfig.AutoUpdateBranchPassword" Variant="Variant.Outlined" />
+                                    </MudTooltip>
+
+                                    <!-- ServerDescription (string) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.ServerDescription))">
+                                        <MudTextField T="string" Label="@nameof(_dedicatedConfig.ServerDescription)" @bind-Value="_dedicatedConfig.ServerDescription" Variant="Variant.Outlined" />
+                                    </MudTooltip>
+
+                                    <!-- ServerPasswordHash (string) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.ServerPasswordHash))">
+                                        <MudTextField T="string" Label="@nameof(_dedicatedConfig.ServerPasswordHash)" @bind-Value="_dedicatedConfig.ServerPasswordHash" Variant="Variant.Outlined" />
+                                    </MudTooltip>
+
+                                    <!-- ServerPasswordSalt (string) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.ServerPasswordSalt))">
+                                        <MudTextField T="string" Label="@nameof(_dedicatedConfig.ServerPasswordSalt)" @bind-Value="_dedicatedConfig.ServerPasswordSalt" Variant="Variant.Outlined" />
+                                    </MudTooltip>
+
+                                    <!-- Plugins (List<string>) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.Plugins))">
+                                        <MudTextField T="string"
+                                                      Label="@nameof(_dedicatedConfig.Plugins)"
+                                                      @bind-Value="PluginsText"
+                                                      Variant="Variant.Outlined"
+                                                      Lines="5"
+                                                      FullWidth="true" />
+                                    </MudTooltip>
+
+                                    <!-- AutodetectDependencies (bool) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.AutodetectDependencies))">
+                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.AutodetectDependencies" Color="Color.Primary">@nameof(_dedicatedConfig.AutodetectDependencies)</MudSwitch>
+                                    </MudTooltip>
+
+                                    <!-- SaveChatToLog (bool) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.SaveChatToLog))">
+                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.SaveChatToLog" Color="Color.Primary">@nameof(_dedicatedConfig.SaveChatToLog)</MudSwitch>
+                                    </MudTooltip>
+
+                                    <!-- ChatAntiSpamEnabled (bool) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.ChatAntiSpamEnabled))">
+                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.ChatAntiSpamEnabled" Color="Color.Primary">@nameof(_dedicatedConfig.ChatAntiSpamEnabled)</MudSwitch>
+                                    </MudTooltip>
+
+                                    <!-- SameMessageTimeout (int) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.SameMessageTimeout))">
+                                        <MudNumericField T="int" Label="@nameof(_dedicatedConfig.SameMessageTimeout)" @bind-Value="_dedicatedConfig.SameMessageTimeout" Variant="Variant.Outlined" Min="0" />
+                                    </MudTooltip>
+
+                                    <!-- SpamMessagesTime (float) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.SpamMessagesTime))">
+                                        <MudNumericField T="float" Label="@nameof(_dedicatedConfig.SpamMessagesTime)" @bind-Value="_dedicatedConfig.SpamMessagesTime" Variant="Variant.Outlined" Min="0" />
+                                    </MudTooltip>
+
+                                    <!-- SpamMessagesTimeout (int) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.SpamMessagesTimeout))">
+                                        <MudNumericField T="int" Label="@nameof(_dedicatedConfig.SpamMessagesTimeout)" @bind-Value="_dedicatedConfig.SpamMessagesTimeout" Variant="Variant.Outlined" Min="0" />
+                                    </MudTooltip>
+
+                                    <!-- DedicatedId (long) -->
+                                    <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.DedicatedId))">
+                                        <MudNumericField T="long" Label="@nameof(_dedicatedConfig.DedicatedId)" @bind-Value="_dedicatedConfig.DedicatedId" Variant="Variant.Outlined" Min="0" />
+                                    </MudTooltip>
+
+                                    <MudDivider Class="mt-2" />
+
+                                    <!-- Update button: sends serialized model to client command DedicatedCfgSchema -->
+                                    <MudStack Row Justify="Justify.FlexEnd">
+                                        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="UpdateDedicatedConfigAsync">
+                                            Update Dedicated Config
+                                        </MudButton>
+                                    </MudStack>
+                                </MudStack>
                             }
                         </MudTabPanel>
                     </MudTabs>
@@ -198,9 +382,83 @@
     private MudForm? _form;
     private ProfileCfg? _selectedProfile;
     private string? _originalProfileName;
+    private string? _previousprofilename;
 
     private ConfigDedicatedSE1? _dedicatedConfig => _instance?.DedicatedConfig;
     private TorchInstance? _instance;
+
+    // Helper properties to edit List<T> fields as multiline textarea (newline-separated)
+    private string AdministratorsText
+    {
+        get => _dedicatedConfig?.Administrators == null ? string.Empty : string.Join(Environment.NewLine, _dedicatedConfig.Administrators);
+        set
+        {
+            if (_dedicatedConfig == null) return;
+            _dedicatedConfig.Administrators = string.IsNullOrWhiteSpace(value)
+                ? new List<string>()
+                : value.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                       .Select(s => s.Trim())
+                       .Where(s => s.Length > 0)
+                       .ToList();
+        }
+    }
+
+    private string BannedText
+    {
+        get => _dedicatedConfig?.Banned == null ? string.Empty : string.Join(Environment.NewLine, _dedicatedConfig.Banned.Select(b => b.ToString()));
+        set
+        {
+            if (_dedicatedConfig == null) return;
+            var lines = string.IsNullOrWhiteSpace(value)
+                ? Array.Empty<string>()
+                : value.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            var list = new List<ulong>();
+            foreach (var line in lines.Select(l => l.Trim()))
+            {
+                if (ulong.TryParse(line, out var v))
+                    list.Add(v);
+            }
+
+            _dedicatedConfig.Banned = list;
+        }
+    }
+
+    private string ReservedText
+    {
+        get => _dedicatedConfig?.Reserved == null ? string.Empty : string.Join(Environment.NewLine, _dedicatedConfig.Reserved.Select(r => r.ToString()));
+        set
+        {
+            if (_dedicatedConfig == null) return;
+            var lines = string.IsNullOrWhiteSpace(value)
+                ? Array.Empty<string>()
+                : value.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            var list = new List<ulong>();
+            foreach (var line in lines.Select(l => l.Trim()))
+            {
+                if (ulong.TryParse(line, out var v))
+                    list.Add(v);
+            }
+
+            _dedicatedConfig.Reserved = list;
+        }
+    }
+
+    private string PluginsText
+    {
+        get => _dedicatedConfig?.Plugins == null ? string.Empty : string.Join(Environment.NewLine, _dedicatedConfig.Plugins);
+        set
+        {
+            if (_dedicatedConfig == null) return;
+            _dedicatedConfig.Plugins = string.IsNullOrWhiteSpace(value)
+                ? new List<string>()
+                : value.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                       .Select(s => s.Trim())
+                       .Where(s => s.Length > 0)
+                       .ToList();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -208,6 +466,7 @@
         InstanceManager.OnChange += OnInstanceUpdated;
 
         _selectedProfile = _instance?.Profiles.FirstOrDefault();
+        _previousprofilename = _selectedProfile?.InstanceName;
 
         await InstanceManager.SendCommand(_instance, "Config/Profiles/List");
         // request dedicated schema from the instance
@@ -226,10 +485,18 @@
         });
     }
 
-    private void SelectProfile(ProfileCfg profile)
+    private async Task SelectProfile(ProfileCfg profile)
     {
         _selectedProfile = profile;
         _originalProfileName = profile.InstanceName;
+
+        // Request the dedicated config for the selected profile from the instance
+        if (_instance != null && !string.IsNullOrWhiteSpace(profile?.InstanceName) && _selectedProfile?.InstanceName != _previousprofilename)
+        {
+            _previousprofilename = _selectedProfile?.InstanceName;
+            await InstanceManager.SendCommand(_instance, "Config/Profiles/dedicatedcfg", new { profile = profile.InstanceName });
+        }
+
         StateHasChanged();
     }
 
@@ -335,6 +602,24 @@
         await InstanceManager.SendCommand(_instance, "Config/Profiles/List");
     }
 
+    // New: send updated dedicated config DTO to client command (model must be JSON string)
+    private async Task UpdateDedicatedConfigAsync()
+    {
+        if (_instance is null || _dedicatedConfig is null || _selectedProfile is null)
+            return;
+
+        // Serialize model to JSON string (server client's command expects --model as a JSON string)
+        var modelJson = JsonSerializer.Serialize(_dedicatedConfig, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        // Send to the client command. The client command signature expects a string 'model' parameter.
+        await InstanceManager.SendCommand(_instance, "Config/Profiles/dedicatedcfg", new { model = modelJson, profile = _selectedProfile.InstanceName });
+
+        // Optionally request the client to resend current schema after applying (refresh),
+        // client implementation already posts back DedicatedSchema via WebAPI when applying.
+        // But request a fresh schema to ensure UI sync:
+        await InstanceManager.SendCommand(_instance, "Config/Profiles/dedicatedcfg");
+    }
+
     public void Dispose()
     {
         InstanceManager.OnChange -= OnInstanceUpdated;
@@ -349,8 +634,8 @@
         return attr?.Description ?? string.Empty;
     }
 
-    
+
 
         
-    }
 }
+

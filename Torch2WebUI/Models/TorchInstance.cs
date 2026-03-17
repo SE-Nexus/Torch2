@@ -21,6 +21,6 @@ namespace Torch2WebUI.Models
 
 
         // The concrete dedicated config DTO (new): used to receive/send full config objects
-        public ConfigDedicatedSE1 DedicatedConfig { get; set; } = new();
+        public ConfigDedicatedSE1 DedicatedConfig { get; set; }
     }
 }

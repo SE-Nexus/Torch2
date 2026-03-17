@@ -540,6 +540,9 @@ namespace IgniteSE1.Services
             {
                 targetInstance = GetCurrentProfile();
             }
+
+            if (targetInstance == null)
+                return null;
                 
 
             var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, targetInstance.InstancePath, _DedicatedCfgFilename);
