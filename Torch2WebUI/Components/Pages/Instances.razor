@@ -99,7 +99,7 @@ else
                         <MudButton Size="Size.Small"
                                    Variant="Variant.Filled"
                                    Color="Color.Primary"
-                                   OnClick="@(() => Adopt(instance))">
+                                   OnClick="@(async () => await Adopt(instance))">
                             Adopt
                         </MudButton>
 
@@ -240,9 +240,9 @@ else
 
     private Action<string>? _onChangeHandler;
 
-    void Adopt(TorchInstanceBase instance)
+    private async Task Adopt(TorchInstanceBase instance)
     {
-        InstanceManager.AdoptInstance(instance.InstanceID);
+        await InstanceManager.AdoptInstance(instance.InstanceID);
     }
 
     Color GetStatusColor(ServerStatusEnum status) => status switch

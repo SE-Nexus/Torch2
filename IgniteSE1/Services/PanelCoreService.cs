@@ -88,8 +88,6 @@ namespace InstanceUtils.Services.WebPanel
 
                 var status = new TorchInstanceBase
                 {
-
-
                     InstanceID = _ConfigService.Identification.InstanceID.ToString(),
                     Name = _ConfigService.InstanceName,
                     MachineName = Environment.MachineName,

@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
 using System.Diagnostics.Eventing.Reader;
 using Torch2API.DTOs.Instances;
+using Torch2API.Models;
 using Torch2API.Models.Configs;
 using Torch2API.Models.Schema;
 using Torch2WebUI.Components.Pages;
@@ -39,6 +41,47 @@ namespace Torch2WebUI.Services.InstanceServices
 
             CleanupTimer.Elapsed += CleanupTimer_Elapsed;
             CleanupTimer.Start();
+
+            // Load configured instances from database (fire and forget)
+            Task.Run(() => LoadConfiguredInstancesAsync());
+        }
+
+        private async Task LoadConfiguredInstancesAsync()
+        {
+            try
+            {
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    var configuredInstances = await dbContext.ConfiguredInstances.ToListAsync<ConfiguredInstance>();
+
+                    // Load configured instances into ActiveInstances so they display even when offline
+                    foreach (var configuredInstance in configuredInstances)
+                    {
+                        TorchInstance inst = new TorchInstance();
+                        inst.InstanceID = configuredInstance.InstanceID;
+                        inst.Name = configuredInstance.Name;
+                        inst.MachineName = configuredInstance.MachineName;
+                        inst.IPAddress = configuredInstance.IPAddress;
+                        inst.GamePort = configuredInstance.GamePort;
+                        inst.ProfileName = configuredInstance.ProfileName;
+                        inst.TargetWorld = configuredInstance.TargetWorld;
+                        inst.TorchVersion = configuredInstance.TorchVersion;
+                        inst.Configured = true;
+                        inst.IsOnline = false;
+                        inst.ServerStatus = ServerStatusEnum.Offline;
+
+                        ActiveInstances.TryAdd(configuredInstance.InstanceID, inst);
+                    }
+
+                    // Store in cache for quick access
+                    _cache.Set("ConfiguredInstanceIDs", configuredInstances.Select(x => x.InstanceID).ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading configured instances: {ex.Message}");
+            }
         }
 
         private void CleanupTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
@@ -83,6 +126,7 @@ namespace Torch2WebUI.Services.InstanceServices
 
                     TorchInstance inst = new TorchInstance();
                     inst.UpdateFromConfiguredInstance(instance);
+                    inst.Configured = true;
 
                     ActiveInstances.TryAdd(instance.InstanceID, inst);
                     NotifyStateChanged(instance.InstanceID);
@@ -193,12 +237,58 @@ namespace Torch2WebUI.Services.InstanceServices
             return null;
         }
 
-        public void AdoptInstance(string instanceID)
+        public Task AdoptInstance(string instanceID)
         {
             if (ActiveInstances.TryGetValue(instanceID, out var instance))
             {
                 instance.Configured = true;
+
+                // Save to database asynchronously
+                return Task.Run(async () =>
+                {
+                    using (var scope = _scopeFactory.CreateScope())
+                    {
+                        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                        var configuredInstance = new ConfiguredInstance
+                        {
+                            InstanceID = instance.InstanceID,
+                            Name = instance.Name,
+                            MachineName = instance.MachineName,
+                            IPAddress = instance.IPAddress,
+                            GamePort = instance.GamePort,
+                            ProfileName = instance.ProfileName ?? string.Empty,
+                            TargetWorld = instance.TargetWorld ?? string.Empty,
+                            TorchVersion = instance.TorchVersion,
+                            LastUpdate = DateTime.UtcNow
+                        };
+
+                        // Check if already exists
+                        var existing = await dbContext.ConfiguredInstances.FindAsync(instanceID);
+                        if (existing != null)
+                        {
+                            existing.Name = configuredInstance.Name;
+                            existing.MachineName = configuredInstance.MachineName;
+                            existing.IPAddress = configuredInstance.IPAddress;
+                            existing.GamePort = configuredInstance.GamePort;
+                            existing.ProfileName = configuredInstance.ProfileName;
+                            existing.TargetWorld = configuredInstance.TargetWorld;
+                            existing.TorchVersion = configuredInstance.TorchVersion;
+                            existing.LastUpdate = DateTime.UtcNow;
+                        }
+                        else
+                        {
+                            dbContext.ConfiguredInstances.Add(configuredInstance);
+                        }
+
+                        await dbContext.SaveChangesAsync();
+                    }
+
+                    NotifyStateChanged(instanceID);
+                });
             }
+
+            return Task.CompletedTask;
         }
 
         public List<TorchInstance> GetPendingInstances()

@@ -15,6 +15,7 @@ namespace Torch2API.Models
     /// changes in the server's state.</remarks>
     public enum ServerStatusEnum
     {
+        Offline,
         Initializing,
         Idle,
         Starting,
