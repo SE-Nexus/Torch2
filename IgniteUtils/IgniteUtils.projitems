@@ -14,6 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\AssemblyResolverService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\CommandDescriptor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\CommandGroupDescriptor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\CommandInputDescriptor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\CommandOptionDescriptor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\CommandService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\Contexts\CommandContextAccessor.cs" />

@@ -57,6 +57,28 @@ namespace Torch2API.Attributes
     }
 
 
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = true)]
+    public class InputAttribute : Attribute
+    {
+        public string Name { get; }
+        public string Description { get; }
+        public bool IsRequired { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the InputAttribute class for positional arguments.
+        /// </summary>
+        /// <param name="name">The name of the argument (used for display/documentation)</param>
+        /// <param name="description">The description of the argument</param>
+        /// <param name="isRequired">Whether this argument is required. Defaults to true.</param>
+        public InputAttribute(string name, string description = "", bool isRequired = true)
+        {
+            Name = name;
+            Description = description;
+            IsRequired = isRequired;
+        }
+    }
+
+
     [AttributeUsage(AttributeTargets.Method, Inherited = true)]
     public class CommandAttribute : Attribute, ICmdAttribute
     {

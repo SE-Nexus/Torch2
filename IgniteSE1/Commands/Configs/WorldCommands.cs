@@ -108,9 +108,11 @@ namespace IgniteSE1.Commands.Configs
 
 
         [Command("create", "Creates a new world. Optionally uses specific premade name")]
-        public async Task NewWorld([Option("--worldname", "User specified worldname")] string worldname, [Option("--template", "Template")] string template = "")
+        public async Task NewWorld(
+            [Input("worldname", "User specified world name")] string worldname,
+            [Option("template", "Template world to use as base")] string template = "")
         {
-            if(string.IsNullOrEmpty(worldname))
+            if (string.IsNullOrEmpty(worldname))
             {
                 ctx.RespondLine("A worldname is required");
                 return;
@@ -128,27 +130,26 @@ namespace IgniteSE1.Commands.Configs
                 TargetWorld = allWorlds.Find(x => string.Equals(x.SessionName, template, StringComparison.OrdinalIgnoreCase));
             }
 
-            if(TargetWorld == null)
+            if (TargetWorld == null)
             {
                 ctx.RespondLine($"Unable to find a specified template of {template}");
                 return;
             }
 
-
-            if(!_InstanceManager.TryCreateWorld(worldname, TargetWorld.SessionPath, out string reason))
+            if (!_InstanceManager.TryCreateWorld(worldname, TargetWorld.SessionPath, out string reason))
             {
                 ctx.RespondLine($"Failed to create a new world: {reason}");
                 return;
             }
             else
             {
-                ctx.RespondLine($"$Successfully created new world {worldname}");
+                ctx.RespondLine($"Successfully created new world {worldname}");
             }
         }
 
 
         [Command("delete", "Deletes the specified world")]
-        public async Task DeleteWorld([Option("--worldname", "Name of the world to delete")] string worldname)
+        public async Task DeleteWorld([Input("worldname", "Name of the world to delete")] string worldname)
         {
             if (string.IsNullOrWhiteSpace(worldname))
             {

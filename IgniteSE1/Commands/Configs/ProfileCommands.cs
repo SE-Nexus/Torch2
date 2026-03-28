@@ -53,7 +53,7 @@ namespace IgniteSE1.Commands
         }
 
         [Command("create", "Creates a new profile")]
-        public async Task Create([Option("name", "Profile name")] string name)
+        public async Task Create([Input("name", "Profile name")] string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -77,7 +77,7 @@ namespace IgniteSE1.Commands
         }
 
         [Command("delete", "Deletes the specified profile")]
-        public async Task Delete([Option("name", "Profile name")] string name)
+        public async Task Delete([Input("name", "Profile name")] string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -101,7 +101,7 @@ namespace IgniteSE1.Commands
 
         [Command("update", "Updates a profile. Provide only the fields you want to change.")]
         public async Task Update(
-            [Option("name", "Existing profile name")] string name,
+            [Input("name", "Existing profile name")] string name,
             [Option("newname", "Rename profile to")] string newName = null,
             [Option("targetworld", "Target world")] string targetWorld = null,
             [Option("description", "Description")] string description = null,
@@ -174,7 +174,7 @@ namespace IgniteSE1.Commands
         }
 
         [Command("load", "Sets the specified profile as the configured/active profile")]
-        public async Task Load([Option("name", "Profile name")] string name)
+        public async Task Load([Input("name", "Profile name")] string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -359,13 +359,18 @@ namespace IgniteSE1.Commands
                 }
             }
 
-            // If web panel context, post either the provided full model or the constructed DTO
-            await _PanelClient.PostAsync(WebAPIConstants.DedicatedSchema, modelObj);
-
             // Apply the model back into the runtime dedicated config we previously retrieved
             var cfgDedicated = (dynamic)runtimeCfg ?? _InstanceManager.GetServerConfigs();
             ConfigModelTransfer.SetDedicatedConfig(cfgDedicated, modelObj);
             cfgDedicated.Save();
+
+            ctx.RespondLine("Successfully applied and saved dedicated config changes.");
+
+            // Post updated config back to web panel if this was a web panel context
+            if (ctx is WebPanelContext)
+            {
+                await _PanelClient.PostAsync(WebAPIConstants.DedicatedSchema, modelObj);
+            }
         }
     }
 }

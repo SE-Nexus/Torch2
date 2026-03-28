@@ -35,35 +35,67 @@ namespace InstanceUtils.Services.Commands.Contexts
 
                 var declaringInstance = ServiceExtensions.CreateInstance(Command.DeclaringType, scope.ServiceProvider);
 
-                
-
                 if (socketmsg.Args.ValueKind is not JsonValueKind.Object)
                     throw new InvalidOperationException($"WS command '{socketmsg.Command}' missing args object.");
 
-                for (int i = 0; i < Command.Options.Length; i++)
+                // Get method parameters in order
+                var methodParams = Command.Method.GetParameters();
+
+                // Process parameters in the order they appear in the method signature
+                foreach (var param in methodParams)
                 {
-                    var option = Command.Options[i];
-
-                    // Use "--worldname" => "worldname" key
-                    var key = NormalizeOptionKey(option.Name);
-
-                    if (!socketmsg.Args.TryGetProperty(key, out var argElement))
+                    // Try to find a matching Input first
+                    var inputDescriptor = System.Array.Find(Command.Inputs, i => i.ArgName == param.Name);
+                    if (inputDescriptor != null)
                     {
-                        if (option.HasDefaultValue)
+                        var key = NormalizeOptionKey(inputDescriptor.Name);
+                        if (!socketmsg.Args.TryGetProperty(key, out var argElement))
                         {
-                            allMethodInputArgs.Add(
-                                option.DefaultValue == DBNull.Value
-                                    ? GetDefault(option.OptionType)
-                                    : option.DefaultValue);
-                            continue;
+                            if (inputDescriptor.HasDefaultValue)
+                            {
+                                allMethodInputArgs.Add(
+                                    inputDescriptor.DefaultValue == DBNull.Value
+                                        ? GetDefault(inputDescriptor.InputType)
+                                        : inputDescriptor.DefaultValue);
+                                continue;
+                            }
+
+                            throw new InvalidOperationException(
+                                $"Missing required input '{inputDescriptor.Name}' (key '{key}') for command '{Command.Name} @ {Command.DeclaringType.FullName}'.");
                         }
 
-                        throw new InvalidOperationException(
-                            $"Missing required argument '{option.Name}' (key '{key}') for command '{Command.Name} @ {Command.DeclaringType.FullName}'.");
+                        var value = argElement.Deserialize(inputDescriptor.InputType, TorchConstants.JsonOptions);
+                        allMethodInputArgs.Add(value);
+                        continue;
                     }
 
-                    var value = argElement.Deserialize(option.OptionType, TorchConstants.JsonOptions);
-                    allMethodInputArgs.Add(value);
+                    // Try to find a matching Option
+                    var optionDescriptor = System.Array.Find(Command.Options, o => o.ArgName == param.Name);
+                    if (optionDescriptor != null)
+                    {
+                        var key = NormalizeOptionKey(optionDescriptor.Name);
+                        if (!socketmsg.Args.TryGetProperty(key, out var argElement))
+                        {
+                            if (optionDescriptor.HasDefaultValue)
+                            {
+                                allMethodInputArgs.Add(
+                                    optionDescriptor.DefaultValue == DBNull.Value
+                                        ? GetDefault(optionDescriptor.OptionType)
+                                        : optionDescriptor.DefaultValue);
+                                continue;
+                            }
+
+                            throw new InvalidOperationException(
+                                $"Missing required option '{optionDescriptor.Name}' (key '{key}') for command '{Command.Name} @ {Command.DeclaringType.FullName}'.");
+                        }
+
+                        var value = argElement.Deserialize(optionDescriptor.OptionType, TorchConstants.JsonOptions);
+                        allMethodInputArgs.Add(value);
+                        continue;
+                    }
+
+                    // Parameter not found in Inputs or Options - add null
+                    allMethodInputArgs.Add(null);
                 }
 
                 Command.Method.Invoke(declaringInstance, allMethodInputArgs.ToArray());

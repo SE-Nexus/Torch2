@@ -36,6 +36,8 @@ namespace InstanceUtils.Services.Commands
 
         public CommandOptionDescriptor[] Options { get; set; }
 
+        public CommandInputDescriptor[] Inputs { get; set; }
+
 
 
         public CommandDescriptor(string name, string description, MethodInfo method, Type DeclaringType, CommandTypeEnum? commandType)
@@ -52,26 +54,35 @@ namespace InstanceUtils.Services.Commands
             if (Method == null)
                 throw new InvalidOperationException("Method information is not set for this command descriptor.");
 
-
             var optionList = new List<CommandOptionDescriptor>();
+            var inputList = new List<CommandInputDescriptor>();
             var parameters = Method.GetParameters();
+
             foreach (var param in parameters)
             {
                 var optAttr = param.GetCustomAttribute<OptionAttribute>(true);
-                if (optAttr == null)
-                    continue;
+                var inputAttr = param.GetCustomAttribute<InputAttribute>(true);
 
-                var optionType = param.ParameterType;
-                var optionDescriptor = new CommandOptionDescriptor(optAttr.Name, param.Name, optAttr.Description, optionType, param.DefaultValue);
-                optionList.Add(optionDescriptor);
+                if (optAttr != null)
+                {
+                    var optionType = param.ParameterType;
+                    var optionDescriptor = new CommandOptionDescriptor(optAttr.Name, param.Name, optAttr.Description, optionType, param.DefaultValue);
+                    optionList.Add(optionDescriptor);
+                }
+                else if (inputAttr != null)
+                {
+                    var inputType = param.ParameterType;
+                    var inputDescriptor = new CommandInputDescriptor(inputAttr.Name, param.Name, inputAttr.Description, inputType, inputAttr.IsRequired, param.DefaultValue);
+                    inputList.Add(inputDescriptor);
+                }
             }
 
             Options = optionList.ToArray();
+            Inputs = inputList.ToArray();
         }
 
         public (bool, Command) TryBuildCLICommand(Func<Command, CommandDescriptor, ParseResult, CancellationToken, Task<int>> CommandActionDelegeate)
         {
-
             CommandTypeEnum valueEnum;
             if (!CommandType.HasValue)
                 return (false, null);
@@ -90,36 +101,38 @@ namespace InstanceUtils.Services.Commands
                 return CommandActionDelegeate(cmd, this, context, cts);
             });
 
-
             try
             {
-
-                foreach (var cmdoption in Options)
+                // Add positional arguments (Inputs)
+                if (Inputs != null)
                 {
+                    foreach (var input in Inputs)
+                    {
+                        var argumentType = typeof(Argument<>).MakeGenericType(input.InputType);
+                        var argument = (Argument)Activator.CreateInstance(argumentType, new[] { input.Name });
+                        argument.Description = input.Description;
 
-                    /*
-                    var optionType = typeof(Option<>).MakeGenericType(cmdoption.OptionType);
-                    var option = (Option)Activator.CreateInstance(optionType, new[] { cmdoption.Name });
-                    option.Description = cmdoption.Description;
-                    cmd.Options.Add(option);
-                    */
+                        cmd.Arguments.Add(argument);
+                    }
+                }
 
-                    var optionType = typeof(Argument<>).MakeGenericType(cmdoption.OptionType);
-                    var option = (Argument)Activator.CreateInstance(optionType, new[] { cmdoption.Name });
-                    option.Description = cmdoption.Description;
-                    //option.HasDefaultValue = true;
-                  
+                // Add named options (Options)
+                if (Options != null)
+                {
+                    foreach (var cmdOption in Options)
+                    {
+                        var optionType = typeof(Option<>).MakeGenericType(cmdOption.OptionType);
+                        var option = (Option)Activator.CreateInstance(optionType, new[] { "--" + cmdOption.Name });
+                        option.Description = cmdOption.Description;
 
-                    cmd.Arguments.Add(option);
-
-                    //Argument<string> s = new Argument(cmdoption.Name)
-
-
+                        cmd.Options.Add(option);
+                    }
                 }
 
                 return (true, cmd);
 
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 AnsiConsole.WriteLine($"Error building CLI command options for command '{Name}': {ex.Message}");
                 return (false, null);
