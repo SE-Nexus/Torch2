@@ -13,6 +13,7 @@ namespace Torch2WebUI.Services.ModServices
     {
         Task<List<ModListDto>> GetAllModListsAsync();
         Task<ModListDto> GetModListByIdAsync(int id);
+        Task<ModListDto> GetModListByNameAsync(string name);
         Task<ModListDto> CreateModListAsync(CreateModListRequest request);
         Task<bool> DeleteModListAsync(int id);
         Task<bool> UpdateModListAsync(int id, CreateModListRequest request);
@@ -51,6 +52,18 @@ namespace Torch2WebUI.Services.ModServices
 
             if (modList == null)
                 throw new KeyNotFoundException($"ModList with id {id} not found");
+
+            return MapToDto(modList);
+        }
+
+        public async Task<ModListDto> GetModListByNameAsync(string name)
+        {
+            var modList = await _dbContext.ModLists
+                .Include(ml => ml.Mods)
+                .FirstOrDefaultAsync(ml => ml.Name == name);
+
+            if (modList == null)
+                throw new KeyNotFoundException($"ModList with name {name} not found");
 
             return MapToDto(modList);
         }

@@ -14,7 +14,7 @@
     <MudStack Spacing="4" Class="mt-4">
         <!-- Header Section -->
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-2">
-            <MudText Typo="Typo.h3" GutterBottom="false">Mod Lists</MudText>
+            <MudText Typo="Typo.h3" GutterBottom="false">Configured Mod Lists</MudText>
             <MudSpacer />
             <MudButton Variant="Variant.Filled"
                        Color="Color.Primary"
@@ -82,10 +82,6 @@
                                             <MudMenuItem OnClick="@(() => ShowEditModListDialog(modList))">
                                                 <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3" />
                                                 Edit
-                                            </MudMenuItem>
-                                            <MudMenuItem OnClick="@(() => ShowRenameModListDialog(modList))">
-                                                <MudIcon Icon="@Icons.Material.Filled.DriveFileRenameOutline" Class="mr-3" />
-                                                Rename
                                             </MudMenuItem>
                                             <MudDivider />
                                             <MudMenuItem OnClick="@(() => DeleteModList(modList.Id))" Class="mud-theme-error">
@@ -179,7 +175,11 @@
 
     private void NavigateToModList(int modListId)
     {
-        Navigation.NavigateTo($"/mods/{modListId}");
+        var modList = ModLists.FirstOrDefault(m => m.Id == modListId);
+        if (modList != null)
+        {
+            Navigation.NavigateTo($"/mods/{Uri.EscapeDataString(modList.Name)}");
+        }
     }
 
     private void ClearSearch()
@@ -250,27 +250,9 @@
         var parameters = new DialogParameters
         {
             { "ModList", modList },
-            { "ModsService", ModsService },
-            { "EditMode", ModListEditDialog.ModListEditMode.Description }
+            { "ModsService", ModsService }
         };
         var dialog = await Dialogs.ShowAsync<ModListEditDialog>("Edit Mod List", parameters);
-        var result = await dialog.Result;
-
-        if (!result.Canceled)
-        {
-            await LoadModLists();
-        }
-    }
-
-    private async Task ShowRenameModListDialog(ModListDto modList)
-    {
-        var parameters = new DialogParameters
-        {
-            { "ModList", modList },
-            { "ModsService", ModsService },
-            { "EditMode", ModListEditDialog.ModListEditMode.Name }
-        };
-        var dialog = await Dialogs.ShowAsync<ModListEditDialog>("Rename Mod List", parameters);
         var result = await dialog.Result;
 
         if (!result.Canceled)

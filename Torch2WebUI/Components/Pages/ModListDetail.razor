@@ -1,4 +1,4 @@
-@page "/mods/{ModListId:int}"
+@page "/mods/{ModListName}"
 @using Torch2WebUI.Models.DTOs
 @using Torch2WebUI.Components.Dialogs
 @using Torch2WebUI.Components.Mods
@@ -110,7 +110,7 @@
 
 @code {
     [Parameter]
-    public int ModListId { get; set; }
+    public string ModListName { get; set; }
 
     private ModListDto CurrentModList = new();
     private bool IsLoading = true;
@@ -126,7 +126,7 @@
         try
         {
             IsLoading = true;
-            CurrentModList = await ModsService.GetModListByIdAsync(ModListId);
+            CurrentModList = await ModsService.GetModListByNameAsync(Uri.UnescapeDataString(ModListName));
         }
         catch (Exception ex)
         {
@@ -213,7 +213,7 @@
     {
         var parameters = new DialogParameters
         {
-            { "ModListId", ModListId }
+            { "ModListId", CurrentModList.Id }
         };
         var dialog = await Dialogs.ShowAsync<RefreshMetadataDialog>("Refresh Metadata", parameters);
         var result = await dialog.Result;
