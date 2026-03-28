@@ -1,0 +1,127 @@
+@using Torch2WebUI.Services.ModServices
+@using MudBlazor
+@inject IModsService ModsService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudText Typo="Typo.h6">Refresh Steam Metadata</MudText>
+
+            @if (!IsRefreshing && !IsComplete)
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    This will fetch the latest information from Steam Workshop for all mods in this list, including:
+                </MudText>
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string">File size and preview images</MudListItem>
+                    <MudListItem T="string">Updated titles and descriptions</MudListItem>
+                    <MudListItem T="string">Subscription and favorite counts</MudListItem>
+                    <MudListItem T="string">View statistics</MudListItem>
+                    <MudListItem T="string">Tags and categories</MudListItem>
+                </MudList>
+            }
+
+            @if (IsRefreshing)
+            {
+                <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                    <MudCircularProgress IsIndeterminate="true" />
+                    <MudText Typo="Typo.body2">Refreshing metadata from Steam...</MudText>
+                    @if (!string.IsNullOrEmpty(RefreshMessage))
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@RefreshMessage</MudText>
+                    }
+                </MudStack>
+            }
+
+            @if (IsComplete)
+            {
+                <MudAlert Severity="@(HasError ? Severity.Error : Severity.Success)" Dense="false">
+                    @(HasError ? ErrorMessage : "Metadata refreshed successfully! List will update shortly.")
+                </MudAlert>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Disabled="IsRefreshing">
+            @(IsComplete ? "Close" : "Cancel")
+        </MudButton>
+        @if (!IsRefreshing && !IsComplete)
+        {
+            <MudButton OnClick="Refresh" Color="Color.Primary" Variant="Variant.Filled" Disabled="IsRefreshing">
+                Refresh
+            </MudButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public int ModListId { get; set; }
+
+    private bool IsRefreshing = false;
+    private bool IsComplete = false;
+    private bool HasError = false;
+    private string RefreshMessage = string.Empty;
+    private string ErrorMessage = string.Empty;
+
+    private void Cancel()
+    {
+        if (IsComplete)
+        {
+            MudDialog?.Close(DialogResult.Ok(!HasError));
+        }
+        else
+        {
+            MudDialog?.Cancel();
+        }
+    }
+
+    private async Task Refresh()
+    {
+        IsRefreshing = true;
+        IsComplete = false;
+        HasError = false;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            RefreshMessage = "Fetching mod details from Steam API...";
+            StateHasChanged();
+
+            var success = await ModsService.RefreshSteamMetadataAsync(ModListId);
+
+            if (success)
+            {
+                RefreshMessage = "Metadata updated successfully! Preparing to close...";
+                StateHasChanged();
+                await Task.Delay(800); // Brief delay to show completion message
+
+                Snackbar.Add("Metadata refreshed successfully!", Severity.Success);
+                IsComplete = true;
+                IsRefreshing = false;
+            }
+            else
+            {
+                HasError = true;
+                ErrorMessage = "No mods were updated. This may indicate no Steam Workshop mods were found.";
+                IsComplete = true;
+                IsRefreshing = false;
+                Snackbar.Add("No mods were updated", Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            HasError = true;
+            ErrorMessage = $"Error: {ex.Message}";
+            IsComplete = true;
+            IsRefreshing = false;
+            Snackbar.Add($"Error refreshing metadata: {ex.Message}", Severity.Error);
+            System.Diagnostics.Debug.WriteLine($"RefreshMetadataDialog error: {ex}\n{ex.StackTrace}");
+        }
+    }
+}
+

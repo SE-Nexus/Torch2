@@ -21,7 +21,6 @@ namespace Torch2WebUI
             // Add services to the container.
             builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
-
             builder.Services.AddSingleton<InstanceManager>();
             builder.Services.AddSingleton<InstanceSocketManager>();
             builder.Services.AddSingleton<ThemeService>();

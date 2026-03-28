@@ -1,0 +1,236 @@
+@using Torch2WebUI.Models.DTOs
+@using System.Text.Json
+
+<MudCard Elevation="1" Class="mb-2 mud-table-row-hover">
+    <MudCardContent Class="pa-0">
+
+
+
+        <MudGrid Spacing="8" Class="w-100" Justify="Justify.FlexStart">
+            <!-- Preview Image -->
+            <MudItem xs="6" sm="4">
+                @if (!string.IsNullOrEmpty(Mod.PreviewUrl))
+                {
+                    <MudImage Src="@Mod.PreviewUrl"
+                              Fluid="true"
+                              Elevation="25"
+                              Alt="@Mod.Title"
+                              Class="rounded-lg ma-4"/>
+                }
+                else
+                {
+                    <div class="w-100 d-flex align-center justify-center" style="height: 150px; background-color: var(--mud-palette-surface);">
+                        <MudIcon Icon="@Icons.Material.Filled.Image" Size="Size.Large" Color="Color.Secondary" />
+                    </div>
+                }
+
+
+            </MudItem>
+
+            <!-- Mod Details -->
+            <MudItem xs="10" sm="8">
+                <MudStack Spacing="1" Class="pa-1">
+                    <!-- Title and Source -->
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                        <MudText Typo="Typo.h6" Class="flex-grow-1">
+                            @(string.IsNullOrEmpty(Mod.Title) ? Mod.Name : Mod.Title)
+                        </MudText>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text">
+                            @Mod.Source
+                        </MudChip>
+                    </MudStack>
+
+                    <!-- Description -->
+                    @if (!string.IsNullOrEmpty(Mod.Description))
+                    {
+                        <MudText Typo="Typo.caption" Style="white-space: pre-wrap; overflow: hidden; text-overflow: ellipsis;">
+                            @TruncateDescription(Mod.Description, 250)
+                        </MudText>
+                    }
+
+                    <!-- Stats Row -->
+                    <MudStack Row="true" Spacing="2" Class="mt-1">
+                        <!-- File Size -->
+                        <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@Icons.Material.Filled.SaveAlt" Size="Size.Small" Color="Color.Secondary" />
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.75rem;">
+                                @FormatFileSize(Mod.FileSize)
+                            </MudText>
+                        </MudStack>
+
+                        <!-- Subscriptions -->
+                        <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Size="Size.Small" Color="Color.Secondary" />
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.75rem;">
+                                @FormatNumber(Mod.Subscriptions)
+                            </MudText>
+                        </MudStack>
+
+                        <!-- Favorites -->
+                        <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@Icons.Material.Filled.Favorite" Size="Size.Small" Color="Color.Secondary" />
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.75rem;">
+                                @FormatNumber(Mod.Favorites)
+                            </MudText>
+                        </MudStack>
+
+                        <!-- Views -->
+                        <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Secondary" />
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.75rem;">
+                                @FormatNumber(Mod.Views)
+                            </MudText>
+                        </MudStack>
+                    </MudStack>
+
+                    <!-- Tags -->
+                    @if (!string.IsNullOrEmpty(Mod.Tags) && Mod.Tags != "[]")
+                    {
+                        <MudStack Row="true" Spacing="0" Class="mt-1 flex-wrap gap-1">
+                            @foreach (var tag in ParseTags(Mod.Tags).Take(4))
+                            {
+                                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info">
+                                    @tag
+                                </MudChip>
+                            }
+                            @if (ParseTags(Mod.Tags).Count > 4)
+                            {
+                                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Secondary">
+                                    +@(ParseTags(Mod.Tags).Count - 4)
+                                </MudChip>
+                            }
+                        </MudStack>
+                    }
+
+                    <!-- Footer Info -->
+                    <MudStack Row="true" Spacing="1" Class="pa-2" StretchItems="StretchItems.Start">
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.7rem;">
+                                <strong>ID:</strong> @Mod.ModId
+                            </MudText>
+                            @if (Mod.SteamMetadataUpdatedAt.HasValue)
+                            {
+                                var hoursOld = (DateTime.UtcNow - Mod.SteamMetadataUpdatedAt.Value).TotalHours;
+                                <MudText Typo="Typo.caption" Color="@GetMetadataAgeColor(hoursOld)" Style="font-size: 0.7rem;">
+                                    Updated: @Mod.SteamMetadataUpdatedAt.Value.ToString("g")
+                                    @if (hoursOld > 24)
+                                    {
+                                        <span> ⚠️</span>
+                                    }
+                                </MudText>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Warning" Style="font-size: 0.7rem;">
+                                    📦 Not cached
+                                </MudText>
+                            }
+                        </MudStack>
+
+                        <!-- Actions -->
+                        <MudStack Row="true" Spacing="2">
+                                <MudButton Variant="Variant.Text" Size="Size.Small" StartIcon="@Icons.Material.Filled.OpenInNew" Color="Color.Primary" Href="@Mod.Url">
+                                    View
+                                </MudButton>
+
+                            @if (OnRemove.HasDelegate)
+                            {
+                                <MudButton Variant="Variant.Text"
+                                           Size="Size.Small"
+                                           StartIcon="@Icons.Material.Filled.Delete"
+                                           Color="Color.Error"
+                                           OnClick="@ConfirmRemove">
+                                    Remove
+                                </MudButton>
+                            }
+                        </MudStack>
+                    </MudStack>
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter]
+    public ModDto Mod { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnRemove { get; set; }
+
+    private async Task ConfirmRemove()
+    {
+        await OnRemove.InvokeAsync();
+    }
+
+    private string FormatFileSize(string bytes)
+    {
+        if (string.IsNullOrEmpty(bytes) || !long.TryParse(bytes, out long size))
+            return bytes;
+
+        string[] units = { "B", "KB", "MB", "GB", "TB" };
+        double len = size;
+        int order = 0;
+
+        while (len >= 1024 && order < units.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+
+        return $"{len:0.0} {units[order]}";
+    }
+
+    private string FormatNumber(long number)
+    {
+        if (number >= 1_000_000_000)
+            return (number / 1_000_000_000d).ToString("0.0") + "B";
+        if (number >= 1_000_000)
+            return (number / 1_000_000d).ToString("0.0") + "M";
+        if (number >= 1_000)
+            return (number / 1_000d).ToString("0.0") + "k";
+        return number.ToString();
+    }
+
+    private string TruncateDescription(string description, int maxLength)
+    {
+        if (string.IsNullOrEmpty(description))
+            return string.Empty;
+        
+        // Remove markdown formatting and clean up
+        var cleaned = description.Replace("[b]", "").Replace("[/b]", "")
+                                  .Replace("[i]", "").Replace("[/i]", "")
+                                  .Replace("[h1]", "").Replace("[/h1]", "")
+                                  .Replace("[h2]", "").Replace("[/h2]", "")
+                                  .Replace("\r\n", " ")
+                                  .Trim();
+        
+        if (cleaned.Length > maxLength)
+            return cleaned.Substring(0, maxLength).Trim() + "...";
+        
+        return cleaned;
+    }
+
+    private List<string> ParseTags(string tagsJson)
+    {
+        if (string.IsNullOrEmpty(tagsJson))
+            return new List<string>();
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<string>>(tagsJson) ?? new List<string>();
+        }
+        catch
+        {
+            return new List<string>();
+        }
+    }
+
+    private Color GetMetadataAgeColor(double hoursOld)
+    {
+        if (hoursOld < 1) return Color.Success;      // Updated within 1 hour
+        if (hoursOld < 24) return Color.Secondary;   // Updated today
+        if (hoursOld < 168) return Color.Warning;    // Updated this week
+        return Color.Error;                          // More than a week old
+    }
+}

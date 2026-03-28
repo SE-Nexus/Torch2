@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore; // Add this using directive
 using Torch2WebUI.Services.SQL;
+using Torch2WebUI.Services.ModServices;
 using FluentMigrator.Runner;
 using System.Threading.Tasks; // Add this using directive
 
@@ -22,6 +23,12 @@ namespace Torch2WebUI.Services
 
             Services.AddDbContext<AppDbContext>(options => options.UseSqlite(SQLiteConnectionString));
             Services.AddFluentMigratorCore().ConfigureRunner(rb => rb.AddSQLite().WithGlobalConnectionString(SQLiteConnectionString).ScanIn(typeof(ServiceSetup).Assembly).For.Migrations());
+
+            // Register Mods Service
+            Services.AddScoped<IModsService, ModsService>();
+
+            // Register Steam Service for fetching mod metadata
+            Services.AddHttpClient<ISteamService, ModServices.SteamService>();
         }
 
         public static async Task MigrateDatabase(this IServiceProvider serviceProvider)
@@ -31,13 +38,13 @@ namespace Torch2WebUI.Services
                 var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
                 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-                //Development only: Ensure database is created
-                await dbContext.Database.EnsureDeletedAsync();
+                // Create database if it doesn't exist
+                await dbContext.Database.EnsureCreatedAsync();
 
+                // Run migrations
                 runner.MigrateUp();
 
-                //Development only: Seed initial data
-                //await dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync();
             }
         }
 

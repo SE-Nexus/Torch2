@@ -7,9 +7,19 @@
     <ProjectGuid>81dded9d-158b-e303-5f62-77a2896d2a5a</ProjectGuid>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="COMPLETE_SOLUTION_SUMMARY.md" />
+    <None Include="DEBUGGING_METADATA_REFRESH.md" />
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.yml" />
+    <None Include="FIX_SUMMARY.md" />
+    <None Include="IMPLEMENTATION_GUIDE.md" />
+    <None Include="MODS_MANAGEMENT_README.md" />
+    <None Include="MOD_MANAGEMENT_UPDATES.md" />
+    <None Include="README_METADATA_REFRESH.md" />
+    <None Include="TESTING_CHECKLIST.md" />
+    <None Include="TROUBLESHOOTING_REFRESH.md" />
+    <None Include="UI_OVERVIEW.md" />
   </ItemGroup>
 </Project>

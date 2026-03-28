@@ -1,0 +1,150 @@
+@using Torch2WebUI.Models.DTOs
+@using Torch2WebUI.Services.ModServices
+@using MudBlazor
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Add Mod to @ModList?.Name</MudText>
+    </TitleContent>
+
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Add mods from Steam Workshop by providing the Mod ID or Full URL
+            </MudText>
+
+            <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true">
+                <MudTabPanel Text="By URL">
+                    <MudStack Spacing="2" Class="pa-4">
+                        <MudTextField @bind-Value="ModUrl"
+                                      Label="Mod URL"
+                                      Placeholder="https://steamcommunity.com/sharedfiles/filedetails/?id=123456"
+                                      Variant="Variant.Outlined"
+                                      FullWidth="true"
+                                      Lines="2"
+                                      AutoFocus="true" />
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Example: https://steamcommunity.com/sharedfiles/filedetails/?id=2123456789
+                        </MudText>
+                    </MudStack>
+                </MudTabPanel>
+
+                <MudTabPanel Text="By Mod ID">
+                    <MudStack Spacing="2" Class="pa-4">
+                        <MudTextField @bind-Value="ModIdInput"
+                                      Label="Mod ID"
+                                      Placeholder="2123456789"
+                                      Variant="Variant.Outlined"
+                                      FullWidth="true" />
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Enter just the numeric ID from the Steam Workshop URL
+                        </MudText>
+                    </MudStack>
+                </MudTabPanel>
+            </MudTabs>
+
+            <MudSelect @bind-Value="ModSource" Label="Mod Source" Variant="Variant.Outlined" FullWidth="true">
+                <MudSelectItem Value="@("SteamWorkshop")">Steam Workshop</MudSelectItem>
+                <MudSelectItem Value="@("ModIO")">Mod.io</MudSelectItem>
+            </MudSelect>
+        </MudStack>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   OnClick="Submit"
+                   Disabled="IsAddButtonDisabled()">
+            Add Mod
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public ModListDto? ModList { get; set; }
+
+    [Parameter]
+    public IModsService ModsService { get; set; } = null!;
+
+    private string ModUrl = string.Empty;
+    private string ModIdInput = string.Empty;
+    private string ModSource = "SteamWorkshop";
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private bool IsAddButtonDisabled()
+    {
+        return string.IsNullOrWhiteSpace(ModUrl) && string.IsNullOrWhiteSpace(ModIdInput);
+    }
+
+    private async Task Submit()
+    {
+        if (ModList == null)
+            return;
+
+        try
+        {
+            string finalUrl = string.Empty;
+            string finalModId = string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(ModUrl))
+            {
+                finalUrl = ModUrl;
+                finalModId = ExtractModIdFromUrl(ModUrl);
+            }
+            else if (!string.IsNullOrWhiteSpace(ModIdInput))
+            {
+                finalModId = ModIdInput;
+                finalUrl = BuildSteamWorkshopUrl(ModIdInput);
+            }
+
+            if (string.IsNullOrWhiteSpace(finalModId) || string.IsNullOrWhiteSpace(finalUrl))
+            {
+                Snackbar.Add("Invalid mod URL or ID", Severity.Warning);
+                return;
+            }
+
+            var request = new AddModRequest
+            {
+                ModListId = ModList.Id,
+                ModId = finalModId,
+                ModUrl = finalUrl,
+                Source = ModSource
+            };
+
+            await ModsService.AddModAsync(request);
+            Snackbar.Add("Mod added successfully", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error adding mod: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private string ExtractModIdFromUrl(string url)
+    {
+        try
+        {
+            var uri = new Uri(url);
+            if (uri.Host.Contains("steamcommunity.com"))
+            {
+                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                return query["id"] ?? string.Empty;
+            }
+        }
+        catch { }
+        return string.Empty;
+    }
+
+    private string BuildSteamWorkshopUrl(string modId)
+    {
+        return $"https://steamcommunity.com/sharedfiles/filedetails/?id={modId}";
+    }
+}

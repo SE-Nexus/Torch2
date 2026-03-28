@@ -1,0 +1,227 @@
+@page "/mods/{ModListId:int}"
+@using Torch2WebUI.Models.DTOs
+@using Torch2WebUI.Components.Dialogs
+@using Torch2WebUI.Components.Mods
+@using Torch2WebUI.Services.ModServices
+@inject IModsService ModsService
+@inject ISnackbar Snackbar
+@inject IDialogService Dialogs
+@inject NavigationManager Navigation
+
+<PageTitle>@(CurrentModList?.Name ?? "Mod List") - Mods Management</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudStack Spacing="4" Class="mt-4">
+        <!-- Header Section -->
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-2">
+            <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@(() => Navigation.NavigateTo("/mods"))">
+                Back to Lists
+            </MudButton>
+            @if (CurrentModList != null)
+            {
+                <MudText Typo="Typo.h3" GutterBottom="false" Class="flex-grow-1">@CurrentModList.Name</MudText>
+                @if (CurrentModList.Mods.Any(m => m.Source == "SteamWorkshop"))
+                {
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Secondary"
+                               StartIcon="@Icons.Material.Filled.Refresh"
+                               OnClick="@(() => ShowRefreshMetadataDialog())">
+                        Refresh Metadata
+                    </MudButton>
+                }
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="@(() => ShowAddModDialog())">
+                    Add Mod
+                </MudButton>
+            }
+        </MudStack>
+
+        <!-- Loading or No Data -->
+        @if (IsLoading)
+        {
+            <MudProgressLinear Indeterminate="true" />
+            <MudStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Style="min-height: 200px;">
+                <MudCircularProgress IsIndeterminate="true" />
+            </MudStack>
+        }
+        else if (CurrentModList == null)
+        {
+            <MudAlert Severity="Severity.Error">
+                Mod list not found.
+            </MudAlert>
+        }
+        else
+        {
+            <!-- Info Section -->
+            <MudCard Elevation="1">
+                <MudCardContent>
+                    @if (!string.IsNullOrEmpty(CurrentModList.Description))
+                    {
+                        <MudText Typo="Typo.body2" Class="mb-3">@CurrentModList.Description</MudText>
+                    }
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        Created: @CurrentModList.CreatedAt.ToString("g") | Total Mods: @CurrentModList.Mods.Count
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
+
+            <!-- Search Bar -->
+            <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                <MudTextField T="string"
+                              Value="SearchQuery"
+                              ValueChanged="@((string value) => { SearchQuery = value; StateHasChanged(); })"
+                              Placeholder="Search mods by name, description, or tags..."
+                              Variant="Variant.Outlined"
+                              StartAdornment="@Icons.Material.Filled.Search"
+                              AdornmentColor="Color.Default"
+                              Style="flex: 1;" />
+            </MudStack>
+
+            <!-- Mods List -->
+            @if (FilteredMods.Count == 0)
+            {
+                @if (CurrentModList.Mods.Count == 0)
+                {
+                    <MudAlert Severity="Severity.Info">
+                        No mods added to this list yet. Click "Add Mod" to get started!
+                    </MudAlert>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info">
+                        No mods match your search criteria.
+                    </MudAlert>
+                }
+            }
+            else
+            {
+                <MudStack Spacing="1">
+                    @foreach (var mod in FilteredMods)
+                    {
+                        <ModCard Mod="@mod" OnRemove="@(async () => await DeleteMod(mod.Id))" />
+                    }
+                </MudStack>
+            }
+        }
+    </MudStack>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int ModListId { get; set; }
+
+    private ModListDto CurrentModList = new();
+    private bool IsLoading = true;
+    private string SearchQuery = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadModList();
+    }
+
+    private async Task LoadModList()
+    {
+        try
+        {
+            IsLoading = true;
+            CurrentModList = await ModsService.GetModListByIdAsync(ModListId);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading mod list: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void ClearSearch()
+    {
+        SearchQuery = string.Empty;
+    }
+
+    private List<ModDto> FilteredMods
+    {
+        get
+        {
+            if (CurrentModList?.Mods == null)
+                return new List<ModDto>();
+
+            if (string.IsNullOrWhiteSpace(SearchQuery))
+                return CurrentModList.Mods;
+
+            var query = SearchQuery.ToLower();
+            return CurrentModList.Mods
+                .Where(m => m.Name.ToLower().Contains(query) ||
+                           (m.Title != null && m.Title.ToLower().Contains(query)) ||
+                           (m.Description != null && m.Description.ToLower().Contains(query)) ||
+                           (m.Tags != null && m.Tags.ToLower().Contains(query)))
+                .ToList();
+        }
+    }
+
+    private async Task ShowAddModDialog()
+    {
+        var parameters = new DialogParameters
+        {
+            { "ModList", CurrentModList },
+            { "ModsService", ModsService }
+        };
+        var dialog = await Dialogs.ShowAsync<AddModDialog>("Add Mod", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadModList();
+        }
+    }
+
+    private async Task DeleteMod(int modId)
+    {
+        var confirmed = await Dialogs.ShowMessageBox(
+            "Delete Mod",
+            "Are you sure you want to remove this mod?",
+            yesText: "Delete",
+            cancelText: "Cancel");
+
+        if (confirmed == true)
+        {
+            try
+            {
+                var success = await ModsService.RemoveModAsync(modId);
+                if (success)
+                {
+                    Snackbar.Add("Mod removed successfully", Severity.Success);
+                    await LoadModList();
+                }
+                else
+                {
+                    Snackbar.Add("Failed to remove mod", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error removing mod: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private async Task ShowRefreshMetadataDialog()
+    {
+        var parameters = new DialogParameters
+        {
+            { "ModListId", ModListId }
+        };
+        var dialog = await Dialogs.ShowAsync<RefreshMetadataDialog>("Refresh Metadata", parameters);
+        var result = await dialog.Result;
+
+        if (result.Data is true || !result.Canceled)
+        {
+            await Task.Delay(500);
+            await LoadModList();
+        }
+    }
+}

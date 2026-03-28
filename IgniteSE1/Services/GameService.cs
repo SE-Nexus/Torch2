@@ -310,6 +310,8 @@ namespace IgniteSE1.Services
             MySandboxGame.Config = new MyConfig(MyPerServerSettings.GameDSName + ".cfg");
             MySandboxGame.Config.Load();
 
+            
+
             MyLanguage.Instance.Init();
 
 

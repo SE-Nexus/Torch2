@@ -1,0 +1,123 @@
+@using Torch2WebUI.Models.DTOs
+@using Torch2WebUI.Services.ModServices
+@using MudBlazor
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            @if (EditMode == ModListEditMode.Description)
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Update the description for this mod list
+                </MudText>
+
+                <MudTextField @bind-Value="ModListDescription"
+                              Label="Description"
+                              Placeholder="Describe the purpose of this mod list..."
+                              Variant="Variant.Outlined"
+                              FullWidth="true"
+                              Lines="4" />
+            }
+            else if (EditMode == ModListEditMode.Name)
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Change the name of this mod list
+                </MudText>
+
+                <MudTextField @bind-Value="ModListName"
+                              Label="Mod List Name"
+                              Placeholder="e.g., Survival Mods"
+                              Variant="Variant.Outlined"
+                              FullWidth="true"
+                              AutoFocus="true" />
+            }
+        </MudStack>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" 
+                   Color="Color.Primary" 
+                   OnClick="Submit" 
+                   Disabled="IsSubmitDisabled()">
+            @(EditMode == ModListEditMode.Description ? "Save" : "Rename")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    public enum ModListEditMode
+    {
+        Description,
+        Name
+    }
+
+    [CascadingParameter]
+    public IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public ModListDto? ModList { get; set; }
+
+    [Parameter]
+    public IModsService ModsService { get; set; } = null!;
+
+    [Parameter]
+    public ModListEditMode EditMode { get; set; } = ModListEditMode.Description;
+
+    private string ModListDescription = string.Empty;
+    private string ModListName = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        if (ModList != null)
+        {
+            ModListDescription = ModList.Description ?? string.Empty;
+            ModListName = ModList.Name;
+        }
+    }
+
+    private bool IsSubmitDisabled()
+    {
+        return EditMode == ModListEditMode.Name && string.IsNullOrWhiteSpace(ModListName);
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        if (ModList == null)
+            return;
+
+        try
+        {
+            string name = EditMode == ModListEditMode.Name ? ModListName : ModList.Name;
+            string description = EditMode == ModListEditMode.Description ? ModListDescription : ModList.Description;
+
+            var request = new CreateModListRequest
+            {
+                Name = name,
+                Description = description
+            };
+
+            var success = await ModsService.UpdateModListAsync(ModList.Id, request);
+            if (success)
+            {
+                string successMessage = EditMode == ModListEditMode.Description 
+                    ? "Mod list updated successfully" 
+                    : "Mod list renamed successfully";
+                
+                Snackbar.Add(successMessage, Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                Snackbar.Add("Failed to update mod list", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating mod list: {ex.Message}", Severity.Error);
+        }
+    }
+}

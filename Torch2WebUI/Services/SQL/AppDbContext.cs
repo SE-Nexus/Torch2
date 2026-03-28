@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Torch2API.DTOs.Instances;
+using Torch2WebUI.Models.Database;
 
 namespace Torch2WebUI.Services.SQL
 {
@@ -10,6 +11,10 @@ namespace Torch2WebUI.Services.SQL
 
         //Saved Instances
         public DbSet<ConfiguredInstance> ConfiguredInstances { get; set; }
+
+        //Mod Lists and Mods
+        public DbSet<ModList> ModLists { get; set; }
+        public DbSet<Mod> Mods { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
