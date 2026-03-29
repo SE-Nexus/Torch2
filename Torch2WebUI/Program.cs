@@ -22,6 +22,7 @@ namespace Torch2WebUI
             builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
             builder.Services.AddSingleton<InstanceManager>();
+            builder.Services.AddSingleton<InstanceLogService>();
             builder.Services.AddSingleton<InstanceSocketManager>();
             builder.Services.AddSingleton<ThemeService>();
             builder.Services.SetupSQL();
@@ -31,6 +32,8 @@ namespace Torch2WebUI
 
             var app = builder.Build();
        
+
+            app.UseWebSockets();
 
             app.Map("/ws/instance", async context =>
             {
@@ -59,7 +62,6 @@ namespace Torch2WebUI
             await app.Services.MigrateDatabase();
 
             app.UseAntiforgery();
-            app.UseWebSockets();
             app.MapControllers();
 
             app.MapStaticAssets();

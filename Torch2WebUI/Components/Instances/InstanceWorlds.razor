@@ -33,6 +33,7 @@
         <HeaderContent>
             <MudTh>World</MudTh>
             <MudTh>Status</MudTh>
+            <MudTh>Mod List</MudTh>
             <MudTh>Used in Profiles</MudTh>
             <MudTh>Created</MudTh>
             <MudTh>Last Modified</MudTh>
@@ -57,6 +58,31 @@
                         Inactive
                     </MudChip>
                 }
+            </MudTd>
+
+            <MudTd>
+                <MudStack Row Spacing="1" AlignItems="AlignItems.Center">
+                    @if (!string.IsNullOrEmpty(context.LinkedModList))
+                    {
+                        <MudChip T="string" Color="Color.Info" Variant="Variant.Filled" Size="Size.Small">
+                            @context.LinkedModList
+                        </MudChip>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            None
+                        </MudText>
+                    }
+
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Primary"
+                               Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Edit"
+                               OnClick="() => OpenLinkModListDialog(context)">
+                        Link
+                    </MudButton>
+                </MudStack>
             </MudTd>
 
             <MudTd>
@@ -100,7 +126,7 @@
                 </MudText>
             </MudTd>
 
-            <MudTd Align="Align.Right">
+            <MudTd Style="text-align: right;">
                 <MudButton Variant="Variant.Text"
                            Color="Color.Error"
                            Disabled="@(context.Name == _instance.TargetWorld)"
@@ -145,6 +171,43 @@
             _instance = InstanceManager.GetInstanceByID(InstanceId);
             StateHasChanged();
         });
+    }
+
+    private async Task OpenLinkModListDialog(WorldInfo world)
+    {
+        if (_instance is null)
+            return;
+
+        var dialogRef = await DialogService.ShowAsync<LinkWorldModListDialog>(
+            $"Link Mod List to '{world.Name}'",
+            new DialogParameters
+            {
+                ["World"] = world,
+                ["Instance"] = _instance
+            },
+            new DialogOptions
+            {
+                MaxWidth = MaxWidth.Small,
+                FullWidth = true
+            });
+
+        var result = await dialogRef.Result;
+        if (result.Canceled || result.Data is null)
+            return;
+
+        await LinkWorldToModList(world, result.Data.ToString() ?? string.Empty);
+    }
+
+    private async Task LinkWorldToModList(WorldInfo world, string modListName)
+    {
+        await InstanceManager.SendCommand(_instance, "Config/Worlds/SetModList", new
+        {
+            worldname = world.Name,
+            modlistname = modListName
+        });
+
+        world.LinkedModList = string.IsNullOrEmpty(modListName) ? null : modListName;
+        StateHasChanged();
     }
 
     private async Task OpenCreateWorldDialog()

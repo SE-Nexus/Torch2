@@ -19,12 +19,10 @@
                 <!-- Template list -->
                 <MudItem xs="12" md="5">
                     <MudPaper Class="pa-2">
-                        <MudList T="WorldInfo" Dense="true">
+                        <MudList T="WorldInfo" Dense="true" SelectedValue="Selected" SelectedValueChanged="@((WorldInfo? t) => { if (t != null) Select(t); })">
                             @foreach (var template in Instance.CustomWorlds)
                             {
-                                <MudListItem
-                                    Selected="@(template == Selected)"
-                                    OnClick="@(() => Select(template))">
+                                <MudListItem Value="template">
 
                                     <MudText>
                                         @template.Name

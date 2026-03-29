@@ -1,0 +1,156 @@
+@page "/instances/{InstanceId}/eventviewer"
+@layout InstanceLayout
+@using Torch2API.DTOs.Logs
+@using Torch2WebUI.Models.Contexts
+@inject InstanceLogService LogService
+@inject InstanceManager InstanceManager
+@inject IJSRuntime JS
+@implements IDisposable
+
+<PageTitle>Event Viewer</PageTitle>
+
+<MudStack Spacing="3">
+
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+        <MudText Typo="Typo.h5">Event Viewer</MudText>
+        <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Outlined">
+            @FilteredLines.Count entries
+        </MudChip>
+        <MudSpacer />
+        <MudIconButton Icon="@(_autoScroll ? Icons.Material.Filled.Lock : Icons.Material.Filled.LockOpen)"
+                       Color="@(_autoScroll ? Color.Primary : Color.Default)"
+                       OnClick="@(() => _autoScroll = !_autoScroll)"
+                       Title="@(_autoScroll ? "Auto-scroll on" : "Auto-scroll off")"
+                       Size="Size.Small" />
+        <MudIconButton Icon="@Icons.Material.Filled.DeleteSweep"
+                       Color="Color.Error"
+                       OnClick="ClearLogs"
+                       Title="Clear logs"
+                       Size="Size.Small" />
+    </MudStack>
+
+    <MudChipSet T="string" MultiSelection="true" @bind-SelectedValues="_selectedLevels">
+        <MudChip T="string" Value="@("Trace")" Variant="Variant.Outlined">Trace</MudChip>
+        <MudChip T="string" Value="@("Debug")" Color="Color.Info" Variant="Variant.Outlined">Debug</MudChip>
+        <MudChip T="string" Value="@("Info")"  Color="Color.Success" Variant="Variant.Outlined">Info</MudChip>
+        <MudChip T="string" Value="@("Warn")"  Color="Color.Warning" Variant="Variant.Outlined">Warn</MudChip>
+        <MudChip T="string" Value="@("Error")" Color="Color.Error" Variant="Variant.Outlined">Error</MudChip>
+        <MudChip T="string" Value="@("Fatal")" Color="Color.Dark" Variant="Variant.Outlined">Fatal</MudChip>
+    </MudChipSet>
+
+    <MudPaper Elevation="2" Style="height:600px; display:flex; flex-direction:column; overflow:hidden;">
+
+        <div style="display:grid; grid-template-columns:90px 58px 150px 1fr;
+                    padding:6px 12px; font-weight:600; font-size:12px;
+                    border-bottom:1px solid rgba(128,128,128,0.25);
+                    flex-shrink:0;">
+            <span>Time</span>
+            <span>Level</span>
+            <span>Logger</span>
+            <span>Message</span>
+        </div>
+
+        <div style="overflow-y:auto; flex:1; font-family:monospace; font-size:12px;"
+             id="log-scroll">
+            @foreach (var line in FilteredLines)
+            {
+                <div style="display:grid; grid-template-columns:90px 58px 150px 1fr;
+                            padding:2px 12px;
+                            border-bottom:1px solid rgba(128,128,128,0.06);">
+                    <span style="color:var(--mud-palette-text-secondary); white-space:nowrap;">
+                        @line.Timestamp.ToLocalTime().ToString("HH:mm:ss.fff")
+                    </span>
+                    <span style="@LevelStyle(line.Level); font-weight:600;">
+                        @line.Level.ToUpperInvariant()
+                    </span>
+                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+                                 color:var(--mud-palette-text-secondary);"
+                          title="@line.InstanceName">
+                        @ShortLogger(line.InstanceName)
+                    </span>
+                    <span style="white-space:pre-wrap; word-break:break-all;">
+                        @line.Message
+                    </span>
+                </div>
+            }
+            <div id="log-bottom"></div>
+        </div>
+
+    </MudPaper>
+
+</MudStack>
+
+@code {
+    [Parameter] public string InstanceId { get; set; } = "";
+
+    // InstanceId from the URL may be a 6-char short ID; InstanceLogService is keyed by the full GUID.
+    private string ResolvedId => InstanceManager.GetInstanceByID(InstanceId)?.InstanceID ?? InstanceId;
+
+    private List<LogLine> _lines = new();
+    private IReadOnlyCollection<string>? _selectedLevels =
+        new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Debug", "Info", "Warn", "Error", "Fatal" };
+
+    private bool _autoScroll = true;
+    private bool _pendingScroll;
+
+    private List<LogLine> FilteredLines =>
+        _selectedLevels is null || _selectedLevels.Count == 0
+            ? _lines
+            : _lines.Where(l => _selectedLevels.Contains(l.Level)).ToList();
+
+    protected override void OnInitialized()
+    {
+        _lines = new List<LogLine>(LogService.GetHistory(ResolvedId));
+        _pendingScroll = true;
+        LogService.OnLog += HandleLog;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_pendingScroll && _autoScroll)
+        {
+            _pendingScroll = false;
+            await JS.InvokeVoidAsync("scrollElementIntoView", "log-bottom");
+        }
+    }
+
+    private void HandleLog(string instanceId, LogLine entry)
+    {
+        if (instanceId != ResolvedId) return;
+
+        InvokeAsync(() =>
+        {
+            _lines.Add(entry);
+            if (_lines.Count > 1000)
+                _lines.RemoveAt(0);
+            _pendingScroll = true;
+            StateHasChanged();
+        });
+    }
+
+    private void ClearLogs()
+    {
+        _lines.Clear();
+        StateHasChanged();
+    }
+
+    private static string LevelStyle(string level) => level.ToUpperInvariant() switch
+    {
+        "TRACE" => "color:var(--mud-palette-text-disabled)",
+        "DEBUG" => "color:var(--mud-palette-info)",
+        "INFO"  => "color:var(--mud-palette-success)",
+        "WARN"  => "color:var(--mud-palette-warning)",
+        "ERROR" => "color:var(--mud-palette-error)",
+        "FATAL" => "color:var(--mud-palette-error);font-style:italic",
+        _       => ""
+    };
+
+    private static string ShortLogger(string? loggerName)
+    {
+        if (string.IsNullOrEmpty(loggerName)) return string.Empty;
+        var idx = loggerName.LastIndexOf('.');
+        return idx >= 0 ? loggerName[(idx + 1)..] : loggerName;
+    }
+
+    public void Dispose() => LogService.OnLog -= HandleLog;
+}

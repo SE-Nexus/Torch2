@@ -1,6 +1,7 @@
 ﻿using Grpc.Core;
 using IgniteSE1.Services;
 using InstanceUtils.Logging;
+using InstanceUtils.Logging;
 using InstanceUtils.Models.Server;
 using InstanceUtils.Services;
 using InstanceUtils.Services.Networking;
@@ -167,8 +168,11 @@ namespace InstanceUtils.Services
 
             // Very early in startup, before loading config / creating loggers
             LogManager.Setup()
-                .SetupExtensions(ext => ext.RegisterTarget<ColoredConsoleLogTarget>("ColoredConsole"))
-
+                .SetupExtensions(ext =>
+                {
+                    ext.RegisterTarget<ColoredConsoleLogTarget>("ColoredConsole");
+                    ext.RegisterTarget<WebSocketLogTarget>("WebSocketLog");
+                })
                 .LoadConfigurationFromFile("nlog.config");
 
             LogManager.ReconfigExistingLoggers();

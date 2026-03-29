@@ -1,7 +1,7 @@
 @using MudBlazor
 @inject IDialogService DialogService
 
-<MudDialog MaxWidth="MaxWidth.Small" FullWidth="true">
+<MudDialog>
     <DialogContent>
         @if (!string.IsNullOrWhiteSpace(Title))
         {
@@ -10,7 +10,7 @@
         <MudTextField @bind-Value="_value" Label="@Label" Variant="Variant.Outlined" FullWidth="true" />
     </DialogContent>
     <DialogActions>
-        <MudStack Row JustifyContent="flex-end" Spacing="1" Class="pa-2">
+        <MudStack Row Justify="Justify.FlexEnd" Spacing="1" Class="pa-2">
             <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="Cancel">@CancelText</MudButton>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Confirm">@ConfirmText</MudButton>
         </MudStack>

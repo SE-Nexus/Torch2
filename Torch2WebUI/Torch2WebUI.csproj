@@ -26,4 +26,9 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+
+  <ItemGroup>
+    <Folder Include="Services\World\" />
+  </ItemGroup>
 </Project>

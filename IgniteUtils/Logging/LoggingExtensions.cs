@@ -18,12 +18,9 @@ namespace InstanceUtils.Logging
             logEventBuilder.Message(message);
             logEventBuilder.Property("Color", color);
 
-
-
-            _log.Log(logEventBuilder.LogEvent);
-
-
-
+            LogEventInfo colorLogEvent = logEventBuilder.LogEvent;
+            if (colorLogEvent != null)
+                _log.Log(colorLogEvent);
         }
 
         public static void NoConsole(this Logger _log, LogLevel lvl, string message)
@@ -32,8 +29,9 @@ namespace InstanceUtils.Logging
             logEventBuilder.Message(message);
             logEventBuilder.Property("NoConsole", true);
 
-
-            _log.Log(logEventBuilder.LogEvent);
+            LogEventInfo noConsoleLogEvent = logEventBuilder.LogEvent;
+            if (noConsoleLogEvent != null)
+                _log.Log(noConsoleLogEvent);
         }
     }
 }

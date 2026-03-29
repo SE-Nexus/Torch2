@@ -16,6 +16,12 @@
     <Routes @rendermode="InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
     <script src=@Assets["_content/MudBlazor/MudBlazor.min.js"]></script>
+    <script>
+        window.scrollElementIntoView = function (id) {
+            var el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'instant', block: 'end' });
+        };
+    </script>
 </body>
 
 </html>

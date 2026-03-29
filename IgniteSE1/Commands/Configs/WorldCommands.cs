@@ -6,13 +6,16 @@ using Sandbox.Engine.Networking;
 using Sandbox.Game.World;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Torch2API.Attributes;
 using Torch2API.Constants;
 using Torch2API.Models.Commands;
 using Torch2API.Models.Configs;
+using Torch2API.Models.Schema;
 using VRage;
 using VRage.Utils;
 
@@ -167,6 +170,46 @@ namespace IgniteSE1.Commands.Configs
             ctx.RespondLine($"Successfully deleted world '{worldname}'.");
         }
 
+        [Command("setmodlist", "Links a mod list to a world")]
+        public async Task SetModList(
+            [Input("worldname", "Name of the world")] string worldname,
+            [Input("modlistname", "Name of the mod list to link")] string modlistname)
+        {
+            var world = _InstanceManager.GetAllWorlds()
+                .Find(w => string.Equals(w.Name, worldname, StringComparison.OrdinalIgnoreCase));
 
+            if (world == null || string.IsNullOrEmpty(world.SessionDirectoryPath))
+            {
+                ctx.RespondLine($"World '{worldname}' not found or has no directory path.");
+                return;
+            }
+
+            try
+            {
+                var metadata = new WorldModListMetadata
+                {
+                    ModListName = modlistname,
+                    LastUpdated = DateTime.UtcNow
+                };
+
+                File.WriteAllText(
+                    Path.Combine(world.SessionDirectoryPath, ".modlist"),
+                    JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true }));
+            }
+            catch (Exception ex)
+            {
+                ctx.RespondLine($"Failed to save mod list link: {ex.Message}");
+                return;
+            }
+
+            if (ctx is WebPanelContext)
+            {
+                _InstanceManager.LoadAllWorlds();
+                await _PanelClient.PostAsync(WebAPIConstants.AllWorlds, _InstanceManager.GetAllWorlds());
+                return;
+            }
+
+            ctx.RespondLine($"World '{worldname}' linked to mod list '{modlistname}'.");
+        }
     }
 }

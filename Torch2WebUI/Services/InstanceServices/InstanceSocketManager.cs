@@ -1,9 +1,11 @@
-﻿using SQLitePCL;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
+using System.IO;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Torch2API.Constants;
+using Torch2API.DTOs.Logs;
 using Torch2API.DTOs.WebSockets;
 
 namespace Torch2WebUI.Services.InstanceServices
@@ -11,6 +13,12 @@ namespace Torch2WebUI.Services.InstanceServices
     public class InstanceSocketManager
     {
         private readonly ConcurrentDictionary<string, WebSocket> _sockets = new();
+        private readonly InstanceLogService _logService;
+
+        public InstanceSocketManager(InstanceLogService logService)
+        {
+            _logService = logService;
+        }
 
         public async Task HandleConnectionAsync(HttpContext context, WebSocket socket)
         {
@@ -31,20 +39,34 @@ namespace Torch2WebUI.Services.InstanceServices
 
         private async Task Listen(string instanceId, WebSocket socket)
         {
-            var buffer = new byte[1024];
+            var buffer = new byte[4096];
             bool gracefulClose = false;
 
             try
             {
                 while (socket.State == WebSocketState.Open)
                 {
+                    using var ms = new MemoryStream();
                     WebSocketReceiveResult result;
 
                     try
                     {
-                        result = await socket.ReceiveAsync(
-                            new ArraySegment<byte>(buffer),
-                            CancellationToken.None);
+                        do
+                        {
+                            result = await socket.ReceiveAsync(
+                                new ArraySegment<byte>(buffer),
+                                CancellationToken.None);
+
+                            if (result.MessageType == WebSocketMessageType.Close)
+                            {
+                                gracefulClose = true;
+                                Console.WriteLine($"Instance {instanceId} closed gracefully: {result.CloseStatus} - {result.CloseStatusDescription}");
+                                return;
+                            }
+
+                            ms.Write(buffer, 0, result.Count);
+                        }
+                        while (!result.EndOfMessage);
                     }
                     catch (WebSocketException ex)
                     {
@@ -52,12 +74,7 @@ namespace Torch2WebUI.Services.InstanceServices
                         return;
                     }
 
-                    if (result.MessageType == WebSocketMessageType.Close)
-                    {
-                        gracefulClose = true;
-                        Console.WriteLine($"Instance {instanceId} closed the connection gracefully: {result.CloseStatus} - {result.CloseStatusDescription}");
-                        return;
-                    }
+                    HandleMessage(instanceId, Encoding.UTF8.GetString(ms.ToArray()));
                 }
             }
             finally
@@ -75,10 +92,35 @@ namespace Torch2WebUI.Services.InstanceServices
                     }
                 }
                 catch { }
+            }
+        }
 
-                if (!gracefulClose)
-                {
-                }
+        private void HandleMessage(string instanceId, string json)
+        {
+            SocketMsgEnvelope? envelope;
+            try
+            {
+                envelope = JsonSerializer.Deserialize<SocketMsgEnvelope>(json, TorchConstants.JsonOptions);
+                if (envelope is null) return;
+            }
+            catch
+            {
+                return;
+            }
+
+            switch (envelope.Command)
+            {
+                case TorchConstants.WsLog:
+                    var entry = envelope.Args.Deserialize<LogLine>(TorchConstants.JsonOptions);
+                    if (entry is not null)
+                        _logService.Append(instanceId, entry);
+                    break;
+
+                case TorchConstants.WsLogHistory:
+                    var history = envelope.Args.Deserialize<LogLine[]>(TorchConstants.JsonOptions);
+                    if (history is not null)
+                        _logService.AppendHistory(instanceId, history);
+                    break;
             }
         }
 
@@ -104,3 +146,4 @@ namespace Torch2WebUI.Services.InstanceServices
         }
     }
 }
+

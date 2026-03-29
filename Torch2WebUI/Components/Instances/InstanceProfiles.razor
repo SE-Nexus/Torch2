@@ -74,10 +74,10 @@
                 </MudPaper>
 
                 <MudPaper Class="pa-2" Style="overflow-y: auto;">
-                    <MudList T="ProfileCfg" Dense="true">
+                    <MudList T="ProfileCfg" Dense="true" SelectedValue="_selectedProfile" SelectedValueChanged="OnProfileSelectedAsync">
                         @foreach (var profile in _instance.Profiles)
                         {
-                            <MudListItem Clickable="true" Selected="@(profile == _selectedProfile)" OnClick="@(() => SelectProfile(profile))" Class="pa-2">
+                            <MudListItem Value="profile" Class="pa-2">
 
                                 <MudStack Row>
 
@@ -147,10 +147,10 @@
                                 <MudNumericField T="ushort" @bind-Value="_selectedProfile.InstancePort" Label="Port" Variant="Variant.Outlined" Min="1" Max="65535" />
                                 <MudNumericField T="int" @bind-Value="_selectedProfile.LogsMaxAge" Label="Logs Max Age (days)" Variant="Variant.Outlined" Min="0" />
 
-                                <MudSwitch T="bool" @bind-Checked="_selectedProfile.AutoStart" Color="Color.Primary">Auto Start</MudSwitch>
-                                <MudSwitch T="bool" @bind-Checked="_selectedProfile.CheckForUpdates" Color="Color.Primary">Check for Updates</MudSwitch>
-                                <MudSwitch T="bool" @bind-Checked="_selectedProfile.AutoUpdateGame" Color="Color.Primary">Auto Update Game</MudSwitch>
-                                <MudSwitch T="bool" @bind-Checked="_selectedProfile.RestartOnCrash" Color="Color.Primary">Restart on Crash</MudSwitch>
+                                <MudSwitch T="bool" @bind-Value="_selectedProfile.AutoStart" Color="Color.Primary">Auto Start</MudSwitch>
+                                <MudSwitch T="bool" @bind-Value="_selectedProfile.CheckForUpdates" Color="Color.Primary">Check for Updates</MudSwitch>
+                                <MudSwitch T="bool" @bind-Value="_selectedProfile.AutoUpdateGame" Color="Color.Primary">Auto Update Game</MudSwitch>
+                                <MudSwitch T="bool" @bind-Value="_selectedProfile.RestartOnCrash" Color="Color.Primary">Restart on Crash</MudSwitch>
 
                                 <MudTextField @bind-Value="_selectedProfile.BranchName" Label="Game Branch" Variant="Variant.Outlined" />
                                 <MudTextField @bind-Value="_selectedProfile.BranchPassword" Label="Branch Password" Variant="Variant.Outlined" InputType="InputType.Password" />
@@ -215,7 +215,7 @@
 
                                     <!-- IgnoreLastSession (bool) -->
                                     <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.IgnoreLastSession))">
-                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.IgnoreLastSession" Color="Color.Primary">@nameof(_dedicatedConfig.IgnoreLastSession)</MudSwitch>
+                                        <MudSwitch T="bool" @bind-Value="_dedicatedConfig.IgnoreLastSession" Color="Color.Primary">@nameof(_dedicatedConfig.IgnoreLastSession)</MudSwitch>
                                     </MudTooltip>
 
                                     <!-- IP (string) -->
@@ -230,12 +230,12 @@
 
                                     <!-- CrossPlatform (bool) -->
                                     <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.CrossPlatform))">
-                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.CrossPlatform" Color="Color.Primary">@nameof(_dedicatedConfig.CrossPlatform)</MudSwitch>
+                                        <MudSwitch T="bool" @bind-Value="_dedicatedConfig.CrossPlatform" Color="Color.Primary">@nameof(_dedicatedConfig.CrossPlatform)</MudSwitch>
                                     </MudTooltip>
 
                                     <!-- PauseGameWhenEmpty (bool) -->
                                     <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.PauseGameWhenEmpty))">
-                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.PauseGameWhenEmpty" Color="Color.Primary">@nameof(_dedicatedConfig.PauseGameWhenEmpty)</MudSwitch>
+                                        <MudSwitch T="bool" @bind-Value="_dedicatedConfig.PauseGameWhenEmpty" Color="Color.Primary">@nameof(_dedicatedConfig.PauseGameWhenEmpty)</MudSwitch>
                                     </MudTooltip>
 
                                     <!-- MessageOfTheDay (string) -->
@@ -250,7 +250,7 @@
 
                                     <!-- AutoRestartEnabled (bool) -->
                                     <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.AutoRestartEnabled))">
-                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.AutoRestartEnabled" Color="Color.Primary">@nameof(_dedicatedConfig.AutoRestartEnabled)</MudSwitch>
+                                        <MudSwitch T="bool" @bind-Value="_dedicatedConfig.AutoRestartEnabled" Color="Color.Primary">@nameof(_dedicatedConfig.AutoRestartEnabled)</MudSwitch>
                                     </MudTooltip>
 
                                     <!-- AutoRestatTimeInMin (int) -->
@@ -260,7 +260,7 @@
 
                                     <!-- AutoUpdateEnabled (bool) -->
                                     <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.AutoUpdateEnabled))">
-                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.AutoUpdateEnabled" Color="Color.Primary">@nameof(_dedicatedConfig.AutoUpdateEnabled)</MudSwitch>
+                                        <MudSwitch T="bool" @bind-Value="_dedicatedConfig.AutoUpdateEnabled" Color="Color.Primary">@nameof(_dedicatedConfig.AutoUpdateEnabled)</MudSwitch>
                                     </MudTooltip>
 
                                     <!-- AutoUpdateCheckIntervalInMin (int) -->
@@ -275,7 +275,7 @@
 
                                     <!-- RestartSave (bool) -->
                                     <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.RestartSave))">
-                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.RestartSave" Color="Color.Primary">@nameof(_dedicatedConfig.RestartSave)</MudSwitch>
+                                        <MudSwitch T="bool" @bind-Value="_dedicatedConfig.RestartSave" Color="Color.Primary">@nameof(_dedicatedConfig.RestartSave)</MudSwitch>
                                     </MudTooltip>
 
                                     <!-- AutoUpdateSteamBranch (string) -->
@@ -315,17 +315,17 @@
 
                                     <!-- AutodetectDependencies (bool) -->
                                     <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.AutodetectDependencies))">
-                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.AutodetectDependencies" Color="Color.Primary">@nameof(_dedicatedConfig.AutodetectDependencies)</MudSwitch>
+                                        <MudSwitch T="bool" @bind-Value="_dedicatedConfig.AutodetectDependencies" Color="Color.Primary">@nameof(_dedicatedConfig.AutodetectDependencies)</MudSwitch>
                                     </MudTooltip>
 
                                     <!-- SaveChatToLog (bool) -->
                                     <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.SaveChatToLog))">
-                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.SaveChatToLog" Color="Color.Primary">@nameof(_dedicatedConfig.SaveChatToLog)</MudSwitch>
+                                        <MudSwitch T="bool" @bind-Value="_dedicatedConfig.SaveChatToLog" Color="Color.Primary">@nameof(_dedicatedConfig.SaveChatToLog)</MudSwitch>
                                     </MudTooltip>
 
                                     <!-- ChatAntiSpamEnabled (bool) -->
                                     <MudTooltip Text="@GetDescription(nameof(_dedicatedConfig.ChatAntiSpamEnabled))">
-                                        <MudSwitch T="bool" @bind-Checked="_dedicatedConfig.ChatAntiSpamEnabled" Color="Color.Primary">@nameof(_dedicatedConfig.ChatAntiSpamEnabled)</MudSwitch>
+                                        <MudSwitch T="bool" @bind-Value="_dedicatedConfig.ChatAntiSpamEnabled" Color="Color.Primary">@nameof(_dedicatedConfig.ChatAntiSpamEnabled)</MudSwitch>
                                     </MudTooltip>
 
                                     <!-- SameMessageTimeout (int) -->
@@ -498,6 +498,12 @@
         }
 
         StateHasChanged();
+    }
+
+    private async Task OnProfileSelectedAsync(ProfileCfg? profile)
+    {
+        if (profile != null)
+            await SelectProfile(profile);
     }
 
     private async Task CreateProfileAsync()

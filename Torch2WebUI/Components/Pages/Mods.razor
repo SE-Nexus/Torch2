@@ -32,7 +32,8 @@
                           Placeholder="Search mod lists..."
                           Variant="Variant.Outlined"
                           Style="flex: 1;"
-                          StartAdornment="@Icons.Material.Filled.Search"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
                           AdornmentColor="Color.Default" />
         </MudStack>
 
@@ -40,7 +41,7 @@
         @if (IsLoading)
         {
             <MudProgressLinear Indeterminate="true" />
-            <MudStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Style="min-height: 200px;">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="min-height: 200px;">
                 <MudCircularProgress IsIndeterminate="true" />
             </MudStack>
         }

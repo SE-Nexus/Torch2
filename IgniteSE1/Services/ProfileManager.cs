@@ -14,8 +14,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Torch2API.Models.Configs;
+using Torch2API.Models.Schema;
 using VRage.FileSystem;
 using VRage.Game;
 using VRage.Game.ModAPI;
@@ -388,14 +390,26 @@ namespace IgniteSE1.Services
             {
                 var di = new DirectoryInfo(worldPath);
 
-                WorldInfo worldInfo = new WorldInfo
+                string linkedModList = string.Empty;
+                string metadataFile = Path.Combine(worldPath, ".modlist");
+                if (File.Exists(metadataFile))
+                {
+                    try
+                    {
+                        var meta = JsonSerializer.Deserialize<WorldModListMetadata>(File.ReadAllText(metadataFile));
+                        linkedModList = meta?.ModListName ?? string.Empty;
+                    }
+                    catch { }
+                }
+
+                _worlds.Add(new WorldInfo
                 {
                     Name = di.Name,
                     CreatedUtc = di.CreationTime,
-                    LastUpdatedUtc = di.LastWriteTimeUtc
-                };
-
-                _worlds.Add(worldInfo);
+                    LastUpdatedUtc = di.LastWriteTimeUtc,
+                    SessionDirectoryPath = worldPath,
+                    LinkedModList = linkedModList
+                });
             }
         }
 

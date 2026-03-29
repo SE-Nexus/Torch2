@@ -1,15 +1,15 @@
-﻿using InstanceUtils.Models.Server;
-using Sandbox.Engine.Utils;
+﻿using InstanceUtils.Logging;
+using InstanceUtils.Models.Server;
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
-using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Torch2API.Constants;
+using Torch2API.DTOs.Logs;
 using Torch2API.DTOs.WebSockets;
 
 namespace InstanceUtils.Services.WebPanel
@@ -22,6 +22,11 @@ namespace InstanceUtils.Services.WebPanel
         private readonly IConfigService _ConfigService;
         private readonly IPanelCoreService _PanelCore;
         private ClientWebSocket? _socket;
+
+        private ConcurrentQueue<byte[]> _sendQueue = new ConcurrentQueue<byte[]>();
+        private SemaphoreSlim _sendSignal = new SemaphoreSlim(0);
+        private CancellationTokenSource? _connectionCts;
+        private Action<LogLine>? _logHandler;
 
         private bool _IsConnected = false;
 
@@ -63,6 +68,7 @@ namespace InstanceUtils.Services.WebPanel
                 finally
                 {
                     _IsConnected = false;
+                    UnsubscribeLog();
                     CleanupSocket();
                 }
 
@@ -92,12 +98,21 @@ namespace InstanceUtils.Services.WebPanel
                 Path = "/ws/instance"
             }.Uri;
 
-
-            var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10)); // 10 second timeout
+            var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await _socket.ConnectAsync(wsUri, cancellationTokenSource.Token);
 
+            // Fresh send queue and connection-scoped cancellation for this session
+            _sendQueue = new ConcurrentQueue<byte[]>();
+            _sendSignal = new SemaphoreSlim(0);
+            _connectionCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
 
-            _ = ListenAsync(ct); // fire-and-forget
+            _ = SendLoopAsync(_connectionCts.Token);
+            _ = ListenAsync(ct);
+
+            // Subscribe to live log events and immediately flush buffered history
+            _logHandler = line => EnqueueEnvelope(TorchConstants.WsLog, line);
+            LogBuffer.Instance.OnLog += _logHandler;
+            EnqueueEnvelope(TorchConstants.WsLogHistory, LogBuffer.Instance.GetHistory());
         }
 
         private async Task ListenAsync(CancellationToken ct)
@@ -203,6 +218,60 @@ namespace InstanceUtils.Services.WebPanel
                 _disconnected.TrySetResult(true);
                 CleanupSocket();
             }
+        }
+
+        private void EnqueueEnvelope<T>(string command, T payload)
+        {
+            var envelope = new SocketMsgEnvelope(command)
+            {
+                Args = JsonSerializer.SerializeToElement(payload, TorchConstants.JsonOptions)
+            };
+
+            var bytes = Encoding.UTF8.GetBytes(
+                JsonSerializer.Serialize(envelope, TorchConstants.JsonOptions));
+
+            _sendQueue.Enqueue(bytes);
+            try { _sendSignal.Release(); } catch { }
+        }
+
+        private async Task SendLoopAsync(CancellationToken ct)
+        {
+            try
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    await _sendSignal.WaitAsync(ct);
+
+                    while (_sendQueue.TryDequeue(out var bytes))
+                    {
+                        if (_socket?.State != WebSocketState.Open) return;
+
+                        await _socket.SendAsync(
+                            new ArraySegment<byte>(bytes),
+                            WebSocketMessageType.Text,
+                            endOfMessage: true,
+                            ct);
+                    }
+                }
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Send loop error: {ex}");
+            }
+        }
+
+        private void UnsubscribeLog()
+        {
+            if (_logHandler != null)
+            {
+                LogBuffer.Instance.OnLog -= _logHandler;
+                _logHandler = null;
+            }
+
+            _connectionCts?.Cancel();
+            _connectionCts?.Dispose();
+            _connectionCts = null;
         }
 
         private void CleanupSocket()

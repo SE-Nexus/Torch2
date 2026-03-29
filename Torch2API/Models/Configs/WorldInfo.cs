@@ -26,7 +26,6 @@ namespace Torch2API.Models.Configs
 
         public string? SessionDirectoryPath { get; set; }
 
-
-        //public IFormFile? PreviewImage { get; set; }
+        public string? LinkedModList { get; set; }
     }
 }

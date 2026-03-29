@@ -11,7 +11,7 @@
     <MudDivider Class="my-3" />
 
     <!-- Instance Tools -->
-    <MudNavLink Href="eventviewer"
+    <MudNavLink Href="@($"/instances/{Context.InstanceId}/eventviewer")"
                 Icon="@Icons.Material.Filled.EventNote">
         Event Viewer
     </MudNavLink>
@@ -28,12 +28,6 @@
         <MudNavLink Href="@($"/instances/{Context.InstanceId}/profiles")"
                     Icon="@Icons.Material.Filled.SettingsApplications">
             Profiles
-        </MudNavLink>
-
-
-        <MudNavLink Href="mods"
-                    Icon="@Icons.Material.Filled.Extension">
-            Mods
         </MudNavLink>
 
     </MudNavGroup>

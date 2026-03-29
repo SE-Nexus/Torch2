@@ -3,7 +3,7 @@
 @using MudBlazor
 @inject ISnackbar Snackbar
 
-<MudDialog FullWidth="true" MaxWidth="MaxWidth.Small">
+<MudDialog Options="@(new DialogOptions { FullWidth = true, MaxWidth = MaxWidth.Small })">
     <DialogContent>
         <MudStack Spacing="3">
             <MudText Typo="Typo.body2" Color="Color.Secondary">

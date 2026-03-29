@@ -24,5 +24,8 @@ namespace Torch2API.Constants
         public const string AllProfiles = InstanceBase + "/allprofiles";
         public const string DedicatedSchema = InstanceBase + "/dedicatedschema";
         public const string Register = InstanceBase + "/regsiter";
+
+        public const string ModListBase = "api/modlist";
+        public const string GetModIdsByListName = ModListBase + "/modids/{name}";
     }
 }

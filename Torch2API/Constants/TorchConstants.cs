@@ -14,5 +14,8 @@ namespace Torch2API.Constants
         };
 
         public const string InstanceIdHeader = "Instance-Id";
+
+        public const string WsLog = "instance.log";
+        public const string WsLogHistory = "instance.log.history";
     }
 }

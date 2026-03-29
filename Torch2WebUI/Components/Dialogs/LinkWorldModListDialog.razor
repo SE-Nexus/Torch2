@@ -1,0 +1,77 @@
+@using Torch2WebUI.Models
+@using Torch2WebUI.Models.Database
+@using Torch2WebUI.Services.SQL
+@using Torch2API.Models.Configs
+@using Microsoft.EntityFrameworkCore
+@using MudBlazor
+@inject AppDbContext DbContext
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudText Typo="Typo.body1">
+                Select a mod list to link to <strong>@World.Name</strong>
+            </MudText>
+
+            <MudSelect T="string?"
+                       @bind-Value="_selectedModList"
+                       Label="Mod List"
+                       Variant="Variant.Outlined"
+                       AnchorOrigin="Origin.BottomCenter">
+                <MudSelectItem T="string?" Value="@((string?)string.Empty)">-- None --</MudSelectItem>
+                @foreach (var modList in _modLists)
+                {
+                    <MudSelectItem T="string?" Value="@modList.Name">@modList.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            @if (_selectedModList == string.Empty)
+            {
+                <MudAlert Severity="Severity.Warning">
+                    This world will be <strong>unlinked</strong> from all mod lists.
+                </MudAlert>
+            }
+            else if (!string.IsNullOrEmpty(_selectedModList))
+            {
+                <MudAlert Severity="Severity.Info">
+                    This world will be linked to: <strong>@_selectedModList</strong>
+                </MudAlert>
+            }
+        </MudStack>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Submit"
+                   Disabled="@(_selectedModList == null)">
+            @(_selectedModList == string.Empty ? "Remove Link" : "Link Mod List")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public WorldInfo World { get; set; } = null!;
+    [Parameter] public TorchInstance Instance { get; set; } = null!;
+
+    private string? _selectedModList = null;
+    private List<ModList> _modLists = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _modLists = await DbContext.ModLists.OrderBy(ml => ml.Name).ToListAsync();
+        _selectedModList = string.IsNullOrEmpty(World.LinkedModList) ? null : World.LinkedModList;
+    }
+
+    private void Submit()
+    {
+        MudDialog.Close(DialogResult.Ok(_selectedModList));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}
