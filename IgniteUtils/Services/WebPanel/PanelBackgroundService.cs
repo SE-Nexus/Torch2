@@ -1,8 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
 using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -30,8 +27,15 @@ namespace InstanceUtils.Services.WebPanel
 
         private async void _UpdateTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            await _WebService.SendStatus();
-            _UpdateTimer.Start();
+            try
+            {
+                await _WebService.SendStatus();
+            }
+            catch (Exception) { }
+            finally
+            {
+                _UpdateTimer.Start();
+            }
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -49,28 +53,6 @@ namespace InstanceUtils.Services.WebPanel
             _UpdateTimer?.Stop();
             await _socketClient.ShutdownAsync(cancellationToken);
             return;
-        }
-
-        public static async Task<string?> GetPublicIpAsync()
-        {
-            try
-            {
-                using var http = new HttpClient
-                {
-                    Timeout = TimeSpan.FromSeconds(5)
-                };
-
-                var ip = await http.GetStringAsync("https://api.ipify.org");
-                return string.IsNullOrWhiteSpace(ip) ? null : ip.Trim();
-            }
-            catch (HttpRequestException)   // No internet, DNS failure, 4xx/5xx
-            {
-                return null;
-            }
-            catch (TaskCanceledException)  // Timeout
-            {
-                return null;
-            }
         }
     }
 }

@@ -71,10 +71,6 @@ namespace InstanceUtils.Services
                     AfterInit();
                     return Task.FromResult(true);
 
-                case ServerStatusEnum.Running:
-                    ServerStarted();
-                    return Task.FromResult(true);
-
                 case ServerStatusEnum.Starting:
                     return ServerStarting();
 

@@ -57,7 +57,7 @@ namespace InstanceUtils.Services
         /// <summary>
         /// Gets the current state request for the server.
         /// </summary>
-        public ServerStateCommand CurrentSateRequest { get; private set; } = ServerStateCommand.Kill;
+        public ServerStateCommand CurrentStateRequest { get; private set; } = ServerStateCommand.Kill;
 
 
 
@@ -73,7 +73,6 @@ namespace InstanceUtils.Services
         public ServerStateService(ConsoleManager console) 
         {
             _console = console;
-            ServerStatusChanged += ServerStatusChanged_Event;
 
             //Debug only
             GameRunningTime = DateTime.UtcNow;
@@ -134,11 +133,6 @@ namespace InstanceUtils.Services
             return Task.FromResult(true);
         }
 
-        private void SetupConsoleCommands()
-        {
-
-        }
-
 
         /// <summary>
         /// Requests to change the server state to the specified <paramref name="newState"/>.
@@ -149,7 +143,7 @@ namespace InstanceUtils.Services
         /// <param name="newState">The new state to set for the server.</param>
         public bool RequestServerStateChange(ServerStateCommand newState)
         {
-            if (newState == CurrentSateRequest)
+            if (newState == CurrentStateRequest)
             {
                 _logger.Warn($"Request to change server state to {newState}, but it is already requested.");
                 return false;
@@ -205,18 +199,18 @@ namespace InstanceUtils.Services
 
 
 
-            CurrentSateRequest = newState;
+            CurrentStateRequest = newState;
             
 
             // Raise the ServerStateChanged event to notify subscribers of the state change
-            _logger.InfoColor($"Server state changed to: {CurrentSateRequest}", Color.Green);
+            _logger.InfoColor($"Server state changed to: {CurrentStateRequest}", Color.Green);
 
             ServerStateChanged?.GetInvocationList()
                 .Cast<EventHandler<ServerStateCommand>>()
                 .ToList()
                 .ForEach(handler =>
                 {
-                    Task.Run(() => handler(this, CurrentSateRequest));
+                    Task.Run(() => handler(this, CurrentStateRequest));
                 });
 
             ChangeServerStatus(RequestedStatus);
@@ -314,19 +308,6 @@ namespace InstanceUtils.Services
 
 
 
-        /// <summary>
-        /// Handles the event triggered when the server status changes.
-        /// </summary>
-        /// <remarks>If the server status changes to <see cref="ServerStatusEnum.Idle"/> and the
-        /// auto-start configuration is enabled,  this method initiates an automatic server start.</remarks>
-        /// <param name="sender">The source of the event, typically the object raising the event.</param>
-        /// <param name="e">The new server status, represented as a value of the <see cref="ServerStatusEnum"/> enumeration.</param>
-        private void ServerStatusChanged_Event(object sender, ServerStatusEnum e)
-        {
-            
-
-        }
-
         public TimeSpan GetStateTime()
         {
             return DateTime.UtcNow - LastStatusChangeTime;
@@ -340,7 +321,7 @@ namespace InstanceUtils.Services
 
         public override string ToString()
         {
-            return $"Server state: [{CurrentSateRequest}] | Status: [{CurrentServerStatus}] for {GetStateTime().ToCompactString()}";
+            return $"Server state: [{CurrentStateRequest}] | Status: [{CurrentServerStatus}] for {GetStateTime().ToCompactString()}";
         }
 
         

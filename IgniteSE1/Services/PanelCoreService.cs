@@ -55,18 +55,30 @@ namespace InstanceUtils.Services.WebPanel
 
         private async void OnChatReceived(ChatMessage message)
         {
-            await _webPanelClient.PostAsync(WebAPIConstants.PostChat, message);
+            try
+            {
+                await _webPanelClient.PostAsync(WebAPIConstants.PostChat, message);
+            }
+            catch (Exception) { }
         }
 
         private async void _instanceManager_WorldsChanged(List<WorldInfo> obj)
         {
-            //No matter who runs this command, we need to alert the panel. Should this be here or in the create world?
-            await _webPanelClient.PostAsync(WebAPIConstants.AllWorlds, obj);
+            try
+            {
+                //No matter who runs this command, we need to alert the panel. Should this be here or in the create world?
+                await _webPanelClient.PostAsync(WebAPIConstants.AllWorlds, obj);
+            }
+            catch (Exception) { }
         }
 
         private async void _instanceManager_ProfilesChanged(List<ProfileCfg> obj)
         {
-            await _webPanelClient.PostAsync(WebAPIConstants.AllProfiles, obj);
+            try
+            {
+                await _webPanelClient.PostAsync(WebAPIConstants.AllProfiles, obj);
+            }
+            catch (Exception) { }
         }
 
         public async Task GetPublicIP()
@@ -109,22 +121,17 @@ namespace InstanceUtils.Services.WebPanel
                 TargetWorld = cfg?.TargetWorld ?? "Loading...",
                 TorchVersion = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "v0.0.0",
                 ServerStatus = _serverStateService.CurrentServerStatus,
-                CurrentStateCmd = _serverStateService.CurrentSateRequest,
+                CurrentStateCmd = _serverStateService.CurrentStateRequest,
                 GameUpTime = _serverStateService.GetGameRunningTime(),
                 StateTime = _serverStateService.GetStateTime(),
                 SimSpeed = _gService.SimSpeed,
-                PlayersOnline = (ushort)_gService.PlaersOnline,
+                PlayersOnline = (ushort)_gService.PlayersOnline,
                 TotalGrids = (uint)_gService.TotalGrids
             };
 
                 
 
             var success = await _webPanelClient.PostAsync(WebAPIConstants.Update, status,ct);
-        }
-
-        public async Task RunAsync(CancellationToken ct)
-        {
-            await Task.CompletedTask;
         }
 
         public Task RunWSCommand(SocketMsgEnvelope msg)

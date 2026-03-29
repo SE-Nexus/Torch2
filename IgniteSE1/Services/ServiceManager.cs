@@ -63,7 +63,7 @@ namespace IgniteSE1.Services
                 await AnsiConsole.Status()
                 .Spinner(consoleSpinner)
                 .SpinnerStyle(consoleSpinnerStyle)
-                .StartAsync("Starting services...", async ctx =>
+                .StartAsync("Stopping services...", async ctx =>
                 {
                     bool success = await RunServicePhaseAsync(Services, e, ServerStatusEnum.Stopped, ctx);
 

@@ -67,7 +67,7 @@ namespace IgniteSE1.Services
         private TaskCompletionSource<bool> _serverStoppedTcs;
 
         public float SimSpeed => Math.Min(Sync.ServerSimulationRatio, 1);
-        public int PlaersOnline => MyMultiplayer.Static?.MemberCount ?? 0;
+        public int PlayersOnline => MyMultiplayer.Static?.MemberCount ?? 0;
         public int TotalGrids => MyCubeGridGroups.Static?.Physical.Groups.Count ?? 0;
 
 

@@ -54,7 +54,6 @@ namespace IgniteSE1
             {
                 // Add hosted services or other services here if needed
                 services.AddHostedService<ServiceManager>();
-                ConfigureServices(services);
 
                 // Setup Dependency Injection
                 services.AddCoreServices(ConfigService.TargetWebPanel);
@@ -114,12 +113,5 @@ namespace IgniteSE1
 
 
 
-        public static void ConfigureServices(IServiceCollection services)
-        {
-            // Add other services
-
-
-
+            }
         }
-    }
-}
