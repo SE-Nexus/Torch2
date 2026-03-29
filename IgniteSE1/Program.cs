@@ -64,6 +64,7 @@ namespace IgniteSE1
                 services.AddSingletonWithBase<SteamService>();
 
                 services.AddSingletonWithBase<GameService>();
+                services.AddSingletonWithBase<GameChatService>();
                 services.AddSingletonWithBase<ProfileManager>();
 
 

@@ -9,9 +9,9 @@ namespace Torch2WebUI.Services.InstanceServices
     /// Panel-side log store. Keeps a rolling history per instance and notifies
     /// Blazor components via <see cref="OnLog"/> when new entries arrive.
     /// </summary>
-    public sealed class InstanceLogService
+    public class InstanceLogService
     {
-        private const int MaxPerInstance = 1000;
+        public static int MaxPerInstance = 2000;
 
         private readonly ConcurrentDictionary<string, Queue<LogLine>> _histories = new();
         private readonly object _lock = new();

@@ -1,4 +1,4 @@
-@page "/instances/{InstanceId}/eventviewer"
+@page "/instances/{InstanceId}/consoleviewer"
 @layout InstanceLayout
 @using Torch2API.DTOs.Logs
 @using Torch2WebUI.Models.Contexts
@@ -7,12 +7,12 @@
 @inject IJSRuntime JS
 @implements IDisposable
 
-<PageTitle>Event Viewer</PageTitle>
+<PageTitle>Console Viewer</PageTitle>
 
-<MudStack Spacing="3">
+<MudStack Spacing="3" Style="height:calc(100dvh - 120px);">
 
     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-        <MudText Typo="Typo.h5">Event Viewer</MudText>
+        <MudText Typo="Typo.h5">Console Viewer</MudText>
         <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Outlined">
             @FilteredLines.Count entries
         </MudChip>
@@ -29,16 +29,21 @@
                        Size="Size.Small" />
     </MudStack>
 
-    <MudChipSet T="string" MultiSelection="true" @bind-SelectedValues="_selectedLevels">
-        <MudChip T="string" Value="@("Trace")" Variant="Variant.Outlined">Trace</MudChip>
-        <MudChip T="string" Value="@("Debug")" Color="Color.Info" Variant="Variant.Outlined">Debug</MudChip>
-        <MudChip T="string" Value="@("Info")"  Color="Color.Success" Variant="Variant.Outlined">Info</MudChip>
-        <MudChip T="string" Value="@("Warn")"  Color="Color.Warning" Variant="Variant.Outlined">Warn</MudChip>
-        <MudChip T="string" Value="@("Error")" Color="Color.Error" Variant="Variant.Outlined">Error</MudChip>
-        <MudChip T="string" Value="@("Fatal")" Color="Color.Dark" Variant="Variant.Outlined">Fatal</MudChip>
-    </MudChipSet>
+    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+        @foreach (var (level, color) in _levels)
+        {
+            bool active = _selectedLevels.Contains(level);
+            <MudButton Color="@(active ? color : Color.Default)"
+                       Variant="@(active ? Variant.Filled : Variant.Outlined)"
+                       Size="Size.Small"
+                       Style="@(active ? "" : "opacity:0.38;")"
+                       OnClick="@(() => ToggleLevel(level))">
+                @level
+            </MudButton>
+        }
+    </MudStack>
 
-    <MudPaper Elevation="2" Style="height:600px; display:flex; flex-direction:column; overflow:hidden;">
+    <MudPaper Elevation="2" Style="flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden;">
 
         <div style="display:grid; grid-template-columns:90px 58px 150px 1fr;
                     padding:6px 12px; font-weight:600; font-size:12px;
@@ -87,15 +92,30 @@
     private string ResolvedId => InstanceManager.GetInstanceByID(InstanceId)?.InstanceID ?? InstanceId;
 
     private List<LogLine> _lines = new();
-    private IReadOnlyCollection<string>? _selectedLevels =
-        new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Debug", "Info", "Warn", "Error", "Fatal" };
+    private static readonly (string Level, Color Color)[] _levels =
+    [
+        ("Debug", Color.Info),
+        ("Info",  Color.Success),
+        ("Warn",  Color.Warning),
+        ("Error", Color.Error),
+        ("Fatal", Color.Dark),
+    ];
+
+    private readonly HashSet<string> _selectedLevels =
+        new(StringComparer.OrdinalIgnoreCase) { "Debug", "Info", "Warn", "Error", "Fatal" };
+
+    private void ToggleLevel(string level)
+    {
+        if (!_selectedLevels.Remove(level))
+            _selectedLevels.Add(level);
+    }
 
     private bool _autoScroll = true;
     private bool _pendingScroll;
 
     private List<LogLine> FilteredLines =>
-        _selectedLevels is null || _selectedLevels.Count == 0
-            ? _lines
+        _selectedLevels.Count == 0
+            ? new List<LogLine>()
             : _lines.Where(l => _selectedLevels.Contains(l.Level)).ToList();
 
     protected override void OnInitialized()
@@ -121,7 +141,7 @@
         InvokeAsync(() =>
         {
             _lines.Add(entry);
-            if (_lines.Count > 1000)
+            if (_lines.Count > InstanceLogService.MaxPerInstance)
                 _lines.RemoveAt(0);
             _pendingScroll = true;
             StateHasChanged();

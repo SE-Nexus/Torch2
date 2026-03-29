@@ -1,20 +1,15 @@
 ﻿@page "/instances/{InstanceId}"
 @using Torch2WebUI.Models.Contexts
+@using MudBlazor.Charts
 @layout InstanceLayout
-
+@implements IDisposable
 
 @inject InstanceManager InstanceManager
 <PageTitle>Instance Overview</PageTitle>
 
-
 @if (_instance is null)
 {
-    <MudAlert Severity="Severity.Error">
-        Instance not found
-    </MudAlert>
-
-   
-   
+    <MudAlert Severity="Severity.Error">Instance not found</MudAlert>
 }
 else
 {
@@ -28,14 +23,13 @@ else
         </MudChip>
 
         <MudTooltip Text="@_instance.InstanceID">
-            <MudIcon Icon="@Icons.Material.Filled.Fingerprint"
-                     Color="Color.Secondary" />
+            <MudIcon Icon="@Icons.Material.Filled.Fingerprint" Color="Color.Secondary" />
         </MudTooltip>
     </MudStack>
 
     <MudDivider Class="my-2" />
 
-    <!-- Dashboard Cards -->
+    <!-- Info Cards -->
     <MudGrid Spacing="3">
 
         <MudItem xs="12" sm="6" md="4">
@@ -69,9 +63,7 @@ else
             <MudCard>
                 <MudCardContent>
                     <MudText Typo="Typo.subtitle2">Address</MudText>
-                    <MudText Typo="Typo.body1">
-                        @_instance.IPAddress:@_instance.GamePort
-                    </MudText>
+                    <MudText Typo="Typo.body1">@_instance.IPAddress:@_instance.GamePort</MudText>
                 </MudCardContent>
             </MudCard>
         </MudItem>
@@ -104,7 +96,86 @@ else
         </MudItem>
 
     </MudGrid>
-    <!-- details UI -->
+
+    <!-- Live Metrics -->
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mt-6 mb-3">
+        <MudText Typo="Typo.h6">Live Metrics</MudText>
+        <MudText Typo="Typo.caption" Style="opacity:0.55;">last 20s</MudText>
+    </MudStack>
+
+    <MudGrid Spacing="3">
+
+        <!-- Sim Speed -->
+        <MudItem xs="12" md="4">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.Speed" Size="Size.Small" />
+                            <MudText Typo="Typo.subtitle1">Sim Speed</MudText>
+                            <MudSpacer />
+                            <MudText Typo="Typo.h6" Color="@SimSpeedColor">
+                                @_instance.SimSpeed.ToString("F3")
+                            </MudText>
+                        </MudStack>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (_simSpeedHistory.Count > 1)
+                    {
+                        <MudChart ChartType="ChartType.Line"
+                                  ChartSeries="@_simSpeedSeries"
+                                  XAxisLabels="@_xAxisLabels"
+                                  Width="100%" Height="200px"
+                                  MatchBoundsToSize="true"
+                                  ChartOptions="@_simSpeedOptions" 
+                                   />
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2" Align="Align.Center" Class="pa-6 mud-text-secondary">
+                            Waiting for data…
+                        </MudText>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Players & Grids -->
+        <MudItem xs="12" md="8">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" />
+                            <MudText Typo="Typo.subtitle1">Players &amp; Grids</MudText>
+                            <MudSpacer />
+                            <MudText Typo="Typo.body2" Color="Color.Info">@_instance.PlayersOnline Players</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Warning">@_instance.TotalGrids Grids</MudText>
+                        </MudStack>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (_playersHistory.Count > 1)
+                    {
+                        <MudChart ChartType="ChartType.Line"
+                                  ChartSeries="@_playersGridsSeries"
+                                  XAxisLabels="@_xAxisLabels"
+                                  Width="100%" Height="200px"
+                                  MatchBoundsToSize="true"
+                                  ChartOptions="@_playersGridsOptions" />
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2" Align="Align.Center" Class="pa-6 mud-text-secondary">
+                            Waiting for data…
+                        </MudText>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+    </MudGrid>
 }
 
 @code {
@@ -113,39 +184,109 @@ else
     [CascadingParameter]
     public InstanceContext Context { get; set; } = default!;
 
-
     private TorchInstanceBase? _instance;
 
+    // ── History ────────────────────────────────────────────────────────────
+    private const int MaxPoints = 20;
+
+    // Fixed x-axis labels: "", "2s", "", "4s", ..., "", "20s"
+    private static readonly string[] FixedXAxisLabels =
+        Enumerable.Range(1, 20).Select(i => i % 2 == 0 ? $"{i}s" : "").ToArray();
+
+    private readonly Queue<double> _simSpeedHistory = new();
+    private readonly Queue<double> _playersHistory  = new();
+    private readonly Queue<double> _gridsHistory    = new();
+
+    // ── Chart data (rebuilt on every snapshot) ──────────────────────────
+    private List<ChartSeries<double>> _simSpeedSeries     = [];
+    private List<ChartSeries<double>> _playersGridsSeries = [];
+    private string[]          _xAxisLabels    = [];
+
+    private readonly LineChartOptions _simSpeedOptions = new()
+    {
+        YAxisRequireZeroPoint = true,
+        MaxNumYAxisTicks      = 2,
+        ChartPalette          = ["#4CAF50"],
+        YAxisTicks = 1,
+    };
+
+    private readonly LineChartOptions _playersGridsOptions = new()
+    {
+        YAxisRequireZeroPoint = true,
+        MaxNumYAxisTicks      = 6,
+        ChartPalette          = ["#2196F3", "#FF9800"]
+    };
+
+    private Color SimSpeedColor => (_instance?.SimSpeed ?? 0f) switch
+    {
+        >= 0.9f => Color.Success,
+        >= 0.6f => Color.Warning,
+        _       => Color.Error
+    };
+
+    // ── Lifecycle ───────────────────────────────────────────────────────
     protected override void OnInitialized()
     {
-        Console.WriteLine(Context.InstanceId);
-
         _instance = InstanceManager.GetInstanceByID(Context.InstanceId);
+        RecordSnapshot();
         InstanceManager.OnChange += OnInstanceUpdated;
-
     }
-
-    private Color GetStatusColor(ServerStatusEnum status) => status switch
-    {
-        ServerStatusEnum.Running => Color.Success,
-        ServerStatusEnum.Starting => Color.Warning,
-        ServerStatusEnum.Initializing => Color.Info,
-        ServerStatusEnum.Stopped => Color.Default,
-        ServerStatusEnum.Error => Color.Error,
-        _ => Color.Secondary
-    };
 
     private void OnInstanceUpdated(string updatedId)
     {
-        if (updatedId != _instance.InstanceID)
+        if (_instance is null || updatedId != _instance.InstanceID)
             return;
 
         InvokeAsync(() =>
         {
             _instance = InstanceManager.GetInstanceByID(Context.InstanceId);
+            RecordSnapshot();
             StateHasChanged();
         });
     }
+
+    // ── Metric history ──────────────────────────────────────────────────
+    private void RecordSnapshot()
+    {
+        if (_instance?.ServerStatus is not ServerStatusEnum.Running)
+            return;
+
+        _simSpeedHistory.Enqueue(Math.Round(_instance.SimSpeed, 3));
+        _playersHistory .Enqueue(_instance.PlayersOnline);
+        _gridsHistory   .Enqueue(_instance.TotalGrids);
+
+        while (_simSpeedHistory.Count > MaxPoints)
+        {
+            _simSpeedHistory.Dequeue();
+            _playersHistory .Dequeue();
+            _gridsHistory   .Dequeue();
+        }
+
+        RebuildChartData();
+    }
+
+    private void RebuildChartData()
+    {
+        _simSpeedSeries     = [new ChartSeries<double> { Name = "Sim Speed", Data = _simSpeedHistory.ToArray() }];
+        _playersGridsSeries =
+        [
+            new ChartSeries<double> { Name = "Players", Data = _playersHistory.ToArray() },
+            new ChartSeries<double> { Name = "Grids",   Data = _gridsHistory.ToArray() }
+        ];
+
+        _xAxisLabels = FixedXAxisLabels[.._simSpeedHistory.Count];
+    }
+
+    // ── Helpers ─────────────────────────────────────────────────────────
+    private Color GetStatusColor(ServerStatusEnum status) => status switch
+    {
+        ServerStatusEnum.Running      => Color.Success,
+        ServerStatusEnum.Starting     => Color.Warning,
+        ServerStatusEnum.Initializing => Color.Info,
+        ServerStatusEnum.Stopped      => Color.Default,
+        ServerStatusEnum.Error        => Color.Error,
+        _                             => Color.Secondary
+    };
 
     public void Dispose()
     {

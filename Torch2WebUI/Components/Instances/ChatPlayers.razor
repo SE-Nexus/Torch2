@@ -1,0 +1,182 @@
+@page "/instances/{InstanceId}/chat"
+@using Torch2API.DTOs.Chat
+@using Torch2WebUI.Models.Contexts
+@layout InstanceLayout
+@implements IDisposable
+
+@inject InstanceChatService ChatService
+@inject InstanceManager InstanceManager
+@inject IJSRuntime JS
+
+<PageTitle>Chat / Players</PageTitle>
+
+<MudStack Spacing="3" Style="height:calc(100dvh - 120px);">
+
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+        <MudText Typo="Typo.h5">Game Chat</MudText>
+        <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Outlined">
+            @_messages.Count messages
+        </MudChip>
+        <MudSpacer />
+
+        @* Channel filter chips *@
+        @foreach (var ch in _knownChannels)
+        {
+            bool active = _selectedChannels.Contains(ch);
+            <MudButton Color="@(active ? Color.Primary : Color.Default)"
+                       Variant="@(active ? Variant.Filled : Variant.Outlined)"
+                       Size="Size.Small"
+                       Style="@(active ? "" : "opacity:0.38;")"
+                       OnClick="@(() => ToggleChannel(ch))">
+                @ch
+            </MudButton>
+        }
+
+        <MudIconButton Icon="@(_autoScroll ? Icons.Material.Filled.Lock : Icons.Material.Filled.LockOpen)"
+                       Color="@(_autoScroll ? Color.Primary : Color.Default)"
+                       OnClick="@(() => _autoScroll = !_autoScroll)"
+                       Title="@(_autoScroll ? "Auto-scroll on" : "Auto-scroll off")"
+                       Size="Size.Small" />
+        <MudIconButton Icon="@Icons.Material.Filled.DeleteSweep"
+                       Color="Color.Error"
+                       OnClick="ClearChat"
+                       Title="Clear chat"
+                       Size="Size.Small" />
+    </MudStack>
+
+    <MudPaper Elevation="2" Style="flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden;">
+
+        @* Header row *@
+        <div style="display:grid; grid-template-columns:90px 80px 160px 1fr;
+                    padding:6px 12px; font-weight:600; font-size:12px;
+                    border-bottom:1px solid rgba(128,128,128,0.25);
+                    flex-shrink:0;">
+            <span>Time</span>
+            <span>Channel</span>
+            <span>Player</span>
+            <span>Message</span>
+        </div>
+
+        @* Scrollable message list *@
+        <div style="overflow-y:auto; flex:1; font-family:monospace; font-size:12px;"
+             id="chat-scroll">
+            @foreach (var msg in FilteredMessages)
+            {
+                <div style="display:grid; grid-template-columns:90px 80px 160px 1fr;
+                            padding:2px 12px;
+                            border-bottom:1px solid rgba(128,128,128,0.06);">
+                    <span style="color:var(--mud-palette-text-secondary); white-space:nowrap;">
+                        @msg.Timestamp.ToLocalTime().ToString("HH:mm:ss")
+                    </span>
+                    <span style="@ChannelStyle(msg.Channel); font-weight:600; white-space:nowrap;">
+                        @msg.Channel
+                    </span>
+                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+                          title="@msg.SteamId">
+                        @msg.DisplayName@if (!string.IsNullOrEmpty(msg.Target))
+                        {<span style="color:var(--mud-palette-text-secondary);"> → @msg.Target</span>}
+                    </span>
+                    <span style="white-space:pre-wrap; word-break:break-all;">
+                        @msg.Message
+                    </span>
+                </div>
+            }
+            <div id="chat-bottom"></div>
+        </div>
+
+    </MudPaper>
+
+</MudStack>
+
+@code {
+    [Parameter] public string InstanceId { get; set; } = "";
+
+    private string ResolvedId => InstanceManager.GetInstanceByID(InstanceId)?.InstanceID ?? InstanceId;
+
+    private List<ChatMessage> _messages = new();
+    private bool _autoScroll = true;
+    private bool _pendingScroll;
+
+    private readonly HashSet<string> _knownChannels = new(StringComparer.OrdinalIgnoreCase);
+
+    private readonly HashSet<string> _selectedChannels =
+        new(StringComparer.OrdinalIgnoreCase) { "Global", "GlobalScripted", "Faction", "Private", "ChatBot", "BroadcastController" };
+
+    private List<ChatMessage> FilteredMessages =>
+        _selectedChannels.Count == 0
+            ? new List<ChatMessage>()
+            : _messages.Where(m => _selectedChannels.Contains(m.Channel)).ToList();
+
+    private void ToggleChannel(string channel)
+    {
+        if (!_selectedChannels.Remove(channel))
+            _selectedChannels.Add(channel);
+    }
+
+    protected override void OnInitialized()
+    {
+        _messages = new List<ChatMessage>(ChatService.GetHistory(ResolvedId));
+
+        foreach (var msg in _messages)
+            _knownChannels.Add(msg.Channel);
+
+        // Ensure all channel types always appear as filter buttons
+        _knownChannels.Add("Global");
+        _knownChannels.Add("GlobalScripted");
+        _knownChannels.Add("Faction");
+        _knownChannels.Add("Private");
+        _knownChannels.Add("ChatBot");
+        _knownChannels.Add("BroadcastController");
+
+        _pendingScroll = true;
+        ChatService.OnChat += HandleChat;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_pendingScroll && _autoScroll)
+        {
+            _pendingScroll = false;
+            await JS.InvokeVoidAsync("scrollElementIntoView", "chat-bottom");
+        }
+    }
+
+    private void HandleChat(string instanceId, ChatMessage message)
+    {
+        if (instanceId != ResolvedId) return;
+
+        InvokeAsync(() =>
+        {
+            _messages.Add(message);
+            _knownChannels.Add(message.Channel);
+
+            if (!_selectedChannels.Contains(message.Channel))
+                _selectedChannels.Add(message.Channel);
+
+            if (_messages.Count > InstanceChatService.MaxPerInstance)
+                _messages.RemoveAt(0);
+
+            _pendingScroll = true;
+            StateHasChanged();
+        });
+    }
+
+    private void ClearChat()
+    {
+        _messages.Clear();
+        StateHasChanged();
+    }
+
+    private static string ChannelStyle(string channel) => channel switch
+    {
+        "Global"              => "color:var(--mud-palette-info)",
+        "Faction"             => "color:var(--mud-palette-success)",
+        "GlobalScripted"      => "color:var(--mud-palette-warning)",
+        "Private"             => "color:var(--mud-palette-tertiary)",
+        "ChatBot"             => "color:var(--mud-palette-dark)",
+        "BroadcastController" => "color:var(--mud-palette-secondary)",
+        _                     => "color:var(--mud-palette-text-secondary)"
+    };
+
+    public void Dispose() => ChatService.OnChat -= HandleChat;
+}

@@ -247,6 +247,22 @@ namespace IgniteSE1.Services
                 _logger.NoConsole(LogLevel.Info, $"All services {phaseName.ToLower()} successfully.");
                 AnsiConsole.MarkupLine($"[green]All services {phaseName.ToLower()} successfully![/]");
                 _serverState.ChangeServerStatus(successStatus);
+
+                // Notify services that the server is now running
+                if (successStatus == ServerStatusEnum.Running)
+                {
+                    foreach (var svc in serviceList)
+                    {
+                        try
+                        {
+                            svc.ServerStarted();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.Error(ex, $"Exception in ServerStarted for {svc.GetType().Name}");
+                        }
+                    }
+                }
             }
             else
             {

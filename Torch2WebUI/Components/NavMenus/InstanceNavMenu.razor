@@ -1,7 +1,6 @@
 ﻿@using Torch2WebUI.Models.Contexts
 <MudNavMenu>
 
-    <!-- Back out to global panel -->
     <MudNavLink Href="/"
                 Match="NavLinkMatch.All"
                 Icon="@Icons.Material.Filled.ArrowBack">
@@ -11,9 +10,15 @@
     <MudDivider Class="my-3" />
 
     <!-- Instance Tools -->
-    <MudNavLink Href="@($"/instances/{Context.InstanceId}/eventviewer")"
-                Icon="@Icons.Material.Filled.EventNote">
-        Event Viewer
+    <MudNavLink Href="@($"/instances/{Context.InstanceId}")"
+                Match="NavLinkMatch.All"
+                Icon="@Icons.Material.Filled.Dashboard">
+        Overview
+    </MudNavLink>
+
+    <MudNavLink Href="@($"/instances/{Context.InstanceId}/consoleviewer")"
+                Icon="@Icons.Material.Filled.Terminal">
+        Console Viewer
     </MudNavLink>
 
     <MudNavGroup Title="Configuration"
@@ -36,7 +41,7 @@
 
 
 
-    <MudNavLink Href="chat"
+    <MudNavLink Href="@($"/instances/{Context.InstanceId}/chat")"
                 Icon="@Icons.Material.Filled.Chat">
         Chat / Players
     </MudNavLink>

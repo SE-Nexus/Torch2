@@ -3,6 +3,8 @@ using IgniteSE1.Services;
 using InstanceUtils.Models.Server;
 using InstanceUtils.Services.Commands.Contexts;
 using Sandbox.Engine.Utils;
+using Sandbox.Game.Multiplayer;
+using Sandbox.Game.World;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
@@ -13,6 +15,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Torch2API.Constants;
+using Torch2API.DTOs.Chat;
 using Torch2API.DTOs.Instances;
 using Torch2API.DTOs.WebSockets;
 using Torch2API.Models.Configs;
@@ -27,12 +30,14 @@ namespace InstanceUtils.Services.WebPanel
         private readonly ServerStateService _serverStateService;
         private readonly CommandService _cmdService;
         private readonly IServiceProvider _provider;
+        private readonly GameService _gService;
+        private readonly GameChatService _chatManager;
 
         public string InstancePublicIP { get; private set; } = "0.0.0.0";
 
 
 
-        public PanelCoreService(IConfigService ConfigService, PanelHTTPClient webPanelClient, ProfileManager instanceManager, ServerStateService stateservice, CommandService cmdService, IServiceProvider provider)
+        public PanelCoreService(GameService gService, IConfigService ConfigService, PanelHTTPClient webPanelClient, ProfileManager instanceManager, ServerStateService stateservice, CommandService cmdService, IServiceProvider provider, GameChatService chatManager)
         {
             _serverStateService = stateservice;
             _instanceManager = instanceManager;
@@ -40,10 +45,17 @@ namespace InstanceUtils.Services.WebPanel
             _ConfigService = ConfigService;
             _cmdService = cmdService;
             _provider = provider;
+            _gService = gService;
+            _chatManager = chatManager;
 
             _instanceManager.ProfilesChanged += _instanceManager_ProfilesChanged;
             _instanceManager.WorldsChanged += _instanceManager_WorldsChanged;
+            _chatManager.OnChatReceived += OnChatReceived;
+        }
 
+        private async void OnChatReceived(ChatMessage message)
+        {
+            await _webPanelClient.PostAsync(WebAPIConstants.PostChat, message);
         }
 
         private async void _instanceManager_WorldsChanged(List<WorldInfo> obj)
@@ -86,21 +98,26 @@ namespace InstanceUtils.Services.WebPanel
      
                 ProfileCfg cfg = _instanceManager.GetCurrentProfile();
 
-                var status = new TorchInstanceBase
-                {
-                    InstanceID = _ConfigService.Identification.InstanceID.ToString(),
-                    Name = _ConfigService.InstanceName,
-                    MachineName = Environment.MachineName,
-                    IPAddress = InstancePublicIP,
-                    GamePort = cfg?.InstancePort ?? 0,
-                    ProfileName = cfg?.InstanceName ?? "Loading...",
-                    TargetWorld = cfg?.TargetWorld ?? "Loading...",
-                    TorchVersion = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "v0.0.0",
-                    ServerStatus = _serverStateService.CurrentServerStatus,
-                    CurrentStateCmd = _serverStateService.CurrentSateRequest,
-                    GameUpTime = _serverStateService.GetGameRunningTime(),
-                    StateTime = _serverStateService.GetStateTime()
-                };
+            var status = new TorchInstanceBase
+            {
+                InstanceID = _ConfigService.Identification.InstanceID.ToString(),
+                Name = _ConfigService.InstanceName,
+                MachineName = Environment.MachineName,
+                IPAddress = InstancePublicIP,
+                GamePort = cfg?.InstancePort ?? 0,
+                ProfileName = cfg?.InstanceName ?? "Loading...",
+                TargetWorld = cfg?.TargetWorld ?? "Loading...",
+                TorchVersion = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "v0.0.0",
+                ServerStatus = _serverStateService.CurrentServerStatus,
+                CurrentStateCmd = _serverStateService.CurrentSateRequest,
+                GameUpTime = _serverStateService.GetGameRunningTime(),
+                StateTime = _serverStateService.GetStateTime(),
+                SimSpeed = _gService.SimSpeed,
+                PlayersOnline = (ushort)_gService.PlaersOnline,
+                TotalGrids = (uint)_gService.TotalGrids
+            };
+
+                
 
             var success = await _webPanelClient.PostAsync(WebAPIConstants.Update, status,ct);
         }

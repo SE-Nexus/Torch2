@@ -13,6 +13,14 @@ namespace Torch2API.DTOs.Instances
         public TimeSpan GameUpTime { get; set; }
         public TimeSpan StateTime { get; set; }
 
+        public float SimSpeed { get; set; }
+
+        public ushort PlayersOnline { get; set; }
+
+        public uint TotalGrids { get; set; }
+
+
+
 
         /// <summary>
         /// Updates the current instance's properties to match those of the specified configured instance.
@@ -35,6 +43,9 @@ namespace Torch2API.DTOs.Instances
             this.CurrentStateCmd = cfg.CurrentStateCmd;
             this.GameUpTime = cfg.GameUpTime;
             this.StateTime = cfg.StateTime;
+            this.SimSpeed = cfg.SimSpeed;
+            this.PlayersOnline = cfg.PlayersOnline;
+            this.TotalGrids = cfg.TotalGrids;
         }
 
         public string GetFormattedGameUptime()

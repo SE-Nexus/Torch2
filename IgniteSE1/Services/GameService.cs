@@ -5,10 +5,13 @@ using InstanceUtils.Models;
 using InstanceUtils.Services;
 using NLog;
 using Sandbox;
+using Sandbox.Engine.Multiplayer;
 using Sandbox.Engine.Networking;
 using Sandbox.Engine.Platform;
 using Sandbox.Engine.Utils;
 using Sandbox.Game;
+using Sandbox.Game.Entities;
+using Sandbox.Game.Multiplayer;
 using Sandbox.Game.World;
 using SpaceEngineers.Game;
 using Spectre.Console;
@@ -63,8 +66,12 @@ namespace IgniteSE1.Services
         private TaskCompletionSource<bool> _serverStoppingTcs;
         private TaskCompletionSource<bool> _serverStoppedTcs;
 
+        public float SimSpeed => Math.Min(Sync.ServerSimulationRatio, 1);
+        public int PlaersOnline => MyMultiplayer.Static?.MemberCount ?? 0;
+        public int TotalGrids => MyCubeGridGroups.Static?.Physical.Groups.Count ?? 0;
 
 
+        
 
         public GameService(ConfigService configs, ProfileManager instance, SteamService steam, ServerStateService serverState) 
         {

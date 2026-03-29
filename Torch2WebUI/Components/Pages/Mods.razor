@@ -218,7 +218,7 @@
 
     private async Task DeleteMod(int modId, int modListId)
     {
-        var confirmed = await Dialogs.ShowMessageBox(
+        var confirmed = await Dialogs.ShowMessageBoxAsync(
             "Delete Mod",
             "Are you sure you want to remove this mod?",
             yesText: "Delete",
@@ -264,7 +264,7 @@
 
     private async Task DeleteModList(int modListId)
     {
-        var confirmed = await Dialogs.ShowMessageBox(
+        var confirmed = await Dialogs.ShowMessageBoxAsync(
             "Delete Mod List",
             "Are you sure you want to delete this entire mod list?",
             yesText: "Delete",

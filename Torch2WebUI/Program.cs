@@ -23,6 +23,7 @@ namespace Torch2WebUI
 
             builder.Services.AddSingleton<InstanceManager>();
             builder.Services.AddSingleton<InstanceLogService>();
+            builder.Services.AddSingleton<InstanceChatService>();
             builder.Services.AddSingleton<InstanceSocketManager>();
             builder.Services.AddSingleton<ThemeService>();
             builder.Services.SetupSQL();

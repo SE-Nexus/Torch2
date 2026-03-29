@@ -52,7 +52,7 @@ namespace IgniteSE1.Commands
             ctx.Respond(serverStateService.ToString());
         }
 
-        public override void Stop(bool kill)
+        public override void Stop(bool kill = false)
         {
             if (serverStateService.RequestServerStateChange(ServerStateCommand.Stop))
             {

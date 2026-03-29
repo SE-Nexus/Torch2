@@ -291,6 +291,7 @@
     <Compile Include="Patches\LastSessionPatch.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\GameChatService.cs" />
     <Compile Include="Services\GameService.cs" />
     <Compile Include="Services\ProfileManager.cs" />
     <Compile Include="Services\PanelCoreService.cs" />
