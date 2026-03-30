@@ -1,5 +1,4 @@
-﻿using Grpc.Core;
-using IgniteSE1.Services;
+﻿using IgniteSE1.Services;
 using InstanceUtils.Logging;
 using InstanceUtils.Logging;
 using InstanceUtils.Models.Server;
@@ -7,7 +6,6 @@ using InstanceUtils.Services;
 using InstanceUtils.Services.Networking;
 using InstanceUtils.Utils.CommandUtils;
 using Microsoft.Extensions.DependencyInjection;
-using MyGrpcApp;
 using NLog;
 using NLog.Config;
 using Spectre.Console;
@@ -31,8 +29,6 @@ namespace InstanceUtils.Services
 
         // replaced Stack with history List to support indexed navigation (Up/Down)
         private readonly List<string> _History;
-        
-        //private CommandLineManager _cli;
 
 
         public string ConsoleName { get; private set; }
@@ -42,15 +38,11 @@ namespace InstanceUtils.Services
 
         public static string AppArguments => Environment.CommandLine;
 
-        int _protoServicePort;
-
 
         public ConsoleManager(string Name, ConfigService configs)
         {
-            //_cli = cli;
             _ConfigService = configs;
             ConsoleName = Name;
-            _protoServicePort = _ConfigService.Config.ProtoServerPort;
             mutexName = AppDomain.CurrentDomain.FriendlyName.Replace("\\", "_");
 
             // Initialize history
@@ -147,14 +139,9 @@ namespace InstanceUtils.Services
 
         private async Task SendCLIRequest(string[] args)
         {
-            Channel channel = new Channel($"localhost:{_protoServicePort}", ChannelCredentials.Insecure);
-            var client = new CommandLine.CommandLineClient(channel);
-
-            var request = new CLIRequest();
-            request.Command.AddRange(args);   // ✅ this is the key line
-
-            var reply = await client.ProcessCLIAsync(request);
-            AnsiConsole.WriteLine(reply.Result);
+            var client = new NamedPipeCommandClient(_ConfigService.Identification.InstanceID);
+            string reply = await client.SendCommandAsync(args);
+            AnsiConsole.WriteLine(reply);
         }
 
         public void UpdateConsoleTitle(string newTitle)

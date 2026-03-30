@@ -16,29 +16,33 @@ namespace InstanceUtils.Services.WebPanel
 {
     public class PanelSocketClient
     {
+        private const int ReceiveBufferSize = 4096;
+        private const int ConnectionTimeoutSeconds = 10;
+        private const int ReconnectionDelaySeconds = 5;
+        private const string ShutdownCommandName = "instance.shutdown";
+        private const string ShutdownMessage = "Instance shutting down";
+        private const string WebSocketPath = "/ws/instance";
+
         private TaskCompletionSource<bool> _disconnected =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        private readonly IConfigService _ConfigService;
-        private readonly IPanelCoreService _PanelCore;
+        private readonly IConfigService _configService;
+        private readonly IPanelCoreService _panelCore;
         private ClientWebSocket? _socket;
 
-        private ConcurrentQueue<byte[]> _sendQueue = new ConcurrentQueue<byte[]>();
-        private SemaphoreSlim _sendSignal = new SemaphoreSlim(0);
+        private ConcurrentQueue<byte[]> _sendQueue = new();
+        private SemaphoreSlim _sendSignal = new(0);
         private CancellationTokenSource? _connectionCts;
         private Action<LogLine>? _logHandler;
 
-        private bool _IsConnected = false;
-
-
+        private bool _isConnected;
 
         public PanelSocketClient(IConfigService config, IPanelCoreService panelCore)
         {
-            _ConfigService = config;
-            _PanelCore = panelCore;
+            _configService = config;
+            _panelCore = panelCore;
         }
 
-        // 🔁 Public entry point — call this ONCE at startup
         public async Task RunAsync(CancellationToken ct)
         {
             while (!ct.IsCancellationRequested)
@@ -48,8 +52,6 @@ namespace InstanceUtils.Services.WebPanel
                 try
                 {
                     await ConnectAsync(ct);
-
-                    // Wait here until listener signals disconnect
                     await Task.WhenAny(_disconnected.Task, Task.Delay(Timeout.Infinite, ct));
                     ct.ThrowIfCancellationRequested();
                 }
@@ -57,23 +59,25 @@ namespace InstanceUtils.Services.WebPanel
                 {
                     return;
                 }
-                catch(WebSocketException ex)
+                catch (WebSocketException ex)
                 {
-                    //Console.WriteLine("Couldnt Connect");
+                    //Connection failed, will retry
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"WebSocket error: {ex}");
+                    //Unexpected error, will retry
                 }
                 finally
                 {
-                    _IsConnected = false;
+                    _isConnected = false;
                     UnsubscribeLog();
                     CleanupSocket();
                 }
 
-                // ⏳ backoff before retry
-                await Task.Delay(TimeSpan.FromSeconds(5), ct);
+                if (!ct.IsCancellationRequested)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(ReconnectionDelaySeconds), ct);
+                }
             }
         }
 
@@ -82,9 +86,9 @@ namespace InstanceUtils.Services.WebPanel
             _socket = new ClientWebSocket();
             _socket.Options.SetRequestHeader(
                 TorchConstants.InstanceIdHeader,
-                _ConfigService.Identification.GetInstanceID().ToString());
+                _configService.Identification.GetInstanceID().ToString());
 
-            var panelUrl = _ConfigService.TargetWebPanel;
+            var panelUrl = _configService.TargetWebPanel;
 
             var wsUri = new UriBuilder(panelUrl)
             {
@@ -95,21 +99,27 @@ namespace InstanceUtils.Services.WebPanel
                     _ => throw new InvalidOperationException(
                         $"Unsupported scheme: {panelUrl.Scheme}")
                 },
-                Path = "/ws/instance"
+                Path = WebSocketPath
             }.Uri;
 
-            var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            await _socket.ConnectAsync(wsUri, cancellationTokenSource.Token);
+            var connectionTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(ConnectionTimeoutSeconds));
 
-            // Fresh send queue and connection-scoped cancellation for this session
-            _sendQueue = new ConcurrentQueue<byte[]>();
-            _sendSignal = new SemaphoreSlim(0);
+            try
+            {
+                await _socket.ConnectAsync(wsUri, connectionTimeout.Token);
+            }
+            finally
+            {
+                connectionTimeout.Dispose();
+            }
+
+            _sendQueue = new();
+            _sendSignal = new(0);
             _connectionCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
 
             _ = SendLoopAsync(_connectionCts.Token);
             _ = ListenAsync(ct);
 
-            // Subscribe to live log events and immediately flush buffered history
             _logHandler = line => EnqueueEnvelope(TorchConstants.WsLog, line);
             LogBuffer.Instance.OnLog += _logHandler;
             EnqueueEnvelope(TorchConstants.WsLogHistory, LogBuffer.Instance.GetHistory());
@@ -119,57 +129,88 @@ namespace InstanceUtils.Services.WebPanel
         {
             try
             {
-                var buffer = new byte[4096];
+                var buffer = new byte[ReceiveBufferSize];
                 var segment = new ArraySegment<byte>(buffer);
 
                 while (_socket?.State == WebSocketState.Open && !ct.IsCancellationRequested)
                 {
-                    _IsConnected = true;
-                    using var ms = new MemoryStream();
-                    WebSocketReceiveResult result;
+                    _isConnected = true;
 
-                    do
-                    {
-                        result = await _socket.ReceiveAsync(segment, ct);
+                    var message = await ReceiveMessageAsync(buffer, segment, ct);
+                    if (message is null)
+                        break;
 
-                        if (result.MessageType == WebSocketMessageType.Close)
-                            return;
-
-                        ms.Write(buffer, 0, result.Count);
-
-                    } while (!result.EndOfMessage);
-
-
-                    var json = Encoding.UTF8.GetString(ms.ToArray());
-
-                    SocketMsgEnvelope envelope;
-                    try
-                    {
-                        envelope = JsonSerializer.Deserialize<SocketMsgEnvelope>(json, TorchConstants.JsonOptions)
-                            ?? throw new JsonException("Envelope was null");
-                    }
-                    catch (Exception ex)
-                    {
-                        // Bad payload — log and ignore
-                        Console.WriteLine($"Invalid WS message: {ex}");
-                        continue;
-                    }
-
-                    await _PanelCore.RunWSCommand(envelope);
+                    await HandleMessageAsync(message);
                 }
             }
             catch (OperationCanceledException)
             {
-                // normal shutdown
+                //Normal shutdown
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Listen failed: {ex}");
+                //Listen failed
             }
             finally
             {
-                _IsConnected = false;
+                _isConnected = false;
                 _disconnected.TrySetResult(true);
+            }
+        }
+
+        private async Task<string?> ReceiveMessageAsync(byte[] buffer, ArraySegment<byte> segment, CancellationToken ct)
+        {
+            try
+            {
+                using var ms = new MemoryStream();
+                WebSocketReceiveResult result;
+
+                do
+                {
+                    result = await _socket!.ReceiveAsync(segment, ct);
+
+                    if (result.MessageType == WebSocketMessageType.Close)
+                    {
+                        return null;
+                    }
+
+                    ms.Write(buffer, 0, result.Count);
+                }
+                while (!result.EndOfMessage);
+
+                return Encoding.UTF8.GetString(ms.ToArray());
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        private async Task HandleMessageAsync(string json)
+        {
+            SocketMsgEnvelope? envelope;
+
+            try
+            {
+                envelope = JsonSerializer.Deserialize<SocketMsgEnvelope>(json, TorchConstants.JsonOptions)
+                    ?? throw new JsonException("Deserialized envelope was null");
+            }
+            catch (Exception ex)
+            {
+                return;
+            }
+
+            try
+            {
+                await _panelCore.RunWSCommand(envelope);
+            }
+            catch (Exception ex)
+            {
+                //Error processing command
             }
         }
 
@@ -182,21 +223,12 @@ namespace InstanceUtils.Services.WebPanel
 
             try
             {
-                // Optional but STRONGLY recommended:
-                // Tell the panel this is intentional
-                var shutdownEnvelope = new SocketMsgEnvelope("instance.shutdown");
-
-                var json = JsonSerializer.Serialize(shutdownEnvelope, TorchConstants.JsonOptions);
-                var bytes = Encoding.UTF8.GetBytes(json);
-
-                if (socket.State == WebSocketState.Open)
-                {
-                    await socket.SendAsync(new ArraySegment<byte>(bytes),WebSocketMessageType.Text,true,ct);
-                }
+                var shutdownEnvelope = new SocketMsgEnvelope(ShutdownCommandName);
+                await SendEnvelopeAsync(socket, shutdownEnvelope, ct);
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignore — shutdown should never fail because of messaging
+                //Error sending shutdown message
             }
 
             try
@@ -205,18 +237,32 @@ namespace InstanceUtils.Services.WebPanel
                 {
                     await socket.CloseAsync(
                         WebSocketCloseStatus.NormalClosure,
-                        "Instance shutting down",
+                        ShutdownMessage,
                         ct);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignore close failures
+                //Error closing socket
             }
             finally
             {
                 _disconnected.TrySetResult(true);
                 CleanupSocket();
+            }
+        }
+
+        private async Task SendEnvelopeAsync(ClientWebSocket socket, SocketMsgEnvelope envelope, CancellationToken ct)
+        {
+            var bytes = SerializeEnvelope(envelope);
+
+            if (socket.State == WebSocketState.Open)
+            {
+                await socket.SendAsync(
+                    new ArraySegment<byte>(bytes),
+                    WebSocketMessageType.Text,
+                    endOfMessage: true,
+                    ct);
             }
         }
 
@@ -227,11 +273,23 @@ namespace InstanceUtils.Services.WebPanel
                 Args = JsonSerializer.SerializeToElement(payload, TorchConstants.JsonOptions)
             };
 
-            var bytes = Encoding.UTF8.GetBytes(
-                JsonSerializer.Serialize(envelope, TorchConstants.JsonOptions));
-
+            var bytes = SerializeEnvelope(envelope);
             _sendQueue.Enqueue(bytes);
-            try { _sendSignal.Release(); } catch { }
+
+            try
+            {
+                _sendSignal.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+                //SendSignal was disposed
+            }
+        }
+
+        private static byte[] SerializeEnvelope(SocketMsgEnvelope envelope)
+        {
+            var json = JsonSerializer.Serialize(envelope, TorchConstants.JsonOptions);
+            return Encoding.UTF8.GetBytes(json);
         }
 
         private async Task SendLoopAsync(CancellationToken ct)
@@ -244,7 +302,8 @@ namespace InstanceUtils.Services.WebPanel
 
                     while (_sendQueue.TryDequeue(out var bytes))
                     {
-                        if (_socket?.State != WebSocketState.Open) return;
+                        if (_socket?.State != WebSocketState.Open)
+                            return;
 
                         await _socket.SendAsync(
                             new ArraySegment<byte>(bytes),
@@ -254,10 +313,13 @@ namespace InstanceUtils.Services.WebPanel
                     }
                 }
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException)
+            {
+                //SendLoop cancelled
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"Send loop error: {ex}");
+                //SendLoop error
             }
         }
 
@@ -272,6 +334,20 @@ namespace InstanceUtils.Services.WebPanel
             _connectionCts?.Cancel();
             _connectionCts?.Dispose();
             _connectionCts = null;
+
+            DisposeSendSignal();
+        }
+
+        private void DisposeSendSignal()
+        {
+            try
+            {
+                _sendSignal?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                //Error disposing SendSignal
+            }
         }
 
         private void CleanupSocket()
@@ -281,9 +357,9 @@ namespace InstanceUtils.Services.WebPanel
                 _socket?.Abort();
                 _socket?.Dispose();
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore cleanup failures
+                //Error cleaning up socket
             }
 
             _socket = null;

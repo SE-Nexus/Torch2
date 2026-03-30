@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
-using System.Text.Json;
 using Torch2API.Constants;
 using Torch2API.DTOs.Instances;
 using Torch2API.DTOs.Logs;
@@ -15,6 +13,9 @@ namespace Torch2WebUI.APIControllers.Status
     [ApiController]
     public class InstanceController : ControllerBase
     {
+        private string? GetInstanceIdFromHeaders() => 
+            HttpContext.Request.Headers[TorchConstants.InstanceIdHeader].FirstOrDefault();
+
         /// <summary>
         /// Once an instance is registered, it will begin sending status updates
         /// </summary>
@@ -24,12 +25,9 @@ namespace Torch2WebUI.APIControllers.Status
         [HttpPost(WebAPIConstants.Update)]
         public IActionResult GetStatus([FromBody] TorchInstanceBase status, [FromServices] InstanceManager InstanceService)
         {
-            
             InstanceService.UpdateStatus(status);
-
             // Example handling
             //Console.WriteLine($"Status Recieved: {status.Name} - {status.InstanceID}");
-
             return Ok();
         }
 
@@ -46,9 +44,7 @@ namespace Torch2WebUI.APIControllers.Status
             // Example handling
             Console.WriteLine($"Instance Registered: {status.Name} - {status.InstanceID}");
             return Ok();
-            
         }
-
 
         /// <summary>
         /// Handles a POST request to retrieve all configured instance objects provided in the request body.
@@ -59,41 +55,31 @@ namespace Torch2WebUI.APIControllers.Status
         [HttpPost(WebAPIConstants.AllProfiles)]
         public IActionResult GetAllConfiguredProfiles([FromBody] List<ProfileCfg> allinstances, [FromServices] InstanceManager InstanceService)
         {
-            var headers = HttpContext.Request.Headers;
-            string? instanceid = headers[TorchConstants.InstanceIdHeader].FirstOrDefault();
-            InstanceService.UpdateProfiles(instanceid, allinstances);
+            InstanceService.UpdateProfiles(GetInstanceIdFromHeaders(), allinstances);
             return Ok();
         }
-
 
         [HttpPost(WebAPIConstants.AllWorlds)]
         public IActionResult GetAllWorlds([FromBody] List<WorldInfo> allWorlds, [FromServices] InstanceManager InstanceService)
         {
-            var headers = HttpContext.Request.Headers;
-            string? instanceid = headers[TorchConstants.InstanceIdHeader].FirstOrDefault();
-            InstanceService.UpdateWorlds(instanceid, allWorlds);
+            InstanceService.UpdateWorlds(GetInstanceIdFromHeaders(), allWorlds);
             return Ok();
         }
-
 
         [HttpPost(WebAPIConstants.CustomWorlds)]
         public IActionResult GetAllCustomWorlds([FromBody] List<WorldInfo> allWorlds, [FromServices] InstanceManager InstanceService)
         {
-            var headers = HttpContext.Request.Headers;
-            string? instanceid = headers[TorchConstants.InstanceIdHeader].FirstOrDefault();
-            InstanceService.UpdateWorlds(instanceid, allWorlds, true);
+            InstanceService.UpdateWorlds(GetInstanceIdFromHeaders(), allWorlds, true);
             return Ok();
         }
-
 
         // Updated: accept full ConfigDedicatedSE1 objects from instances/panel
         [HttpPost(WebAPIConstants.DedicatedSchema)]
         public IActionResult DedicatedSchema([FromBody] ConfigDedicatedSE1 config, [FromServices] InstanceManager InstanceService)
         {
-            var headers = HttpContext.Request.Headers;
-            string? instanceid = headers[TorchConstants.InstanceIdHeader].FirstOrDefault();
-            InstanceService.UpdateDedicatedConfig(instanceid, config);
+            InstanceService.UpdateDedicatedConfig(GetInstanceIdFromHeaders(), config);
             return Ok();
         }
     }
 }
+

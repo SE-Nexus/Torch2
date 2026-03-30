@@ -31,12 +31,10 @@ namespace InstanceUtils.Services
 
         public virtual void AfterInit()
         {
-            
         }
 
         public virtual void ServerStarted()
         {
-            
         }
 
         public virtual Task<bool> ServerStarting()

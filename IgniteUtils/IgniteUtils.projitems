@@ -22,8 +22,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\Contexts\CommandContextAccessor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\Contexts\ICommandContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Commands\Contexts\WebPanelContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Networking\CliMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Networking\DelegatingHandlers\InstanceHeaderHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Networking\HttpConsoleLogClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Networking\NamedPipeCommandClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\ServiceExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\WebPanel\IPanelCoreService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\WebPanel\PanelBackgroundService.cs" />
@@ -39,9 +41,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\Base\ServiceCollectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\ConsoleManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\PatchService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Services\Protos\CommandLineProtoService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\ServerStateService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Identification\InstanceIdentification.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\SerializationUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Models\ProfileModels\" />

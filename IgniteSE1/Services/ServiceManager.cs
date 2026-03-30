@@ -1,6 +1,5 @@
 ﻿using InstanceUtils.Logging;
 using InstanceUtils.Services;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NLog;
 using Spectre.Console;
@@ -10,7 +9,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Torch2API.Models;
@@ -20,29 +18,41 @@ namespace IgniteSE1.Services
     public class ServiceManager : BackgroundService
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
-        private SteamService _steamService;
-        private ServerStateService _serverState;
-
-        private Spinner consoleSpinner;
-        private Style consoleSpinnerStyle;
-
+        private readonly SteamService _steamService;
+        private readonly ServerStateService _serverState;
+        private readonly Spinner _consoleSpinner = Spinner.Known.Dots2;
+        private readonly Style _consoleSpinnerStyle = Style.Parse("yellow");
 
         public IServiceProvider ServiceProvider { private set; get; }
-
         public IEnumerable<ServiceBase> Services { get; private set; }
 
         public ServiceManager(IEnumerable<ServiceBase> services, SteamService steamService, ServerStateService serverstate, IServiceProvider provider)
         {
             ServiceProvider = provider;
-            consoleSpinner = Spinner.Known.Dots2;
-            consoleSpinnerStyle = Style.Parse("yellow");
-
-
             Services = services;
-            _steamService = steamService; // Ensure SteamService is injected. We will need to init this first
+            _steamService = steamService;
             _serverState = serverstate;
-
             _serverState.ServerStatusChanged += _serverState_ServerStatusChanged;
+        }
+
+        private async Task RunStatusAsync(string statusMessage, Func<StatusContext, Task> action)
+        {
+            await AnsiConsole.Status()
+                .Spinner(_consoleSpinner)
+                .SpinnerStyle(_consoleSpinnerStyle)
+                .StartAsync(statusMessage, action);
+        }
+
+        private void LogAndDisplay(LogLevel logLevel, string markup)
+        {
+            _logger.NoConsole(logLevel, markup.RemoveMarkup());
+            AnsiConsole.MarkupLine(markup);
+        }
+
+        private void LogServiceStatus(string type, string status, string markup, bool success = true)
+        {
+            _logger.NoConsole(success ? LogLevel.Info : LogLevel.Fatal, $"{status}: {type}");
+            AnsiConsole.MarkupLine(markup);
         }
 
         private async void _serverState_ServerStatusChanged(object sender, ServerStatusEnum e)
@@ -50,20 +60,14 @@ namespace IgniteSE1.Services
             //Console styles
             if (e == ServerStatusEnum.Starting)
             {
-                await AnsiConsole.Status()
-                .Spinner(consoleSpinner)
-                .SpinnerStyle(consoleSpinnerStyle)
-                .StartAsync("Starting services...", async ctx =>
+                await RunStatusAsync("Starting services...", async ctx =>
                 {
                     await RunServicePhaseAsync(Services, e, ServerStatusEnum.Running, ctx);
                 });
             }
             else if (e == ServerStatusEnum.Stopping)
             {
-                await AnsiConsole.Status()
-                .Spinner(consoleSpinner)
-                .SpinnerStyle(consoleSpinnerStyle)
-                .StartAsync("Stopping services...", async ctx =>
+                await RunStatusAsync("Stopping services...", async ctx =>
                 {
                     bool success = await RunServicePhaseAsync(Services, e, ServerStatusEnum.Stopped, ctx);
 
@@ -86,7 +90,6 @@ namespace IgniteSE1.Services
 
                         //_serverState.RequestServerStateChange(ServerStateCommand.Idle);
                     }
-
                 });
             }
         }
@@ -95,8 +98,6 @@ namespace IgniteSE1.Services
 
         public async Task<bool> InitAllServicesAsync()
         {
-            
-
             if (!await _steamService.Init())
             {
                 _logger.Fatal("Failed to init SteamService. Exiting...");
@@ -104,15 +105,10 @@ namespace IgniteSE1.Services
             }
 
             bool allSucceeded = false;
-            await AnsiConsole.Status()
-                .Spinner(consoleSpinner)
-                .SpinnerStyle(consoleSpinnerStyle)
-                .StartAsync("Initializing services...", async ctx =>
-                {
-                    allSucceeded = await InitAllServicesAsync(ctx, ServiceProvider);
-                });
-
-
+            await RunStatusAsync("Initializing services...", async ctx =>
+            {
+                allSucceeded = await InitAllServicesAsync(ctx, ServiceProvider);
+            });
 
             if (allSucceeded)
                 _serverState.RequestServerStateChange(ServerStateCommand.Idle);
@@ -120,72 +116,57 @@ namespace IgniteSE1.Services
                 _serverState.ChangeServerStatus(ServerStatusEnum.Error);
 
             return allSucceeded;
-
         }
 
 
         private async Task<bool> InitAllServicesAsync(StatusContext ctx, IServiceProvider provider)
         {
             bool allSucceeded = true;
-            const int initTimeoutMs = 15000; // Example timeout
+            const int initTimeoutMs = 15000;
 
             var uninitializedServices = Services.Where(s => !s.IsInitialized).ToList();
             int total = uninitializedServices.Count;
             int completedCount = 0;
 
-
-            //Initing should be done in order
             foreach (var svc in uninitializedServices)
             {
-                // Inject provider if needed
                 svc.SetServiceProvider(provider);
-
                 string type = svc.GetType().Name;
                 ctx.Status($"[green]Initializing[/] [yellow]{type}[/] ({completedCount}/{total})");
 
                 var initTask = svc.Init();
-                var timeoutTask = Task.Delay(initTimeoutMs);
-                var completed = await Task.WhenAny(initTask, timeoutTask);
-
+                var completed = await Task.WhenAny(initTask, Task.Delay(initTimeoutMs));
                 completedCount++;
 
-                if (completed == timeoutTask)
+                if (completed != initTask)
                 {
-                    _logger.NoConsole(LogLevel.Fatal, $"Timeout initializing {type}");
-                    AnsiConsole.MarkupLine($"[red]⏱ Timeout:[/] {type} ({completedCount}/{total})");
+                    LogAndDisplay(LogLevel.Fatal, $"[red]⏱ Timeout:[/] {type} ({completedCount}/{total})");
                     allSucceeded = false;
                     continue;
                 }
 
-                bool result = await initTask; // safe, it's completed
-
+                bool result = await initTask;
                 if (!result)
                 {
-                    _logger.NoConsole(LogLevel.Fatal, $"Failed to init {type}");
-                    AnsiConsole.MarkupLine($"[red]✖ Failed:[/] {type} ({completedCount}/{total})");
+                    LogAndDisplay(LogLevel.Fatal, $"[red]✖ Failed:[/] {type} ({completedCount}/{total})");
                     allSucceeded = false;
                 }
                 else
                 {
                     svc.IsInitialized = true;
-                    _logger.NoConsole(LogLevel.Info, $"Service initialized successfully: {type}");
-                    AnsiConsole.MarkupLine($"[green]+ Initialized:[/] {type} ({completedCount}/{total})");
+                    LogAndDisplay(LogLevel.Info, $"[green]+ Initialized:[/] {type} ({completedCount}/{total})");
                 }
             }
 
-            // After init hooks
             if (allSucceeded)
             {
-                _logger.NoConsole(LogLevel.Info, "All services initialized successfully.");
-                AnsiConsole.MarkupLine("[green]All services initialized successfully![/]");
-
+                LogAndDisplay(LogLevel.Info, "[green]All services initialized successfully![/]");
                 foreach (var svc in Services.Where(s => s.IsInitialized))
                     svc.AfterInit();
             }
             else
             {
-                _logger.NoConsole(LogLevel.Fatal, "One or more services failed to initialize.");
-                AnsiConsole.MarkupLine("[red]Some services failed to initialize.[/]");
+                LogAndDisplay(LogLevel.Fatal, "[red]Some services failed to initialize.[/]");
             }
 
             return allSucceeded;
@@ -199,7 +180,7 @@ namespace IgniteSE1.Services
             bool allSucceeded = true;
             string phaseName = currentStatus.ToString();
 
-            _logger.NoConsole(LogLevel.Info, $"{phaseName} {total} service(s)...");
+            LogAndDisplay(LogLevel.Info, $"[yellow]{phaseName} {total} service(s)...[/]");
             ctx.Status($"[yellow]{phaseName} services...[/] (0/{total})");
 
             var tasks = serviceList
@@ -208,12 +189,12 @@ namespace IgniteSE1.Services
 
             while (tasks.Count > 0)
             {
-                Task<bool> finishedTask = await Task.WhenAny(tasks.Select(t => t.Task));
+                var finishedTask = await Task.WhenAny(tasks.Select(t => t.Task));
                 var finished = tasks.First(t => t.Task == finishedTask);
                 tasks.Remove(finished);
 
-                bool result = false;
                 string type = finished.Service.GetType().Name;
+                bool result = false;
 
                 try
                 {
@@ -222,20 +203,17 @@ namespace IgniteSE1.Services
                 catch (Exception ex)
                 {
                     _logger.Error(ex, $"Exception while {phaseName.ToLower()} {type}");
-                    result = false;
                 }
 
                 completedCount++;
 
                 if (result)
                 {
-                    _logger.NoConsole(LogLevel.Info, $"Service {phaseName.ToLower()} successfully: {type} ({completedCount}/{total})");
-                    AnsiConsole.MarkupLine($"[green]✔ {phaseName}:[/] {type} ({completedCount}/{total})");
+                    LogAndDisplay(LogLevel.Info, $"[green]✔ {phaseName}:[/] {type} ({completedCount}/{total})");
                 }
                 else
                 {
-                    _logger.NoConsole(LogLevel.Error, $"Service failed to {phaseName.ToLower()}: {type} ({completedCount}/{total})");
-                    AnsiConsole.MarkupLine($"[red]✖ Failed to {phaseName.ToLower()}:[/] {type} ({completedCount}/{total})");
+                    LogAndDisplay(LogLevel.Error, $"[red]✖ Failed to {phaseName.ToLower()}:[/] {type} ({completedCount}/{total})");
                     allSucceeded = false;
                 }
 
@@ -244,11 +222,9 @@ namespace IgniteSE1.Services
 
             if (allSucceeded)
             {
-                _logger.NoConsole(LogLevel.Info, $"All services {phaseName.ToLower()} successfully.");
-                AnsiConsole.MarkupLine($"[green]All services {phaseName.ToLower()} successfully![/]");
+                LogAndDisplay(LogLevel.Info, $"[green]All services {phaseName.ToLower()} successfully![/]");
                 _serverState.ChangeServerStatus(successStatus);
 
-                // Notify services that the server is now running
                 if (successStatus == ServerStatusEnum.Running)
                 {
                     foreach (var svc in serviceList)
@@ -266,8 +242,7 @@ namespace IgniteSE1.Services
             }
             else
             {
-                _logger.NoConsole(LogLevel.Fatal, $"One or more services failed to {phaseName.ToLower()}.");
-                AnsiConsole.MarkupLine($"[red]One or more services failed to {phaseName.ToLower()}.[/]");
+                LogAndDisplay(LogLevel.Fatal, $"[red]One or more services failed to {phaseName.ToLower()}.[/]");
                 _serverState.ChangeServerStatus(ServerStatusEnum.Error);
             }
 

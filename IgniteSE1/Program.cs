@@ -1,7 +1,6 @@
-﻿using Grpc.Core;
-using IgniteSE1.Commands;
+﻿using IgniteSE1.Commands;
 using IgniteSE1.Services;
-using IgniteSE1.Services.ProtoServices;
+using IgniteSE1.Services.Networking;
 using InstanceUtils.Commands;
 using InstanceUtils.Commands.TestCommand;
 using InstanceUtils.Models.Server;
@@ -12,7 +11,6 @@ using InstanceUtils.Utils.CommandUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MyGrpcApp;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
@@ -66,10 +64,8 @@ namespace IgniteSE1
                 services.AddSingletonWithBase<GameChatService>();
                 services.AddSingletonWithBase<ProfileManager>();
 
-
-                services.AddSingleton<CommandLineProtoService>();
                 services.AddSingleton<IPanelCoreService, PanelCoreService>();
-               
+
                 services.AddHttpClient();
 
             }).ConfigureLogging(logging => { logging.ClearProviders(); });
@@ -77,27 +73,11 @@ namespace IgniteSE1
             IHost host = builder.Build();
             IServiceProvider provider = host.Services;
 
-
-            //CommandLineManager cmdLine = provider.GetService<CommandLineManager>();
-            //cmdLine.RootCommand.Add(CommandLineBuilder.BuildFromType<StateCommands>(provider));
-            //cmdLine.RootCommand.Add(CommandLineBuilder.BuildFromType<TestCommand>(provider));
-
-            //ServiceManager serviceManager = provider.GetService<ServiceManager>();
-
-            int Port = ConfigService.Config.ProtoServerPort;
-            Server server = new Server
-            {
-                Services =
-                {
-                    Greeter.BindService(new GreeterService()),
-                    CommandLine.BindService(provider.GetService<CommandLineProtoService>())
-
-                },
-                Ports = { new ServerPort("localhost", Port, ServerCredentials.Insecure) }
-            };
-            server.Start();
-            Console.WriteLine("gRPC server listening on port " + Port);
-
+            // Start Named Pipe server for CLI communication
+            var commandService = provider.GetService<CommandService>();
+            var namedPipeServer = new NamedPipeCommandServer(commandService, ConfigService.Identification.InstanceID);
+            namedPipeServer.Start();
+            //Console.WriteLine("Named Pipe server started for CLI communication");
 
             await host.RunAsync();
 

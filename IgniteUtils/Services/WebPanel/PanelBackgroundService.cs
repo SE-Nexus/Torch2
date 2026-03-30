@@ -9,50 +9,42 @@ namespace InstanceUtils.Services.WebPanel
 {
     public class PanelBackgroundService : BackgroundService
     {
-        private readonly IPanelCoreService _WebService;
-        private readonly int _UpdateIntervalMs = 500;
-        private readonly Timer _UpdateTimer;
+        private readonly IPanelCoreService _webService;
+        private readonly Timer _updateTimer;
         private readonly PanelSocketClient _socketClient;
 
         public PanelBackgroundService(IPanelCoreService webService, PanelSocketClient sClient)
         {
-            _UpdateTimer = new Timer(_UpdateIntervalMs);
-            _UpdateTimer.AutoReset = false;
-            _UpdateTimer.Elapsed += _UpdateTimer_Elapsed;
-            //Can pull the config service here if needed for intervals/URIs
-
+            _webService = webService;
             _socketClient = sClient;
-            _WebService = webService;
+            _updateTimer = new Timer(500) { AutoReset = false };
+            _updateTimer.Elapsed += _UpdateTimer_Elapsed;
         }
 
         private async void _UpdateTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             try
             {
-                await _WebService.SendStatus();
+                await _webService.SendStatus();
             }
             catch (Exception) { }
             finally
             {
-                _UpdateTimer.Start();
+                _updateTimer.Start();
             }
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _UpdateTimer.Start();
-            await _WebService.GetPublicIP();
-
-            //The following is blocking
+            _updateTimer.Start();
+            await _webService.GetPublicIP();
             await _socketClient.RunAsync(stoppingToken);
-            return;
         }
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            _UpdateTimer?.Stop();
+            _updateTimer?.Stop();
             await _socketClient.ShutdownAsync(cancellationToken);
-            return;
         }
     }
 }

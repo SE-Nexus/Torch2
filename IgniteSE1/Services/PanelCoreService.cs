@@ -53,33 +53,23 @@ namespace InstanceUtils.Services.WebPanel
             _chatManager.OnChatReceived += OnChatReceived;
         }
 
-        private async void OnChatReceived(ChatMessage message)
+        private async Task PostToPanelSafelyAsync<T>(string endpoint, T data)
         {
             try
             {
-                await _webPanelClient.PostAsync(WebAPIConstants.PostChat, message);
+                await _webPanelClient.PostAsync(endpoint, data);
             }
             catch (Exception) { }
         }
 
-        private async void _instanceManager_WorldsChanged(List<WorldInfo> obj)
-        {
-            try
-            {
-                //No matter who runs this command, we need to alert the panel. Should this be here or in the create world?
-                await _webPanelClient.PostAsync(WebAPIConstants.AllWorlds, obj);
-            }
-            catch (Exception) { }
-        }
+        private async void OnChatReceived(ChatMessage message) =>
+            await PostToPanelSafelyAsync(WebAPIConstants.PostChat, message);
 
-        private async void _instanceManager_ProfilesChanged(List<ProfileCfg> obj)
-        {
-            try
-            {
-                await _webPanelClient.PostAsync(WebAPIConstants.AllProfiles, obj);
-            }
-            catch (Exception) { }
-        }
+        private async void _instanceManager_WorldsChanged(List<WorldInfo> obj) =>
+            await PostToPanelSafelyAsync(WebAPIConstants.AllWorlds, obj);
+
+        private async void _instanceManager_ProfilesChanged(List<ProfileCfg> obj) =>
+            await PostToPanelSafelyAsync(WebAPIConstants.AllProfiles, obj);
 
         public async Task GetPublicIP()
         {
