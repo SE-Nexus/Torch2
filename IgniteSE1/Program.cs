@@ -30,8 +30,6 @@ namespace IgniteSE1
     {
         public const string AppName = "IgniteSE1";
 
-
-
         static async Task Main(string[] args)
         {
             Console.Clear();
@@ -42,7 +40,7 @@ namespace IgniteSE1
 
 
             ConsoleManager IgniteConsole = new ConsoleManager(AppName, ConfigService);
-   
+
             // Initialize Console
             if (!await IgniteConsole.InitConsole(args))
                 return;
@@ -80,18 +78,6 @@ namespace IgniteSE1
             //Console.WriteLine("Named Pipe server started for CLI communication");
 
             await host.RunAsync();
-
-          
-            //await Task.Delay(2000);
-            //s.RequestServerStateChange(ServerStateCommand.Kill);
-
-
-           
-            //AnsiConsole.Markup("[underline red]Hello[/] World!");
         }
-
-
-
-
-            }
-        }
+    }
+}

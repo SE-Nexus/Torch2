@@ -1,5 +1,6 @@
 using MudBlazor.Services;
 using Torch2WebUI.Components;
+using Torch2WebUI.Configs;
 using Torch2WebUI.Services;
 using Torch2WebUI.Services.InstanceServices;
 
@@ -9,7 +10,9 @@ namespace Torch2WebUI
     {
         public static async Task Main(string[] args)
         {
-            
+            // Load configuration
+            Torch2WebUICfg config = Torch2WebUICfg.LoadYaml(Path.Combine(AppContext.BaseDirectory, "torch2webui.yml"));
+
             var builder = WebApplication.CreateBuilder(args);
  
             builder.Services.AddControllers();
@@ -26,6 +29,7 @@ namespace Torch2WebUI
             builder.Services.AddSingleton<InstanceChatService>();
             builder.Services.AddSingleton<InstanceSocketManager>();
             builder.Services.AddSingleton<ThemeService>();
+            builder.Services.AddSingleton(config);
             builder.Services.SetupSQL();
             builder.Logging.ClearProviders();
 
@@ -69,9 +73,12 @@ namespace Torch2WebUI
             app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
             Console.WriteLine("Torch2 Web UI started successfully!");
+            Console.WriteLine($"Panel: {config.PanelName}");
+            Console.WriteLine($"Port: {config.Port}");
+            Console.WriteLine($"Max Connections: {config.MaxConnections}");
             foreach (var url in app.Urls)
             {
-                Console.WriteLine($"Listening on: {url}/scalar");
+                Console.WriteLine($"URL: {url}/scalar");
             }
 
 
